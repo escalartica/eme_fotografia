@@ -1,0 +1,35 @@
+@import './reset.css';
+@import './tokens.css';
+
+@font-face {
+  font-family: 'General Sans';
+  src: url('/fonts/GeneralSans-Variable.woff2') format('woff2');
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  padding: var(--space-1) var(--space-2);
+  z-index: 1000;
+}
+.skip-link:focus {
+  left: var(--space-2);
+  top: var(--space-2);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
