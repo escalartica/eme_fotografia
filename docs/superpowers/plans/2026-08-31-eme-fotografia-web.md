@@ -57,6 +57,7 @@ components/
   sections/Confianza.tsx
   sections/Testimonios.tsx
   sections/CtaContacto.tsx
+  sections/ProjectGallery.tsx
   ui/ContactForm.tsx, ContactForm.module.css
 content/
   types.ts, site.ts, services.ts, projects.ts, testimonials.ts
@@ -120,6 +121,24 @@ export default defineConfig({
 
 ```ts
 import '@testing-library/jest-dom/vitest';
+
+// Default stub so any component reaching useReducedMotion (directly or via
+// ScrollReveal/VideoPreview/SmoothScrollProvider) doesn't crash in jsdom,
+// which has no native matchMedia. Individual tests that care about a
+// specific matches value override window.matchMedia themselves — this is
+// only the fallback for tests that don't.
+if (typeof window !== 'undefined' && !window.matchMedia) {
+  window.matchMedia = ((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    addListener: () => {},
+    removeListener: () => {},
+    dispatchEvent: () => false,
+  })) as unknown as typeof window.matchMedia;
+}
 ```
 
 - [ ] **Step 5: Add the `test` script to `package.json`**
@@ -407,6 +426,8 @@ git commit -m "feat: add typed site content with verified real brand data"
 - Produces: `services: Service[]`, `projects: Project[]`, `testimonials: Testimonial[]` — consumed by SelectedWork, /trabajos, /trabajos/[slug], /servicios, and Testimonios (Tasks 19–26).
 
 - [ ] **Step 1: Extend `content/types.ts`**
+
+Append the following below the existing `SiteInfo` interface from Task 3 — do not remove or replace `SiteInfo`, this file accumulates types across tasks:
 
 ```ts
 export type ServiceSlug = 'boda' | 'video' | 'fotomaton' | '360';
@@ -1520,7 +1541,7 @@ describe('Cursor', () => {
         <button data-cursor="ver">Ver proyecto</button>
       </>
     );
-    fireEvent.mouseEnter(screen.getByText('Ver proyecto'));
+    fireEvent.mouseOver(screen.getByText('Ver proyecto'));
     expect(screen.getByTestId('cursor-label')).toHaveTextContent('VER');
   });
 
@@ -1607,7 +1628,7 @@ export function Cursor() {
 }
 ```
 
-Note: `fireEvent.mouseEnter` in the test bubbles as `mouseover` in jsdom, matching the `document.addEventListener('mouseover', ...)` delegation above.
+Note: the test fires `mouseOver` (not `mouseEnter`) because `mouseenter` does not bubble and would never reach the `document.addEventListener('mouseover', ...)` delegation above — `mouseover` does bubble, which is why the component listens for it.
 
 - [ ] **Step 4: Run it to verify it passes**
 
@@ -2038,6 +2059,15 @@ export function withPageTransition(navigate: () => void) {
 ::view-transition-old(root), ::view-transition-new(root) {
   animation-duration: var(--duration-fast);
 }
+
+/* The reset.css `*` reduced-motion rule doesn't reach ::view-transition-*
+   pseudo-elements (they aren't matched by `*`), so they need their own
+   override here. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
 ```
 
 - [ ] **Step 5: Run it to verify it passes**
@@ -2105,24 +2135,30 @@ Expected: FAIL — module does not exist.
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { site } from '@/content/site';
+import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import styles from './Hero.module.css';
 
 const INTRO_KEY = 'eme-intro-shown';
 
 export function Hero() {
   const [showIntro, setShowIntro] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     const alreadyShown = sessionStorage.getItem(INTRO_KEY) === 'true';
-    if (!alreadyShown) {
-      setShowIntro(true);
-      const timer = setTimeout(() => {
-        setShowIntro(false);
-        sessionStorage.setItem(INTRO_KEY, 'true');
-      }, 1400);
-      return () => clearTimeout(timer);
+    if (alreadyShown) return;
+    if (reducedMotion) {
+      // No flash-screen under reduced motion — mark it shown and skip straight to content.
+      sessionStorage.setItem(INTRO_KEY, 'true');
+      return;
     }
-  }, []);
+    setShowIntro(true);
+    const timer = setTimeout(() => {
+      setShowIntro(false);
+      sessionStorage.setItem(INTRO_KEY, 'true');
+    }, 1400);
+    return () => clearTimeout(timer);
+  }, [reducedMotion]);
 
   return (
     <section className={styles.hero}>
@@ -2261,31 +2297,48 @@ Expected: FAIL — module does not exist.
 
 - [ ] **Step 7: Implement `components/sections/SelectedWork.tsx`**
 
+Video-cover projects must use the real `VideoPreview`/`Lightbox` components (Tasks 15–16) — a static poster image would silently drop the autoplay-preview behavior those tasks exist for and break parity between the photo and video disciplines the spec calls for.
+
 ```tsx
+'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { projects } from '@/content/projects';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
+import { VideoPreview } from '@/components/motion/VideoPreview';
+import { Lightbox } from '@/components/motion/Lightbox';
 import styles from './SelectedWork.module.css';
 
 export function SelectedWork() {
+  const [openSlug, setOpenSlug] = useState<string | null>(null);
+  const openProject = projects.find((p) => p.slug === openSlug) ?? null;
+
   return (
     <section className={styles.section} aria-labelledby="selected-work-heading">
       <h2 id="selected-work-heading">Trabajos seleccionados</h2>
       <div className={styles.grid}>
         {projects.map((project) => (
           <ScrollReveal key={project.slug} className={styles.card}>
-            <Link href={`/trabajos/${project.slug}`} aria-label={project.title} data-cursor="ver">
-              {project.cover.type === 'image' ? (
+            {project.cover.type === 'image' ? (
+              <Link href={`/trabajos/${project.slug}`} aria-label={project.title} data-cursor="ver">
                 <Image src={project.cover.src} alt={project.cover.alt} width={800} height={1000} />
-              ) : (
-                <Image src={project.cover.poster!} alt={project.cover.alt} width={800} height={1000} />
-              )}
-              <span className={styles.title}>{project.title}</span>
-            </Link>
+                <span className={styles.title}>{project.title}</span>
+              </Link>
+            ) : (
+              <div>
+                <VideoPreview media={project.cover} onOpenFull={() => setOpenSlug(project.slug)} />
+                <Link href={`/trabajos/${project.slug}`} className={styles.title} data-cursor="ver">{project.title}</Link>
+              </div>
+            )}
           </ScrollReveal>
         ))}
       </div>
+      <Lightbox isOpen={!!openProject} onClose={() => setOpenSlug(null)}>
+        {openProject?.cover.type === 'video' && (
+          <video src={openProject.cover.src} controls autoPlay poster={openProject.cover.poster} aria-label={openProject.cover.alt} />
+        )}
+      </Lightbox>
     </section>
   );
 }
@@ -2677,19 +2730,96 @@ git commit -m "feat: add filterable /trabajos listing page"
 ### Task 23: `/trabajos/[slug]` project detail page
 
 **Files:**
-- Create: `app/trabajos/[slug]/page.tsx`
-- Test: `lib/projects-static-params.test.ts`, `app/trabajos/[slug]/page.test.tsx`
+- Create: `app/trabajos/[slug]/page.tsx`, `components/sections/ProjectGallery.tsx`
+- Test: `app/trabajos/[slug]/page.test.tsx`, `components/sections/ProjectGallery.test.tsx`
 
 **Interfaces:**
 - Consumes: `projects` (Task 4), `VideoPreview` (Task 15), `Lightbox` (Task 16).
-- Produces: 4 static routes at build time via `generateStaticParams`.
+- Produces: 4 static routes at build time via `generateStaticParams`; `<ProjectGallery project={project} />` — reused as-is when Task 28 adds `generateMetadata` to this same route (that function must live in a server component file, which is why the interactive gallery is split into its own client component here rather than making the whole page a client component).
 
-- [ ] **Step 1: Write the failing test for `generateStaticParams`**
+- [ ] **Step 1: Write the failing test for `ProjectGallery`**
 
-```ts
-import { describe, it, expect } from 'vitest';
-import { generateStaticParams } from './page';
+```tsx
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { ProjectGallery } from './ProjectGallery';
 import { projects } from '@/content/projects';
+
+vi.mock('@/lib/hooks/useReducedMotion', () => ({ useReducedMotion: () => true }));
+
+describe('ProjectGallery', () => {
+  it('renders an image for each image gallery item', () => {
+    const project = projects.find((p) => p.slug === 'clara-y-manuel')!;
+    render(<ProjectGallery project={project} />);
+    expect(screen.getAllByRole('img').length).toBe(project.gallery.length);
+  });
+
+  it('renders a VideoPreview for video gallery items and opens the lightbox on click', () => {
+    const project = projects.find((p) => p.slug === 'boda-elena-y-pablo-video')!;
+    render(<ProjectGallery project={project} />);
+    const videoItem = project.gallery.find((m) => m.type === 'video')!;
+    fireEvent.click(screen.getByRole('button', { name: /reproducir/i }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+});
+```
+
+- [ ] **Step 2: Run it to verify it fails**
+
+Run: `npm test -- components/sections/ProjectGallery.test.tsx`
+Expected: FAIL — module does not exist.
+
+- [ ] **Step 3: Implement `components/sections/ProjectGallery.tsx`**
+
+Video items must use `VideoPreview`/`Lightbox` (Tasks 15–16), matching the fix already applied to `SelectedWork` in Task 19 — a static poster-only render would lose the autoplay preview entirely.
+
+```tsx
+'use client';
+import { useState } from 'react';
+import Image from 'next/image';
+import { VideoPreview } from '@/components/motion/VideoPreview';
+import { Lightbox } from '@/components/motion/Lightbox';
+import type { Project } from '@/content/types';
+
+export function ProjectGallery({ project }: { project: Project }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const openMedia = openIndex !== null ? project.gallery[openIndex] : null;
+
+  return (
+    <>
+      <div>
+        {project.gallery.map((media, i) =>
+          media.type === 'image' ? (
+            <Image key={i} src={media.src} alt={media.alt} width={1600} height={1200} />
+          ) : (
+            <VideoPreview key={i} media={media} onOpenFull={() => setOpenIndex(i)} />
+          )
+        )}
+      </div>
+      <Lightbox isOpen={openMedia?.type === 'video'} onClose={() => setOpenIndex(null)}>
+        {openMedia?.type === 'video' && (
+          <video src={openMedia.src} controls autoPlay poster={openMedia.poster} aria-label={openMedia.alt} />
+        )}
+      </Lightbox>
+    </>
+  );
+}
+```
+
+- [ ] **Step 4: Run it to verify it passes**
+
+Run: `npm test -- components/sections/ProjectGallery.test.tsx`
+Expected: PASS.
+
+- [ ] **Step 5: Write the failing test for `generateStaticParams` and the page**
+
+```tsx
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import Page, { generateStaticParams } from './page';
+import { projects } from '@/content/projects';
+
+vi.mock('@/lib/hooks/useReducedMotion', () => ({ useReducedMotion: () => true }));
 
 describe('generateStaticParams for /trabajos/[slug]', () => {
   it('returns one entry per seed project', async () => {
@@ -2697,50 +2827,39 @@ describe('generateStaticParams for /trabajos/[slug]', () => {
     expect(params.map((p) => p.slug).sort()).toEqual(projects.map((p) => p.slug).sort());
   });
 });
-```
-
-- [ ] **Step 2: Run it to verify it fails**
-
-Run: `npm test -- app/trabajos/[slug]/page.test.tsx`
-Expected: FAIL — module does not exist. (Place both tests in the same file since they cover the same page module.)
-
-- [ ] **Step 3: Write the failing test for the page component**
-
-Add to the same test file:
-
-```tsx
-import { render, screen } from '@testing-library/react';
-import Page from './page';
 
 describe('/trabajos/[slug] page', () => {
-  it('renders the project title, category, and gallery images', async () => {
-    const ui = await Page({ params: { slug: 'clara-y-manuel' } });
-    render(ui);
+  it('renders the project title, category, and gallery images', () => {
+    render(<Page params={{ slug: 'clara-y-manuel' }} />);
     expect(screen.getByRole('heading', { name: 'Clara y Manuel' })).toBeInTheDocument();
     expect(screen.getAllByRole('img').length).toBeGreaterThan(0);
   });
 
-  it('renders prev/next navigation to adjacent projects', async () => {
-    const ui = await Page({ params: { slug: 'lucia-y-jorge' } });
-    render(ui);
+  it('renders prev/next navigation to adjacent projects', () => {
+    render(<Page params={{ slug: 'lucia-y-jorge' }} />);
     expect(screen.getByRole('link', { name: /siguiente proyecto/i })).toBeInTheDocument();
   });
 });
 ```
 
-- [ ] **Step 4: Implement `app/trabajos/[slug]/page.tsx`**
+- [ ] **Step 6: Run it to verify it fails**
+
+Run: `npm test -- app/trabajos/[slug]/page.test.tsx`
+Expected: FAIL — module does not exist.
+
+- [ ] **Step 7: Implement `app/trabajos/[slug]/page.tsx`** (server component — `generateMetadata` joins this file in Task 28)
 
 ```tsx
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { projects } from '@/content/projects';
+import { ProjectGallery } from '@/components/sections/ProjectGallery';
 
 export async function generateStaticParams() {
   return projects.map((p) => ({ slug: p.slug }));
 }
 
-export default async function Page({ params }: { params: { slug: string } }) {
+export default function Page({ params }: { params: { slug: string } }) {
   const index = projects.findIndex((p) => p.slug === params.slug);
   if (index === -1) notFound();
   const project = projects[index];
@@ -2751,36 +2870,28 @@ export default async function Page({ params }: { params: { slug: string } }) {
       <h1>{project.title}</h1>
       <p>{project.category} — {project.year} — {project.location}</p>
       <p>{project.description}</p>
-      <div>
-        {project.gallery.map((media, i) =>
-          media.type === 'image' ? (
-            <Image key={i} src={media.src} alt={media.alt} width={1600} height={1200} />
-          ) : (
-            <Image key={i} src={media.poster!} alt={media.alt} width={1600} height={1200} />
-          )
-        )}
-      </div>
+      <ProjectGallery project={project} />
       <Link href={`/trabajos/${next.slug}`}>Siguiente proyecto: {next.title}</Link>
     </article>
   );
 }
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [ ] **Step 8: Run the tests to verify they pass**
 
 Run: `npm test -- app/trabajos/[slug]/page.test.tsx`
 Expected: PASS.
 
-- [ ] **Step 6: Verify the static build produces all 4 routes**
+- [ ] **Step 9: Verify the static build produces all 4 routes**
 
 Run: `npm run build`
 Expected: build log lists 4 generated paths under `/trabajos/[slug]`.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 10: Commit**
 
 ```bash
 git add -A
-git commit -m "feat: add statically generated project detail pages"
+git commit -m "feat: add statically generated project detail pages with interactive gallery"
 ```
 
 ---
