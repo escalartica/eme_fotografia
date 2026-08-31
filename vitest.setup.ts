@@ -53,6 +53,25 @@ if (typeof window !== 'undefined' && !window.IntersectionObserver) {
 // target, even when real focusable descendants (e.g. buttons) are present.
 if (typeof window !== 'undefined' && typeof Element !== 'undefined') {
   Element.prototype.getClientRects = function getClientRects() {
-    return [{ width: 1, height: 1 }] as unknown as DOMRectList;
+    // Preserve jsdom's one real visibility signal: a `display: none` element
+    // still reports zero rects (i.e. "hidden"), it's only elements that
+    // jsdom simply can't lay out that get this fallback rect.
+    if (getComputedStyle(this).display === 'none') {
+      return [] as unknown as DOMRectList;
+    }
+    const rect: DOMRect = {
+      width: 1,
+      height: 1,
+      top: 0,
+      left: 0,
+      right: 1,
+      bottom: 1,
+      x: 0,
+      y: 0,
+      toJSON() {
+        return this;
+      },
+    };
+    return [rect] as unknown as DOMRectList;
   };
 }

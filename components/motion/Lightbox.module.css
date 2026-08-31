@@ -8,4 +8,24 @@
   justify-content: center;
   padding: var(--space-3);
 }
-.content { max-width: 1200px; width: 100%; }
+.content { max-width: 1200px; width: 100%; position: relative; }
+
+.closeButton {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: var(--space-1);
+  background: transparent;
+  border: 1px solid var(--color-paper);
+  color: var(--color-paper);
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  padding: var(--space-1) var(--space-2);
+  cursor: pointer;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+  opacity: 0.75;
+}
