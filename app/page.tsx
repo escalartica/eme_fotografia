@@ -1,4 +1,5 @@
 import { Hero } from '@/components/sections/Hero';
+import { Manifiesto } from '@/components/sections/Manifiesto';
 import { SelectedWork } from '@/components/sections/SelectedWork';
 import { ServiciosPreview } from '@/components/sections/ServiciosPreview';
 import { SobreEmePreview } from '@/components/sections/SobreEmePreview';
@@ -10,6 +11,7 @@ export default function Page() {
   return (
     <>
       <Hero />
+      <Manifiesto />
       <SelectedWork />
       <ServiciosPreview />
       <SobreEmePreview />

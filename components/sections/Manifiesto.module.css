@@ -1,0 +1,13 @@
+.section {
+  max-width: 44rem;
+  margin-inline: auto;
+  padding: var(--space-5) var(--space-3);
+  text-align: center;
+}
+.section h2 {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 1.1;
+  margin-block-end: var(--space-2);
+}
+.section p { color: var(--color-muted); }

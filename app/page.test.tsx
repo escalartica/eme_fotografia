@@ -9,6 +9,7 @@ describe('Home page', () => {
     render(<Page />);
     const headingTexts = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
     expect(headingTexts).toEqual([
+      'No contamos bodas. Contamos historias con fecha.',
       'Trabajos seleccionados',
       'Servicios',
       `Sobre EME Fotografía Sevilla`,
