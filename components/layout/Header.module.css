@@ -8,12 +8,23 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-2) var(--space-3);
+}
+.brand { display: inline-flex; }
+.logo { height: 2.25rem; width: auto; }
+.desktopNav {
+  display: none;
+  gap: var(--space-3);
   mix-blend-mode: difference;
   color: var(--color-paper);
 }
-.brand { font-family: var(--font-serif); font-weight: 500; }
-.desktopNav { display: none; gap: var(--space-3); }
-.menuButton { background: none; border: none; color: inherit; font: inherit; cursor: pointer; }
+.menuButton {
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  mix-blend-mode: difference;
+  color: var(--color-paper);
+}
 
 @media (min-width: 768px) {
   .desktopNav { display: flex; }

@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { site } from '@/content/site';
 import { MobileMenu } from './MobileMenu';
@@ -19,7 +20,9 @@ export function Header() {
 
   return (
     <header className={styles.header}>
-      <Link href="/" className={styles.brand}>{site.brandName}</Link>
+      <Link href="/" className={styles.brand}>
+        <Image src="/images/logo/eme-logo.png" alt={site.brandName} width={168} height={79} priority className={styles.logo} />
+      </Link>
       <nav className={styles.desktopNav} aria-label="Navegación principal">
         {LINKS.map((link) => (
           <Link
