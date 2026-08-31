@@ -1307,12 +1307,13 @@ export const faqs: FaqEntry[] = [
   {
     id: 'disponibilidad',
     question: '¿Cómo sé si estáis disponibles para mi fecha?',
-    answer: 'Escríbenos con la fecha de tu evento a través del formulario de contacto y te confirmamos disponibilidad en menos de 48 horas.',
+    answer: 'Escríbenos con la fecha de tu evento a través del formulario de contacto y te confirmamos la disponibilidad lo antes posible.',
   },
   {
     id: 'reserva',
     question: '¿Cómo se reserva la fecha?',
-    answer: 'La fecha queda reservada con la firma del contrato y el pago de una señal. Te lo explicamos todo en la primera llamada, sin compromiso.',
+    answer: 'Proceso de reserva pendiente de confirmar con el estudio — lo actualizaremos aquí en cuanto lo tengamos cerrado.',
+    isPendingConfirmation: true,
   },
   {
     id: 'entrega',
@@ -1340,7 +1341,7 @@ export const faqs: FaqEntry[] = [
 ];
 ```
 
-(Three of the six answers are honestly marked pending — delivery timeframe, image-rights policy, and date-change policy are real business decisions this plan cannot invent, per the Global Constraints. The other three are generic-but-accurate process descriptions consistent with what's already documented elsewhere in the site's copy. Flag these three specifically for the client during plan review — the FAQ ships more useful with real answers than with none, but must not ship implying answers that were never confirmed.)
+(**Correction (2026-08-31, ruling recorded in this plan's ledger before Task 12 was dispatched):** the original draft of this task gave the "disponibilidad" and "reserva" answers specific invented details — a "menos de 48 horas" response-time commitment and a "firma del contrato y pago de una señal" booking mechanism — neither of which appears anywhere else in this codebase or its verified-facts research. Those are exactly the kind of checkable, specific business claims the Global Constraint against fabricating business facts exists to prevent (a visitor could hold the studio to a 48-hour SLA that was never actually confirmed). Fixed: "disponibilidad" now makes no time-commitment claim ("lo antes posible" instead of "menos de 48 horas"); "reserva" is now marked `isPendingConfirmation: true` like the other real unknowns, since the actual booking mechanism (deposit? contract? something else?) is not established anywhere in this project. Four of the six answers are now honestly marked pending — delivery timeframe, booking process, image-rights policy, and date-change policy are real business decisions this plan cannot invent. The other two ("disponibilidad", "desplazamiento") are generic process descriptions that make no specific, checkable claims — consistent with the site's existing marketing-copy tone (service taglines, `content/services.ts`) rather than a verified fact. Flag the four pending ones for the client during plan review — the FAQ ships more useful with real answers than with none, but must not ship implying answers that were never confirmed.)
 
 - [ ] **Step 4: Run it to verify it passes**
 
