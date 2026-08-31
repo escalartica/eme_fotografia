@@ -4,6 +4,7 @@ import localFont from 'next/font/local';
 import { site } from '@/content/site';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { SmoothScrollProvider } from '@/components/motion/SmoothScrollProvider';
 import '../styles/globals.css';
 
 const fraunces = Fraunces({
@@ -29,12 +30,14 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="es" className={`${fraunces.variable} ${generalSans.variable}`}>
       <body>
-        <a href="#main-content" className="skip-link">
-          Saltar al contenido
-        </a>
-        <Header />
-        <main id="main-content">{children}</main>
-        <Footer />
+        <SmoothScrollProvider>
+          <a href="#main-content" className="skip-link">
+            Saltar al contenido
+          </a>
+          <Header />
+          <main id="main-content">{children}</main>
+          <Footer />
+        </SmoothScrollProvider>
       </body>
     </html>
   );

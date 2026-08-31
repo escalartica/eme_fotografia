@@ -17,3 +17,15 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
     dispatchEvent: () => false,
   })) as unknown as typeof window.matchMedia;
 }
+
+// Default stub so any component that reaches a real Lenis instance (e.g.
+// via SmoothScrollProvider in tests that don't mock 'lenis', such as the
+// root layout test) doesn't crash in jsdom, which has no native
+// ResizeObserver.
+if (typeof window !== 'undefined' && !window.ResizeObserver) {
+  window.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof window.ResizeObserver;
+}
