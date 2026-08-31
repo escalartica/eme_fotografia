@@ -29,3 +29,17 @@ if (typeof window !== 'undefined' && !window.ResizeObserver) {
     disconnect() {}
   } as unknown as typeof window.ResizeObserver;
 }
+
+// Default stub so any component that reaches VideoPreview's real
+// IntersectionObserver (e.g. via SelectedWork rendering a video-cover
+// project) doesn't crash in jsdom, which has no native
+// IntersectionObserver. Tests that care about the intersection callback
+// itself (e.g. VideoPreview.test.tsx) override window.IntersectionObserver
+// themselves — this is only the fallback for tests that don't.
+if (typeof window !== 'undefined' && !window.IntersectionObserver) {
+  window.IntersectionObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof window.IntersectionObserver;
+}

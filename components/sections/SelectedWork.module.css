@@ -1,0 +1,4 @@
+.section { padding: var(--space-5) var(--space-3); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-3); }
+.card { position: relative; }
+.title { display: block; margin-top: var(--space-1); font-family: var(--font-serif); }
