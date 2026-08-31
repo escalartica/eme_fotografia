@@ -12,6 +12,15 @@ export const site: SiteInfo = {
   facebookUrl: 'https://www.facebook.com/EmeFotografiaSevilla/',
   facebookName: 'EME Fotografia Sevilla',
   facebookLikes: 2320,
-  addressLocality: 'Sevilla',
+  // Real registered address, verified via the studio's own Bodas.net profile
+  // (bodas.net/fotografos/eme-fotografia-sevilla--e71289) on 2026-08-31.
+  // Kept as the precise legal/structured-data address; `legalCity` above stays
+  // "Sevilla" for marketing copy since that's the brand name and the metro
+  // area they serve, not the exact home-base town.
+  addressLocality: 'La Algaba',
   addressCountry: 'ES',
+  streetAddress: 'Calle Alicante 8',
+  postalCode: '41927',
+  // Verified via the same Bodas.net profile.
+  founderName: 'María Leal',
 };

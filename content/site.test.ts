@@ -7,7 +7,8 @@ describe('site content', () => {
     expect(site.email).toBe('info@emefotografiasevilla.es');
     expect(site.instagramFollowers).toBe(1622);
     expect(site.facebookLikes).toBe(2320);
-    expect(site.addressLocality).toBe('Sevilla');
+    expect(site.addressLocality).toBe('La Algaba');
+    expect(site.founderName).toBe('María Leal');
   });
 
   it('has well-formed URLs', () => {

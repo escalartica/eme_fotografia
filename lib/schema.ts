@@ -7,7 +7,13 @@ export function localBusinessSchema() {
     '@type': 'LocalBusiness',
     name: site.brandName,
     email: site.email,
-    address: { '@type': 'PostalAddress', addressLocality: site.addressLocality, addressCountry: site.addressCountry },
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: site.streetAddress,
+      addressLocality: site.addressLocality,
+      postalCode: site.postalCode,
+      addressCountry: site.addressCountry,
+    },
     sameAs: [site.instagramUrl, site.facebookUrl],
   };
 }

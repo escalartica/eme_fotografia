@@ -10,6 +10,9 @@ export interface SiteInfo {
   facebookLikes: number;
   addressLocality: string;
   addressCountry: string;
+  streetAddress: string;
+  postalCode: string;
+  founderName: string;
 }
 
 export type ServiceSlug = 'boda' | 'video' | 'fotomaton' | '360';

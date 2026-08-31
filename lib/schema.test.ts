@@ -10,7 +10,7 @@ describe('schema.org generators', () => {
     expect(schema.name).toBe(site.brandName);
     expect(schema.email).toBe(site.email);
     expect(schema.sameAs).toEqual([site.instagramUrl, site.facebookUrl]);
-    expect(schema.address.addressLocality).toBe('Sevilla');
+    expect(schema.address.addressLocality).toBe('La Algaba');
   });
 
   it('builds a CreativeWork schema for a project', () => {
