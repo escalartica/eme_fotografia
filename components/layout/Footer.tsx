@@ -2,7 +2,7 @@ import { site } from '@/content/site';
 import styles from './Footer.module.css';
 
 export function Footer() {
-  const showPlaceholderNotice = process.env.NEXT_PUBLIC_SHOW_PLACEHOLDER_NOTICE === 'true';
+  const showPlaceholderNotice = process.env.NEXT_PUBLIC_SHOW_PLACEHOLDER_NOTICE !== 'false';
 
   return (
     <footer className={styles.footer}>

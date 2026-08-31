@@ -18,6 +18,12 @@ describe('Footer', () => {
     expect(screen.queryByText(/contenido de muestra/i)).not.toBeInTheDocument();
   });
 
+  it('shows the placeholder notice by default when the flag is unset (e.g. fresh clone, CI, prod without .env.local)', () => {
+    delete process.env.NEXT_PUBLIC_SHOW_PLACEHOLDER_NOTICE;
+    render(<Footer />);
+    expect(screen.getByText(/contenido de muestra/i)).toBeInTheDocument();
+  });
+
   it('links to the real Instagram and Facebook accounts', () => {
     process.env.NEXT_PUBLIC_SHOW_PLACEHOLDER_NOTICE = 'false';
     render(<Footer />);
