@@ -58,3 +58,10 @@ export interface Testimonial {
   role: string;
   isPlaceholder: boolean;
 }
+
+export interface FaqEntry {
+  id: string;
+  question: string;
+  answer: string;
+  isPendingConfirmation?: boolean;
+}

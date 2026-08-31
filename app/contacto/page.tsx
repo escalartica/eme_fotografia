@@ -1,4 +1,5 @@
 import { ContactForm } from '@/components/ui/ContactForm';
+import { Faq } from '@/components/sections/Faq';
 import { site } from '@/content/site';
 import { buildMetadata } from '@/lib/seo';
 import styles from './page.module.css';
@@ -16,6 +17,7 @@ export default function Page() {
       <p>Cuéntanos tu proyecto. También puedes escribirnos a <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
       <p>Con cita previa — {site.legalCity}, España.</p>
       <ContactForm />
+      <Faq />
     </div>
   );
 }
