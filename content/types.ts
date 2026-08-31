@@ -46,6 +46,7 @@ export interface Project {
   client: string;
   location: string;
   description: string;
+  impactLine?: string;
   cover: ProjectMedia;
   gallery: ProjectMedia[];
 }

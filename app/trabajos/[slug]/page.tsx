@@ -37,6 +37,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       />
       <h1>{project.title}</h1>
       <p className={styles.meta}>{project.category} — {project.year} — {project.location}</p>
+      {project.impactLine && (
+        <p className={styles.impact} data-testid="project-impact">{project.impactLine}</p>
+      )}
       <p className={styles.description}>{project.description}</p>
       <ProjectGallery project={project} />
       <NextProjectLink

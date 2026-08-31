@@ -11,6 +11,11 @@
   margin-block-end: var(--space-1);
 }
 .meta { color: var(--color-muted); margin-block-end: var(--space-2); }
+.impact {
+  color: var(--color-accent);
+  font-weight: 600;
+  margin-block-end: var(--space-1);
+}
 .description { max-width: 44rem; margin-block-end: var(--space-4); }
 .nextLink {
   display: inline-block;
