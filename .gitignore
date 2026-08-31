@@ -42,3 +42,6 @@ next-env.d.ts
 
 # contact submissions
 data/contact-submissions/
+
+# QA artifacts
+lighthouse-report.json

@@ -1,36 +1,16 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EME Fotografía Sevilla
 
-## Getting Started
+Sitio web de EME Fotografía Sevilla (Next.js + TypeScript).
 
-First, run the development server:
+## Desarrollo
 
-```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Sustituir el contenido de muestra por material real
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Fotos: sustituye los archivos `placeholder-*.webp` en `public/images/` por las fotos reales del cliente, manteniendo los mismos nombres de archivo (o actualiza las rutas en `content/projects.ts`).
+2. Vídeos: igual que arriba, en `public/videos/`.
+3. En cada entrada de `content/projects.ts`, `content/testimonials.ts`, cambia `isPlaceholderMedia`/`isPlaceholder` a `false` una vez sustituido el contenido correspondiente.
+4. Cuando todo el contenido de muestra haya sido sustituido, pon `NEXT_PUBLIC_SHOW_PLACEHOLDER_NOTICE=false` en `.env.local` (o elimínalo) para quitar el aviso del footer.
+5. Confirma con el cliente: la URL real de Facebook (`content/site.ts`), el horario completo, el teléfono de contacto, y el nombre del fundador/equipo para `/sobre-nosotros` — quedan documentados como pendientes en la spec (`docs/superpowers/specs/2026-08-31-eme-fotografia-web-design.md`, sección 12).

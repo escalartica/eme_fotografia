@@ -8,6 +8,21 @@ body {
   font-size: var(--type-body);
 }
 
+/* The Header is `position: fixed` so page content isn't pushed down by it in
+   normal flow. That's intentional on the home page, where Hero is a full-bleed
+   section designed to sit behind the header (mix-blend-mode keeps the header
+   legible over it). Every other route's content starts with a plain heading
+   at the very top of `main`, which otherwise renders directly underneath —
+   and visually overlapping — the fixed header. Give `main` clearance for the
+   header by default, and opt the full-bleed Hero back out of it. */
+main {
+  padding-top: calc(var(--space-2) * 2 + 2.5rem);
+}
+
+main:has(> [data-hero-fullbleed]) {
+  padding-top: 0;
+}
+
 .skip-link {
   position: absolute;
   left: -9999px;

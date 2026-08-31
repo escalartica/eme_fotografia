@@ -34,7 +34,7 @@ export function Hero() {
   }, [reducedMotion]);
 
   return (
-    <section className={styles.hero}>
+    <section className={styles.hero} data-hero-fullbleed>
       {showIntro && (
         <div data-testid="intro-sequence" className={styles.intro}>
           <span className={styles.introMark}>eme</span>
