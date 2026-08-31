@@ -1819,26 +1819,29 @@ git commit -m "feat: add and mount the Manifiesto section on Home"
 Small, zero-risk removals flagged by the final review — grouped into one task since none of them has independent design judgment attached, just deletion + confirming nothing references the removed code.
 
 **Files:**
-- Delete: `lib/breakpoints.ts`, `lib/breakpoints.test.ts`, `public/file.svg`, `public/globe.svg`, `public/next.svg`, `public/vercel.svg`, `public/window.svg`
-- Modify: `styles/tokens.css` (remove unusable `--bp-*` custom properties), `components/motion/Cursor.tsx` (remove the unused `'arrastrar'` cursor label state, if `Cursor.tsx` defines it as a distinct case with no consumer — verify first)
-- Verify: `public/images/hero/placeholder-hero-02.webp` — check for any reference before deleting; only remove if genuinely unused
+- Delete: `lib/breakpoints.ts`, `public/file.svg`, `public/globe.svg`, `public/next.svg`, `public/vercel.svg`, `public/window.svg`, `public/images/hero/placeholder-hero-02.webp`
+- Modify: `lib/motion-tokens.test.ts` (remove its `breakpoints` import and the "orders breakpoints ascending" test case — see correction below), `styles/tokens.css` (remove unusable `--bp-*` custom properties), `components/motion/Cursor.tsx` (remove the unused `'arrastrar'` cursor label state)
+
+**Correction (2026-08-31, ruling recorded in this plan's ledger before Task 16 was dispatched):** this task's original draft assumed a standalone `lib/breakpoints.test.ts` file exists and can simply be deleted alongside `lib/breakpoints.ts`. Verified directly: `lib/breakpoints.test.ts` does not exist. Instead, `lib/breakpoints.ts` is imported by `lib/motion-tokens.test.ts` (`import { breakpoints } from './breakpoints';`), which uses it in one test case ("orders breakpoints ascending") — that file's OTHER test ("keeps the intro under the fast-start requirement") tests `motion-tokens.ts`'s real, actually-used export (`ScrollReveal.tsx` imports `motion` from `@/lib/motion-tokens`) and must be kept. Confirmed via a repo-wide grep that no actual application component imports `breakpoints` from anywhere — the final review's "dead code" finding is still correct about real usage, it's just that a test-only self-check of the module was left attached to an unrelated test file. Deleting `lib/breakpoints.ts` without also removing the "orders breakpoints ascending" test case and its import from `lib/motion-tokens.test.ts` would break the build (`npm test` would fail on an unresolvable import) — this task's Step 2 below is corrected accordingly. All four other items (SVGs, `placeholder-hero-02.webp`, `--bp-*` tokens, `arrastrar`) were re-verified genuinely unreferenced anywhere in `app/`/`components/`/`content/` and need no correction.
 
 - [ ] **Step 1: Confirm each item is genuinely dead before removing anything**
 
 ```bash
-grep -rn "breakpoints" --include="*.ts" --include="*.tsx" app/ components/ lib/ | grep -v breakpoints.test.ts
+grep -rn "breakpoints" --include="*.ts" --include="*.tsx" app/ components/ lib/
 grep -rn "bp-mobile\|bp-tablet\|bp-laptop\|bp-desktop" app/ components/ styles/
 grep -rn "arrastrar" app/ components/
 grep -rn "placeholder-hero-02" app/ components/ content/
 grep -rln "file.svg\|globe.svg\|next.svg\|vercel.svg\|window.svg" app/ components/
 ```
 
-For each grep that returns a real usage (not just the definition site itself), do NOT remove that item — note it in the commit message as "kept, still referenced" instead. This step is a checkpoint, not a formality — the final review's findings were about the state of the codebase at review time; confirm they still hold before deleting anything.
+For each grep that returns a usage beyond what's already accounted for above (the definition sites, and `motion-tokens.test.ts`'s own import), do NOT remove that item — note it in the commit message as "kept, still referenced" instead. This step is a checkpoint, not a formality — the final review's findings were about the state of the codebase at review time; confirm they still hold before deleting anything.
 
 - [ ] **Step 2: Remove confirmed-dead items**
 
+Read `lib/motion-tokens.test.ts` first. Remove its `import { breakpoints } from './breakpoints';` line and its `it('orders breakpoints ascending', ...)` test block, keeping the `motion`-related import and test completely untouched — that test covers real, currently-used code.
+
 ```bash
-rm -f lib/breakpoints.ts lib/breakpoints.test.ts
+rm -f lib/breakpoints.ts
 rm -f public/file.svg public/globe.svg public/next.svg public/vercel.svg public/window.svg
 # Only if Step 1 confirmed no reference:
 rm -f public/images/hero/placeholder-hero-02.webp
@@ -1846,7 +1849,7 @@ rm -f public/images/hero/placeholder-hero-02.webp
 
 Remove the `--bp-*` lines from `styles/tokens.css` (they cannot be used inside a CSS `@media` condition since custom properties aren't resolved at parse time for media queries — this is a hard CSS limitation, not a style choice, so there's no working alternative to "delete them," any real breakpoint value has to stay a literal in the `@media` rule itself, which is already how `Header.module.css`'s `768px` is written).
 
-If Step 1 confirms the Cursor's `'arrastrar'` state truly has no `data-cursor="arrastrar"` consumer anywhere, remove that case from `components/motion/Cursor.tsx`'s label-lookup logic (read the file first — do not guess at its exact shape).
+If Step 1 confirms the Cursor's `'arrastrar'` state truly has no `data-cursor="arrastrar"` consumer anywhere, remove that entry from `components/motion/Cursor.tsx:5`'s `LABELS` record (confirmed: it's one entry — `arrastrar: 'ARRASTRAR'` — inside a `Record<string, string>` literal; just delete that one key/value pair, leaving `ver`/`reproducir` untouched).
 
 - [ ] **Step 3: Run the full suite and build**
 
