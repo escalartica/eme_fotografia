@@ -1111,16 +1111,18 @@ git commit -m "feat: enrich JSON-LD schema with url, image, and areaServed"
 Two small, independent perf fixes flagged by the final review: several `next/image` usages across the site never set a `sizes` prop (falling back to a `100vw` srcset, over-downloading on non-fill images), and `--font-serif` in `styles/tokens.css` references the raw `'Fraunces'` family name instead of the `next/font`-generated CSS variable, bypassing the size-adjusted fallback face that protects against layout shift.
 
 **Files:**
-- Modify: `styles/tokens.css`, and every `next/image` usage across `components/`/`app/` missing a `sizes` prop on a non-`fill` image (grep for `<Image` without `sizes=` first — this includes at minimum `app/sobre-nosotros/page.tsx` and `components/sections/SobreEmePreview.tsx`, both flagged directly by the final review; check `ProjectGallery.tsx`, `Hero.tsx` too).
+- Modify: `styles/tokens.css`
+- Modify: `app/sobre-nosotros/page.tsx:30`, `components/sections/SobreEmePreview.tsx:10` (both confirmed missing `sizes`, both non-`fill`, both render `/images/sobre-nosotros/placeholder-team.webp` at `width={800} height={1200}`), `components/sections/Hero.tsx:75-81` (confirmed missing `sizes` too — it's a `fill` image, not over-downloading since it's genuinely full-bleed, but Next.js still needs an explicit `sizes` to avoid its "missing sizes prop on fill image" warning and to stop implicitly assuming `100vw` rather than declaring it).
+- Already correct, do not touch: `components/sections/SelectedWork.tsx:24`, `app/trabajos/TrabajosFilter.tsx:52,56`, `components/sections/ProjectGallery.tsx:19` — all already have a real breakpoint-aware `sizes` value.
 - Test: no new tests — these are non-behavioral perf/CLS fixes; run the full suite + build to confirm zero regression.
 
 - [ ] **Step 1: Fix the `--font-serif` token**
 
-Read `app/layout.tsx` to find the exact CSS variable name `next/font/google` generates for Fraunces (something like `--font-fraunces` or similar, set via the `variable` option on the `Fraunces(...)` call — confirm the exact name in the file rather than guessing). Update `styles/tokens.css`:
+Confirmed in `app/layout.tsx:14`: the `Fraunces(...)` call sets `variable: '--font-serif-loaded'` (verified directly, not guessed — `--font-sans` in `styles/tokens.css:7` already correctly uses this same pattern with `--font-sans-loaded`, only `--font-serif` was left as a raw string literal). Update `styles/tokens.css:8`:
 
 ```css
 /* Before: --font-serif: 'Fraunces', Georgia, serif; */
---font-serif: var(--font-fraunces), Georgia, serif; /* use the real generated variable name from app/layout.tsx */
+--font-serif: var(--font-serif-loaded), Georgia, serif;
 ```
 
 - [ ] **Step 2: Run the full suite and build, visually spot-check the Home page's Fraunces headings render correctly**
@@ -1128,15 +1130,33 @@ Read `app/layout.tsx` to find the exact CSS variable name `next/font/google` gen
 Run: `npm test && npm run build`
 Expected: all pass. This change is purely which CSS custom property resolves the font — if Fraunces still renders (just now via the `next/font`-managed `@font-face` with its fallback-metric override), nothing else should visibly change.
 
-- [ ] **Step 3: Add `sizes` to every non-`fill` `next/image` usage missing one**
-
-For each flagged file, add a `sizes` value proportional to how large the image actually renders at each breakpoint (not a blanket `100vw` — that's the exact problem being fixed). Example for `app/sobre-nosotros/page.tsx`'s team photo (rendered inside a `44rem`-max-width column per Task 5's page shell):
+- [ ] **Step 3: Add `sizes` to the three confirmed usages**
 
 ```tsx
-<Image src="..." alt="..." width={800} height={1200} sizes="(max-width: 700px) 100vw, 44rem" className={styles.teamImage} />
+// app/sobre-nosotros/page.tsx:30 — rendered inside a 44rem-max-width column per Task 5's page shell
+<Image src="/images/sobre-nosotros/placeholder-team.webp" alt="Equipo de EME Fotografía Sevilla (imagen de muestra)" width={800} height={1200} sizes="(max-width: 700px) 100vw, 44rem" className={styles.teamImage} />
 ```
 
-Apply the equivalent reasoning to each other flagged usage — the `sizes` value should match that image's actual rendered width in the page-shell layout Tasks 5–7 just established, not a copy-pasted constant.
+```tsx
+// components/sections/SobreEmePreview.tsx:10 — this component has NO CSS module at all (confirmed: no
+// SobreEmePreview.module.css exists), so unlike the page above there is no established rendered-width
+// breakpoint to target yet; it's an unstyled Home-page preview section, out of scope for Tasks 5-7's
+// page-shell styling pass (those covered route shells, not this component). Use its intrinsic width as
+// the desktop ceiling rather than inventing a column width that doesn't exist in any stylesheet:
+<Image src="/images/sobre-nosotros/placeholder-team.webp" alt="Equipo de EME Fotografía Sevilla" width={800} height={1200} sizes="(max-width: 700px) 100vw, 800px" />
+```
+
+```tsx
+// components/sections/Hero.tsx:75-81 — genuinely full-bleed (`data-hero-fullbleed` on the section), so 100vw is the CORRECT value here, not the bug being fixed elsewhere
+<Image
+  src="/images/hero/placeholder-hero-01.webp"
+  alt="Pareja de novios en un momento espontáneo, fotografía editorial de boda"
+  fill
+  priority
+  sizes="100vw"
+  className={styles.image}
+/>
+```
 
 - [ ] **Step 4: Run the full suite and build**
 
