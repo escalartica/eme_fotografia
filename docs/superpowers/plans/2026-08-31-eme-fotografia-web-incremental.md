@@ -1580,20 +1580,20 @@ The client's spec explicitly asked for "fecha del evento, lugar, número de invi
 - [ ] **Step 1: Write the failing test for the store**
 
 ```ts
-// Add to lib/contact-store.test.ts
+// Add to lib/contact-store.test.ts, inside the existing describe('saveContactSubmission', ...) block
 it('persists lugar and numeroInvitados when provided', async () => {
   const { id } = await saveContactSubmission({
     nombre: 'Ana', email: 'ana@example.com', tipoEvento: 'boda', mensaje: 'Hola',
     lugar: 'Hacienda de San Rafael', numeroInvitados: '80',
-  }, testDir);
-  const files = await fs.readdir(testDir);
-  const content = JSON.parse(await fs.readFile(path.join(testDir, files[0]), 'utf-8'));
+  }, DIR);
+  const files = await fs.readdir(DIR);
+  const content = JSON.parse(await fs.readFile(path.join(DIR, files[0]), 'utf-8'));
   expect(content.lugar).toBe('Hacienda de San Rafael');
   expect(content.numeroInvitados).toBe('80');
 });
 ```
 
-(Use the same `testDir`/injectable-directory pattern the base plan's final-review fix wave already established for this test file — do not write to the real `data/contact-submissions/`.)
+(Confirmed: the file's actual injectable-directory constant is named `DIR`, not `testDir` — `fs`/`path` are already imported at the top of the file, reuse them, don't re-import or declare a new `testDir` variable. Do not write to the real `data/contact-submissions/`.)
 
 - [ ] **Step 2: Run it to verify it fails**
 
