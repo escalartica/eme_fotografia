@@ -1,10 +1,12 @@
 'use client';
 import { useState, FormEvent } from 'react';
+import { site } from '@/content/site';
 import styles from './ContactForm.module.css';
 
 export function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -13,17 +15,24 @@ export function ContactForm() {
       form.reportValidity();
       return;
     }
-    const data = Object.fromEntries(new FormData(form).entries());
-    const res = await fetch('/api/contacto', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-      setError('No hemos podido enviar tu mensaje. Escríbenos directamente a info@emefotografiasevilla.es');
-      return;
+    setIsSubmitting(true);
+    try {
+      const data = Object.fromEntries(new FormData(form).entries());
+      const res = await fetch('/api/contacto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        setError(`No hemos podido enviar tu mensaje. Escríbenos directamente a ${site.email}`);
+        return;
+      }
+      setSubmitted(true);
+    } catch {
+      setError(`No hemos podido enviar tu mensaje. Escríbenos directamente a ${site.email}`);
+    } finally {
+      setIsSubmitting(false);
     }
-    setSubmitted(true);
   }
 
   if (submitted) return <p role="status">Gracias, hemos recibido tu mensaje. Te responderemos lo antes posible.</p>;
@@ -54,7 +63,7 @@ export function ContactForm() {
       <textarea id="mensaje" name="mensaje" required />
 
       {error && <p role="alert">{error}</p>}
-      <button type="submit">Enviar</button>
+      <button type="submit" disabled={isSubmitting}>Enviar</button>
     </form>
   );
 }
