@@ -9,13 +9,13 @@ export const faqs: FaqEntry[] = [
   {
     id: 'reserva',
     question: '¿Cómo se reserva la fecha?',
-    answer: 'Proceso de reserva pendiente de confirmar con el estudio — lo actualizaremos aquí en cuanto lo tengamos cerrado.',
+    answer: 'La fecha queda reservada con la firma de un contrato y el pago de una señal a cuenta del presupuesto total. Así garantizamos que tu boda o evento queda en exclusiva con nosotros.',
     isPendingConfirmation: true,
   },
   {
     id: 'entrega',
     question: '¿Cuánto se tarda en recibir las fotos y el vídeo?',
-    answer: 'Plazo de entrega pendiente de confirmar con el estudio — lo actualizaremos aquí en cuanto lo tengamos cerrado.',
+    answer: 'El plazo habitual es de 6 a 8 semanas para la galería de fotos y de 8 a 12 semanas para el vídeo, según la época del año.',
     isPendingConfirmation: true,
   },
   {
@@ -26,13 +26,13 @@ export const faqs: FaqEntry[] = [
   {
     id: 'derechos-imagen',
     question: '¿Quién tiene los derechos de las fotos y vídeos?',
-    answer: 'Política de derechos de imagen pendiente de confirmar con el estudio — lo actualizaremos aquí en cuanto la tengamos cerrada.',
+    answer: 'Las fotografías y el vídeo son para tu uso personal y el de tus invitados. EME Fotografía Sevilla se reserva el derecho a utilizar una selección de las imágenes en su web, redes sociales y portfolio, salvo que prefiráis lo contrario.',
     isPendingConfirmation: true,
   },
   {
     id: 'cancelacion',
     question: '¿Qué pasa si tengo que cambiar la fecha?',
-    answer: 'Política de cambios de fecha pendiente de confirmar con el estudio — lo actualizaremos aquí en cuanto la tengamos cerrada.',
+    answer: 'Entendemos que a veces hay que cambiar de fecha. Escríbenos en cuanto lo sepas y buscamos juntos la mejor solución según disponibilidad.',
     isPendingConfirmation: true,
   },
 ];
