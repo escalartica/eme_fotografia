@@ -2252,6 +2252,126 @@ git commit -m "feat: add contained GSAP parallax to the Hero background image"
 
 ---
 
+### Task 22: Close the video-only Lightbox focus-escape gap with a real focus-trap library
+
+Task 3's review (task reviewer, `.superpowers/sdd/2026-08-31-eme-fotografia-web-incremental/progress.md`) found the hand-rolled `getFocusable()` Tab-trap in `components/motion/Lightbox.tsx` is a no-op whenever the modal's only content is a bare `<video controls>` element — exactly what both real Lightbox call sites render (`components/sections/SelectedWork.tsx:39-41`, `components/sections/ProjectGallery.tsx:26-28`). `getFocusable()`'s `querySelectorAll` can never see a native `<video controls>` element's internal Play/volume/fullscreen buttons — those live in a user-agent shadow tree that is not exposed to JS in any browser, by spec, regardless of enumeration technique. So Tab can walk forward through the video's native controls and then escape straight into the rest of the page (Header/Footer), and Shift+Tab from the video's first control can escape backward the same way.
+
+A hand-rolled two-sentinel-`div` fix was considered and rejected: naively placing a leading sentinel as the first tabbable child inside the trap container intercepts the very first real Tab press after the modal opens (before the user ever reaches the video), misrouting focus instead of fixing anything — getting this right requires the same guard-node-plus-programmatic-initial-focus choreography that the `focus-trap` library (davidtheclark/focus-trap, MIT, ~4KB, single dependency on `tabbable`) already implements and has hardened for years across exactly this class of edge case (its `fallbackFocus` option exists specifically for containers with no conventionally-tabbable descendants). Adopting it here is justified by that regression risk, not by convenience — this project otherwise avoids adding dependencies (Framer Motion was explicitly declined as redundant with GSAP).
+
+**Files:**
+- Modify: `components/motion/Lightbox.tsx`
+- Test: `components/motion/Lightbox.test.tsx` (existing file — extend)
+- Modify: `package.json`, `package-lock.json` (new dependency)
+
+**Interfaces:** none — `<Lightbox isOpen onClose children>` keeps its exact existing prop signature. `getFocusable()` is deleted; nothing else in the codebase imports it (verify with `grep -rn "getFocusable" --include=*.tsx --include=*.ts .` before deleting — expected: only this file).
+
+- [ ] **Step 1: Install the dependency**
+
+```bash
+npm install focus-trap
+```
+
+- [ ] **Step 2: Write the failing test**
+
+```tsx
+// Add to components/motion/Lightbox.test.tsx
+
+it('does not throw and still restores focus on close when the content has no conventionally-focusable descendants', async () => {
+  const trigger = document.createElement('button');
+  document.body.appendChild(trigger);
+  trigger.focus();
+
+  const { rerender } = render(
+    <Lightbox isOpen onClose={() => {}}>
+      <video data-testid="clip" />
+    </Lightbox>
+  );
+  expect(trigger).not.toHaveFocus();
+  expect(screen.getByTestId('clip').parentElement).toHaveFocus();
+
+  rerender(<Lightbox isOpen={false} onClose={() => {}}><video data-testid="clip" /></Lightbox>);
+  expect(trigger).toHaveFocus();
+
+  document.body.removeChild(trigger);
+});
+```
+
+Note: this test cannot reproduce the actual escape bug — jsdom does not implement native `<video controls>` shadow-DOM tab stops, so no unit test can. It exists to prove the `focus-trap` integration doesn't regress the no-focusable-content path (initial focus, focus restore on close) that the old code handled as a special case (`if (focusable.length === 0) return;`). The real fix is verified manually in Step 6.
+
+- [ ] **Step 3: Run it to verify it fails**
+
+Run: `npm test -- components/motion/Lightbox.test.tsx`
+Expected: FAIL — current code has no `focus-trap` import, so this specific test may actually pass by accident against the OLD code (the old code's early-return already avoids throwing here too). That's expected and fine: this step's real purpose is confirming the test file compiles and runs, not a strict RED assertion for this particular case. The meaningful regression check is Step 5 (all 7 pre-existing tests) passing unchanged after the rewrite.
+
+- [ ] **Step 4: Replace the hand-rolled trap with `focus-trap`**
+
+Replace the full contents of `components/motion/Lightbox.tsx`:
+
+```tsx
+'use client';
+import { useEffect, useRef } from 'react';
+import { createFocusTrap, type FocusTrap } from 'focus-trap';
+import styles from './Lightbox.module.css';
+
+export function Lightbox({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const trapRef = useRef<FocusTrap | null>(null);
+
+  useEffect(() => {
+    if (!isOpen || !contentRef.current) return;
+
+    const trap = createFocusTrap(contentRef.current, {
+      escapeDeactivates: false,
+      clickOutsideDeactivates: false,
+      fallbackFocus: () => contentRef.current!,
+    });
+    trapRef.current = trap;
+    trap.activate();
+
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKey);
+
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      trap.deactivate();
+      trapRef.current = null;
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className={styles.backdrop} data-testid="lightbox-backdrop" onClick={onClose} role="dialog" aria-modal="true">
+      <div ref={contentRef} className={styles.content} tabIndex={-1} onClick={(e) => e.stopPropagation()}>
+        {children}
+      </div>
+    </div>
+  );
+}
+```
+
+`escapeDeactivates: false` and `clickOutsideDeactivates: false` keep Escape and backdrop-click handling exactly as they were (owned by this component's own listeners, not the library's), avoiding double-fired `onClose` calls. `returnFocusOnDeactivate` defaults to `true`, so the library's own `deactivate()` restores focus to whatever was focused before `activate()` — this replaces the old `previouslyFocused` ref entirely; do not keep it, it would be dead code.
+
+- [ ] **Step 5: Run the full suite and build**
+
+Run: `npm test && npm run build`
+Expected: all pass, including all 5 original Lightbox tests, Task 3's 2 trap tests (`components/motion/Lightbox.test.tsx`), and the new test from Step 2 — 8 tests total in this file, none rewritten except the deleted `previouslyFocused`-specific assertions being satisfied by the library instead.
+
+- [ ] **Step 6: Manual real-browser verification (required — jsdom cannot cover this)**
+
+Start a production server (`npm run build && npm start`), open `/trabajos`, click into a project whose gallery includes a video (or the Home page's featured video, depending on current seed data), and open its Lightbox. Press Tab repeatedly: confirm focus enters the video's native controls, then loops back into the dialog (does not reach the page's Header/Footer/other content) after the last control. Repeat with Shift+Tab from the first control, confirming the same containment backward. Confirm Escape still closes it and returns focus to the trigger element, and backdrop click still closes it.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add -A package.json package-lock.json
+git commit -m "fix: replace hand-rolled Lightbox focus trap with focus-trap library"
+```
+
+---
+
 ## Self-Review Notes
 
 - **Client's 6-point list coverage:** (1) Animations → Tasks 1–2 (View Transitions wiring, Confianza scroll-trigger), Framer Motion explicitly declined. (2) Accessibility → Task 3 (Lightbox focus trap), Task 4 (active-route `aria-current`); cursor's existing `aria-hidden`/`pointer-events:none`/reduced-motion handling was already reviewed clean in the base build, nothing new needed there. (3) Performance/SEO → Task 9 (JSON-LD enrichment), Task 10 (`sizes` audit, font token fix); Lighthouse/metadata/sitemap already shipped in the base build, re-verify scores after this plan's changes rather than re-building what exists. (4) Missing sections → Task 12 (FAQ), Task 13 (testimonial photos), Task 14 (contact form fields); dedicated "how we work" section explicitly declined as redundant with `/servicios`' existing per-service process. (5) i18n → explicitly deferred, no task. (6) CMS → explicitly declined, no task.
