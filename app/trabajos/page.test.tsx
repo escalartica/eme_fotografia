@@ -1,7 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Page from './page';
+
+// TrabajosFilter (rendered by Page) calls next/navigation's useRouter for
+// withPageTransition click handling, which requires an App Router context
+// that jsdom/RTL render() doesn't provide. Stub it.
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
 
 describe('/trabajos page', () => {
   it('lists all 4 seed projects by default', () => {
