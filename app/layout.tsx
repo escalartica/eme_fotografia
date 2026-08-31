@@ -3,6 +3,7 @@ import { Fraunces } from 'next/font/google';
 import localFont from 'next/font/local';
 import { site } from '@/content/site';
 import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
 import '../styles/globals.css';
 
 const fraunces = Fraunces({
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         </a>
         <Header />
         <main id="main-content">{children}</main>
+        <Footer />
       </body>
     </html>
   );
