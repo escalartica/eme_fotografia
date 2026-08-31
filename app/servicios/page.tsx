@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { services } from '@/content/services';
 import { buildMetadata } from '@/lib/seo';
+import styles from './page.module.css';
 
 export const metadata = buildMetadata({
   title: 'Servicios',
@@ -10,10 +11,10 @@ export const metadata = buildMetadata({
 
 export default function Page() {
   return (
-    <div>
+    <div className={styles.page}>
       <h1>Servicios</h1>
       {services.map((service) => (
-        <section key={service.slug} id={service.slug} aria-labelledby={`${service.slug}-heading`}>
+        <section key={service.slug} id={service.slug} className={styles.service} aria-labelledby={`${service.slug}-heading`}>
           <h2 id={`${service.slug}-heading`}>{service.name}</h2>
           <p>{service.tagline}</p>
           <ul>{service.includes.map((item) => <li key={item}>{item}</li>)}</ul>

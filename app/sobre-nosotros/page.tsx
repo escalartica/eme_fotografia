@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { site } from '@/content/site';
 import { buildMetadata } from '@/lib/seo';
+import styles from './page.module.css';
 
 export const metadata = buildMetadata({
   title: 'Sobre nosotros',
@@ -10,7 +11,7 @@ export const metadata = buildMetadata({
 
 export default function Page() {
   return (
-    <article>
+    <article className={styles.page}>
       <h1>{site.brandName}</h1>
       <p>Contamos bodas y eventos como se cuentan los editoriales: con dirección de arte, luz cuidada y una narrativa propia, no como un reportaje al uso.</p>
 
@@ -26,7 +27,7 @@ export default function Page() {
 
       <section aria-labelledby="equipo-heading">
         <h2 id="equipo-heading">Equipo</h2>
-        <Image src="/images/sobre-nosotros/placeholder-team.webp" alt="Equipo de EME Fotografía Sevilla (imagen de muestra)" width={800} height={1200} />
+        <Image src="/images/sobre-nosotros/placeholder-team.webp" alt="Equipo de EME Fotografía Sevilla (imagen de muestra)" width={800} height={1200} className={styles.teamImage} />
         <p>Al frente del estudio está {site.founderName}, fotógrafa. El resto de la trayectoria del equipo, así como la fotografía real del equipo, está pendiente de confirmación por el cliente — esta sección se actualizará con los datos reales.</p>
       </section>
     </article>

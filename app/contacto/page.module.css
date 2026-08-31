@@ -1,0 +1,15 @@
+.page {
+  max-width: 44rem;
+  margin-inline: auto;
+  padding-inline: var(--space-3);
+  padding-block: var(--space-4) var(--space-5);
+}
+.page h1 {
+  font-family: var(--font-serif);
+  font-size: var(--type-h2);
+  line-height: 1;
+  margin-block-end: var(--space-2);
+}
+.page > p { margin-block-end: var(--space-1); color: var(--color-muted); }
+.page > p:last-of-type { margin-block-end: var(--space-4); }
+.page a { color: var(--color-accent); }
