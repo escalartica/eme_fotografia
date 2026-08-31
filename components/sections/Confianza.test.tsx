@@ -1,11 +1,22 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { Confianza } from './Confianza';
 
 describe('Confianza', () => {
-  it('renders the real community numbers as the animated targets', () => {
+  it('renders the real community numbers as the animated targets once scrolled into view', () => {
+    // The count-up is now gated behind visibility (see the "scroll-triggered"
+    // describe block below), so this test must simulate the section
+    // intersecting the viewport before advancing timers — otherwise the
+    // default no-op IntersectionObserver stub from vitest.setup.ts never
+    // fires and the count-up never starts.
+    let intersectCallback: IntersectionObserverCallback | undefined;
+    (window as any).IntersectionObserver = vi.fn().mockImplementation(function (cb: IntersectionObserverCallback) {
+      intersectCallback = cb;
+      return { observe: vi.fn(), unobserve: vi.fn(), disconnect: vi.fn() };
+    });
     vi.useFakeTimers();
     render(<Confianza />);
+    act(() => { intersectCallback!([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver); });
     act(() => { vi.advanceTimersByTime(2000); });
     expect(screen.getByText('2320')).toBeInTheDocument();
     expect(screen.getByText('1622')).toBeInTheDocument();
@@ -42,5 +53,29 @@ describe('Confianza', () => {
       window.matchMedia = originalMatchMedia;
       vi.useRealTimers();
     }
+  });
+});
+
+describe('Confianza — scroll-triggered', () => {
+  let intersectCallback: IntersectionObserverCallback | undefined;
+
+  beforeEach(() => {
+    intersectCallback = undefined;
+    (window as any).IntersectionObserver = vi.fn().mockImplementation(function (cb: IntersectionObserverCallback) {
+      intersectCallback = cb;
+      return { observe: vi.fn(), unobserve: vi.fn(), disconnect: vi.fn() };
+    });
+  });
+
+  it('does not start counting until it scrolls into view', () => {
+    vi.useFakeTimers();
+    render(<Confianza />);
+    act(() => { vi.advanceTimersByTime(2000); });
+    expect(screen.queryByText('2320')).not.toBeInTheDocument();
+
+    act(() => { intersectCallback!([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver); });
+    act(() => { vi.advanceTimersByTime(2000); });
+    expect(screen.getByText('2320')).toBeInTheDocument();
+    vi.useRealTimers();
   });
 });
