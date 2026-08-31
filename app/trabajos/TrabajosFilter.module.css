@@ -34,3 +34,17 @@
     margin-block-start: var(--space-4);
   }
 }
+
+.imageWrap {
+  overflow: hidden;
+}
+.imageWrap img {
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.card:hover .imageWrap img {
+  transform: scale(1.04);
+}
+@media (prefers-reduced-motion: reduce) {
+  .imageWrap img { transition: none; }
+  .card:hover .imageWrap img { transform: none; }
+}
