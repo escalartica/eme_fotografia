@@ -7,6 +7,8 @@ export interface ContactSubmission {
   email: string;
   tipoEvento: string;
   fecha?: string;
+  lugar?: string;
+  numeroInvitados?: string;
   presupuesto?: string;
   mensaje: string;
 }

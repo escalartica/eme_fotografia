@@ -56,6 +56,12 @@ export function ContactForm() {
       <label htmlFor="fecha">Fecha aproximada</label>
       <input id="fecha" name="fecha" type="date" />
 
+      <label htmlFor="lugar">Lugar del evento</label>
+      <input id="lugar" name="lugar" placeholder="Ej. Hacienda de San Rafael, Sevilla" />
+
+      <label htmlFor="numeroInvitados">Número de invitados</label>
+      <input id="numeroInvitados" name="numeroInvitados" type="number" min="0" placeholder="Ej. 80" />
+
       <label htmlFor="presupuesto">Presupuesto aproximado</label>
       <input id="presupuesto" name="presupuesto" placeholder="Ej. 1500-2500€" />
 

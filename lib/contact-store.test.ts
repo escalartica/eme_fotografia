@@ -47,4 +47,15 @@ describe('saveContactSubmission', () => {
     expect(content.id).toBe(id);
     expect(content.receivedAt).not.toBe('1970-01-01T00:00:00.000Z');
   });
+
+  it('persists lugar and numeroInvitados when provided', async () => {
+    const { id } = await saveContactSubmission({
+      nombre: 'Ana', email: 'ana@example.com', tipoEvento: 'boda', mensaje: 'Hola',
+      lugar: 'Hacienda de San Rafael', numeroInvitados: '80',
+    }, DIR);
+    const files = await fs.readdir(DIR);
+    const content = JSON.parse(await fs.readFile(path.join(DIR, files[0]), 'utf-8'));
+    expect(content.lugar).toBe('Hacienda de San Rafael');
+    expect(content.numeroInvitados).toBe('80');
+  });
 });

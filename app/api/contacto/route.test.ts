@@ -44,4 +44,9 @@ describe('POST /api/contacto', () => {
     expect(json.error).not.toMatch(/EACCES|permission denied/);
     expect(json.error).toBe('Error interno del servidor');
   });
+
+  it('persists lugar and numeroInvitados through the full request/response cycle', async () => {
+    const res = await POST(req({ nombre: 'Ana', email: 'ana@example.com', tipoEvento: 'boda', mensaje: 'Hola', lugar: 'Sevilla capital', numeroInvitados: '50' }));
+    expect(res.status).toBe(200);
+  });
 });
