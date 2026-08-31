@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { site } from '@/content/site';
@@ -18,6 +17,7 @@ export function Hero() {
   const reducedMotion = useReducedMotion();
   const heroRef = useRef<HTMLElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const alreadyShown = sessionStorage.getItem(INTRO_KEY) === 'true';
@@ -41,7 +41,7 @@ export function Hero() {
     return () => clearTimeout(timer);
   }, [reducedMotion]);
 
-  // Contained parallax on the hero background image: a very subtle
+  // Contained parallax on the hero background video: a very subtle
   // translateY as the user scrolls past the section. Scoped to the Hero
   // only (per the client's "parallax muy contenido" request), animates
   // only `transform` (GSAP's `yPercent` compiles to a CSS transform), and
@@ -64,6 +64,23 @@ export function Hero() {
     return () => ctx.revert();
   }, [reducedMotion]);
 
+  // Imperative autoplay for the hero footage — mirrors VideoPreview.tsx's
+  // pattern exactly: never rely on the native `autoPlay` attribute, drive
+  // `.play()`/`.pause()` from an effect gated on reduced motion. With
+  // reduced motion, `.play()` is never called and the `poster` frame is
+  // shown instead. Unlike VideoPreview (a below-the-fold thumbnail gated
+  // on IntersectionObserver visibility), the Hero is always visible on
+  // load, so it plays on mount rather than waiting to scroll into view.
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    if (reducedMotion) {
+      el.pause();
+      return;
+    }
+    el.play().catch(() => {});
+  }, [reducedMotion]);
+
   return (
     <section ref={heroRef} className={styles.hero} data-hero-fullbleed>
       {showIntro && (
@@ -72,18 +89,30 @@ export function Hero() {
         </div>
       )}
       <div ref={imageRef} className={styles.imageParallax}>
-        <Image
-          src="/images/hero/placeholder-hero-01.webp"
-          alt="Pareja de novios en un momento espontáneo, fotografía editorial de boda"
-          fill
-          priority
-          sizes="100vw"
-          className={styles.image}
+        <video
+          ref={videoRef}
+          className={styles.video}
+          src="/videos/previews/real-boda-01-full.mp4"
+          poster="/videos/posters/real-boda-01-full.webp"
+          muted
+          loop
+          playsInline
+          preload="auto"
+          aria-label="Vídeo de la boda de Eva y Rafa: preparativos, salida y ceremonia"
         />
       </div>
+      <div className={styles.overlay} aria-hidden="true" />
       <div className={styles.content}>
-        <h1>{site.brandName}</h1>
-        <p>Fotografía y vídeo de bodas y eventos en {site.legalCity}, con la mirada de un editorial de moda.</p>
+        <p className={styles.eyebrow}>
+          Fotografía y vídeo de bodas y eventos en {site.legalCity}, con la mirada de un editorial de moda.
+        </p>
+        <h1 className={styles.wordmark}>
+          <span className={styles.wordmarkLine}>EME</span>{' '}
+          <span className={styles.wordmarkLine}>Fotografía {site.legalCity}</span>
+        </h1>
+      </div>
+      <div className={styles.scrollIndicator} aria-hidden="true">
+        <span className={styles.scrollLine} />
       </div>
     </section>
   );

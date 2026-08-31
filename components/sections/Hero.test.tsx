@@ -20,7 +20,13 @@ vi.mock('gsap/ScrollTrigger', () => ({ ScrollTrigger: {} }));
 import { Hero } from './Hero';
 
 describe('Hero', () => {
-  beforeEach(() => sessionStorage.clear());
+  beforeEach(() => {
+    sessionStorage.clear();
+    // jsdom has no real media pipeline: HTMLMediaElement.prototype.play/pause
+    // throw "not implemented" unless stubbed. Mirrors VideoPreview.test.tsx.
+    (window.HTMLMediaElement.prototype as any).play = vi.fn().mockResolvedValue(undefined);
+    (window.HTMLMediaElement.prototype as any).pause = vi.fn();
+  });
   afterEach(() => vi.clearAllMocks());
 
   it('shows the intro sequence on first visit', () => {
@@ -82,6 +88,45 @@ describe('Hero', () => {
         scrollTrigger: expect.objectContaining({ trigger: expect.anything() }),
       })
     );
+  });
+
+  it('renders the real wedding footage as the hero background video, with its poster', () => {
+    render(<Hero />);
+    const video = document.querySelector('video');
+    expect(video).toBeInTheDocument();
+    expect(video?.getAttribute('src')).toContain('real-boda-01-full.mp4');
+    expect(video?.getAttribute('poster')).toContain('real-boda-01-full.webp');
+    expect((video as HTMLVideoElement).muted).toBe(true);
+    expect(video).toHaveAttribute('loop');
+    expect(video).toHaveAttribute('playsinline');
+  });
+
+  it('plays the hero video imperatively when motion is not reduced', () => {
+    render(<Hero />);
+    expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalled();
+  });
+
+  it('never calls .play() on the hero video when motion is reduced, showing the static poster instead', () => {
+    // Same real-matchMedia-override pattern as the other reduced-motion tests
+    // in this file: drive the real useReducedMotion hook to `true`.
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = ((query: string) => ({
+      matches: true,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia;
+
+    try {
+      render(<Hero />);
+      expect(window.HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
   });
 
   it('does not set up parallax when motion is reduced', () => {

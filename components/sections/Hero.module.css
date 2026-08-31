@@ -1,17 +1,108 @@
-.hero { position: relative; min-height: 100svh; display: flex; align-items: flex-end; overflow: hidden; }
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
 .imageParallax {
   position: absolute;
   inset: -8% 0;
   z-index: -1;
 }
-.imageParallax .image {
+.imageParallax .video {
   position: relative;
   width: 100%;
   height: 100%;
 }
-.image { object-fit: cover; }
-.content { padding: var(--space-4) var(--space-3); color: var(--color-paper); }
-.content h1 { font-family: var(--font-serif); font-size: var(--type-h1); line-height: 0.95; }
+.video { object-fit: cover; }
+
+/* Cinematic scrim so the wordmark and eyebrow stay legible over real,
+   unpredictable footage — darkest at the bottom-left where the type sits. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    200deg,
+    rgba(17, 20, 24, 0.72) 0%,
+    rgba(17, 20, 24, 0.32) 32%,
+    rgba(17, 20, 24, 0) 60%
+  );
+  pointer-events: none;
+}
+
+/* Midground: the wordmark, pushed to the left edge (aligned with the
+   Header's logo via the shared --space-3 horizontal padding) and given
+   maximum graphic weight — the largest single element on the page. */
+.content {
+  position: relative;
+  z-index: 1;
+  /* Left padding matches the Header's own horizontal padding so the
+     wordmark's left edge lines up with the logo above it. Right padding
+     is deliberately larger so the wordmark's box never reaches the
+     bottom-right scroll indicator, at any viewport width. */
+  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-3);
+  color: var(--color-paper);
+  max-width: min(100%, 60rem);
+}
+
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: clamp(0.6875rem, 0.65rem + 0.15vw, 0.8125rem);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-paper);
+  opacity: 0.85;
+  margin: 0 0 var(--space-2);
+  max-width: 32ch;
+}
+
+.wordmark {
+  font-family: var(--font-serif);
+  font-size: var(--type-h1);
+  line-height: 0.86;
+  letter-spacing: -0.01em;
+  margin: 0;
+  overflow-wrap: break-word;
+}
+
+.wordmarkLine {
+  display: block;
+}
+
+/* Foreground: a small, subtly looping scroll cue tucked in a corner that
+   never overlaps the wordmark (opposite corner, bottom-right). */
+.scrollIndicator {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--color-paper);
+}
+
+.scrollLine {
+  width: 1px;
+  height: 2.5rem;
+  background: currentColor;
+  transform-origin: top center;
+  animation: scroll-cue 2.2s var(--ease-standard) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrollLine {
+    animation: none;
+  }
+}
+
+@keyframes scroll-cue {
+  0% { transform: scaleY(0.25); opacity: 0.35; }
+  50% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(0.25); opacity: 0.35; }
+}
+
 .intro {
   position: fixed;
   inset: 0;
