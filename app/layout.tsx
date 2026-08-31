@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { SmoothScrollProvider } from '@/components/motion/SmoothScrollProvider';
 import { Cursor } from '@/components/motion/Cursor';
+import { localBusinessSchema } from '@/lib/schema';
 import '../styles/globals.css';
 
 const fraunces = Fraunces({
@@ -31,6 +32,10 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="es" className={`${fraunces.variable} ${generalSans.variable}`}>
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema()) }}
+        />
         <SmoothScrollProvider>
           <Cursor />
           <a href="#main-content" className="skip-link">
