@@ -1,7 +1,7 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { projects } from '@/content/projects';
 import { ProjectGallery } from '@/components/sections/ProjectGallery';
+import { NextProjectLink } from '@/components/ui/NextProjectLink';
 import { buildMetadata } from '@/lib/seo';
 import { creativeWorkSchema } from '@/lib/schema';
 
@@ -38,7 +38,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <p>{project.category} — {project.year} — {project.location}</p>
       <p>{project.description}</p>
       <ProjectGallery project={project} />
-      <Link href={`/trabajos/${next.slug}`}>Siguiente proyecto: {next.title}</Link>
+      <NextProjectLink href={`/trabajos/${next.slug}`} label={`Siguiente proyecto: ${next.title}`} />
     </article>
   );
 }
