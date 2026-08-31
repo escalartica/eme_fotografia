@@ -32,30 +32,34 @@ export const projects: Project[] = [
     ],
   },
   {
-    slug: 'boda-elena-y-pablo-video',
-    title: 'Elena y Pablo — Película de boda',
+    // Real footage from an actual EME Fotografía wedding shoot (provided by
+    // the client 2026-08-31; original raw clips shot on Canon EOS 5D Mark IV,
+    // "com.apple.quicktime.author: EME FOTOGRAFIA" in the source metadata).
+    // Title/couple name pending — the client has not yet confirmed the real
+    // couple's name; do not present "Elena y Pablo" or any other name as
+    // real. Update this title as soon as it's confirmed.
+    slug: 'boda-real-01',
+    title: 'Boda real — nombre de la pareja pendiente de confirmación',
     category: 'video',
-    year: 2025,
+    year: 2026,
     client: 'Boda privada',
-    location: 'Sevilla capital',
-    description: 'Cortometraje de boda con voz en off de los votos y banda sonora original.',
+    location: 'Sevilla',
+    description: 'Selección de momentos reales del día de la boda: preparativos, salida y ceremonia. Montaje inicial a la espera de revisión del estudio.',
     cover: {
       type: 'video',
-      src: '/videos/previews/placeholder-elena-pablo-preview.mp4',
-      poster: '/videos/posters/placeholder-elena-pablo.webp',
-      alt: 'Vista previa del vídeo de boda de Elena y Pablo',
-      isPlaceholderMedia: true,
-      sourceCredit: 'Pexels/Coverr (licencia CC0)',
+      src: '/videos/previews/real-boda-01-preview.mp4',
+      poster: '/videos/posters/real-boda-01.webp',
+      alt: 'Vista previa de vídeo real de boda: preparativos y salida de la novia',
+      isPlaceholderMedia: false,
     },
     gallery: [
       { type: 'image', src: '/images/trabajos/boda-elena-y-pablo-video/placeholder-01.webp', alt: 'Fotograma de los votos', isPlaceholderMedia: true, sourceCredit: 'Unsplash' },
       {
         type: 'video',
-        src: '/videos/previews/placeholder-elena-pablo-full.mp4',
-        poster: '/videos/posters/placeholder-elena-pablo-full.webp',
-        alt: 'Película completa de la boda de Elena y Pablo',
-        isPlaceholderMedia: true,
-        sourceCredit: 'Pexels/Coverr (licencia CC0)',
+        src: '/videos/previews/real-boda-01-full.mp4',
+        poster: '/videos/posters/real-boda-01-full.webp',
+        alt: 'Montaje de vídeo real de boda: preparativos, salida y ceremonia',
+        isPlaceholderMedia: false,
       },
     ],
   },

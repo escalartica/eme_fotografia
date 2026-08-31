@@ -13,7 +13,7 @@ describe('ProjectGallery', () => {
   });
 
   it('renders a VideoPreview for video gallery items and opens the lightbox on click', () => {
-    const project = projects.find((p) => p.slug === 'boda-elena-y-pablo-video')!;
+    const project = projects.find((p) => p.slug === 'boda-real-01')!;
     render(<ProjectGallery project={project} />);
     const videoItem = project.gallery.find((m) => m.type === 'video')!;
     fireEvent.click(screen.getByRole('button', { name: /reproducir/i }));
