@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Fraunces } from 'next/font/google';
 import localFont from 'next/font/local';
+import { site } from '@/content/site';
 import '../styles/globals.css';
 
 const fraunces = Fraunces({
@@ -17,15 +18,20 @@ const generalSans = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'EME Fotografía',
-  description: 'EME Fotografía Sevilla',
+  title: { default: site.brandName, template: `%s — ${site.brandName}` },
+  description: 'Fotografía y vídeo de bodas y eventos en Sevilla. Fotomatón y experiencia 360°.',
+  metadataBase: new URL('https://www.emefotografiasevilla.es'),
 };
 
-// Minimal placeholder shell — replaced in Task 9.
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="es" className={`${fraunces.variable} ${generalSans.variable}`}>
-      <body>{children}</body>
+      <body>
+        <a href="#main-content" className="skip-link">
+          Saltar al contenido
+        </a>
+        <main id="main-content">{children}</main>
+      </body>
     </html>
   );
 }
