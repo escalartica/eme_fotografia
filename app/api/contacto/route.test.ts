@@ -17,4 +17,10 @@ describe('POST /api/contacto', () => {
     const json = await res.json();
     expect(json.id).toBeTruthy();
   });
+
+  it('returns 400 for malformed JSON body', async () => {
+    const malformedRequest = new Request('http://localhost/api/contacto', { method: 'POST', body: 'not valid json{' });
+    const res = await POST(malformedRequest);
+    expect(res.status).toBe(400);
+  });
 });
