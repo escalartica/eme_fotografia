@@ -6,8 +6,10 @@
 }
 .section h2 {
   font-family: var(--font-serif);
-  font-size: var(--type-h3);
-  line-height: 1.1;
-  margin-block-end: var(--space-2);
+  font-size: var(--type-h2);
+  line-height: 0.98;
+  margin-block-end: var(--space-3);
+  max-width: 20ch;
+  margin-inline: auto;
 }
 .section p { color: var(--color-muted); }
