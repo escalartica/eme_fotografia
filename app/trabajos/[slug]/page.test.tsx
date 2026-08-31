@@ -1,9 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Page, { generateStaticParams } from './page';
 import { projects } from '@/content/projects';
-import type { Project } from '@/content/types';
-import styles from './page.module.css';
 
 // NextProjectLink (rendered by Page) calls next/navigation's useRouter for
 // withPageTransition click handling, which requires an App Router context
@@ -48,39 +46,42 @@ describe('/trabajos/[slug] page', () => {
 });
 
 describe('project impact line conditional render', () => {
-  // Page reads `projects` from a module-level import (`@/content/projects`),
-  // so there is no seam to inject a one-off fake project into the real Page
-  // component without either fabricating a fact in content/projects.ts (not
-  // allowed) or mocking the content module (overkill for one optional
-  // field, and would risk desyncing from the other tests in this file that
-  // rely on the real seed data / real project count). Per the brief's
-  // guidance, this is instead a small focused test of the conditional-render
-  // JSX itself: a local component mirroring exactly the markup added to
-  // page.tsx (className={styles.impact}, data-testid="project-impact"),
-  // exercised with a Project-shaped object carrying a clearly fake,
-  // test-only impactLine that never touches content/projects.ts.
-  function ImpactLine({ project }: { project: Pick<Project, 'impactLine'> }) {
-    return (
-      <>
-        {project.impactLine && (
-          <p className={styles.impact} data-testid="project-impact">{project.impactLine}</p>
-        )}
-      </>
-    );
-  }
-
-  it('renders the impact line text when impactLine is set', () => {
-    const testProject: Pick<Project, 'impactLine'> = {
-      impactLine: 'TEST-ONLY FAKE IMPACT LINE — not real content',
-    };
-    render(<ImpactLine project={testProject} />);
-    const impact = screen.getByTestId('project-impact');
-    expect(impact).toBeInTheDocument();
-    expect(impact).toHaveTextContent('TEST-ONLY FAKE IMPACT LINE — not real content');
+  // Page reads `projects` from a module-level import (`@/content/projects`).
+  // To exercise the REAL Page component's conditional render (not a
+  // hand-copied stand-in) without fabricating a fact in content/projects.ts,
+  // mock the content module for just this one test via vi.doMock, then
+  // dynamically re-import ./page so it picks up the mocked module graph.
+  // vi.resetModules() before and after ensures this mock never leaks into
+  // the other tests in this file (or other files), which rely on the real
+  // seed data.
+  afterEach(() => {
+    vi.doUnmock('@/content/projects');
+    vi.resetModules();
   });
 
-  it('renders nothing when impactLine is absent', () => {
-    render(<ImpactLine project={{}} />);
-    expect(screen.queryByTestId('project-impact')).not.toBeInTheDocument();
+  it('renders the impact line via the real Page component when a project has one', async () => {
+    vi.resetModules();
+    vi.doMock('@/content/projects', () => ({
+      projects: [
+        {
+          slug: 'test-impact-project',
+          title: 'Proyecto de prueba',
+          category: 'boda',
+          year: 2026,
+          client: 'Cliente de prueba',
+          location: 'Sevilla',
+          description: 'Descripción de prueba.',
+          impactLine: 'Línea de impacto de prueba — solo para este test',
+          cover: { type: 'image', src: '/images/test.webp', alt: 'Test', isPlaceholderMedia: true },
+          gallery: [],
+        },
+      ],
+    }));
+    const { default: MockedPage } = await import('./page');
+    const result = await MockedPage({ params: Promise.resolve({ slug: 'test-impact-project' }) });
+    render(result);
+    expect(screen.getByTestId('project-impact')).toHaveTextContent(
+      'Línea de impacto de prueba — solo para este test'
+    );
   });
 });
