@@ -77,6 +77,7 @@ export function Hero() {
           alt="Pareja de novios en un momento espontáneo, fotografía editorial de boda"
           fill
           priority
+          sizes="100vw"
           className={styles.image}
         />
       </div>
