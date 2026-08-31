@@ -28,3 +28,9 @@
 .imageWrap { position: relative; width: 100%; aspect-ratio: 3 / 2; }
 .imageWrap img { object-fit: cover; }
 .title { display: block; margin-top: var(--space-1); font-family: var(--font-serif); }
+
+@media (min-width: 700px) {
+  .card:nth-child(3n+2) {
+    margin-block-start: var(--space-4);
+  }
+}
