@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { site } from '@/content/site';
 import { MobileMenu } from './MobileMenu';
 import styles from './Header.module.css';
@@ -14,13 +15,20 @@ const LINKS = [
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <header className={styles.header}>
       <Link href="/" className={styles.brand}>{site.brandName}</Link>
       <nav className={styles.desktopNav} aria-label="Navegación principal">
         {LINKS.map((link) => (
-          <Link key={link.href} href={link.href}>{link.label}</Link>
+          <Link
+            key={link.href}
+            href={link.href}
+            aria-current={pathname === link.href ? 'page' : undefined}
+          >
+            {link.label}
+          </Link>
         ))}
       </nav>
       <button

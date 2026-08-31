@@ -19,3 +19,9 @@
   .desktopNav { display: flex; }
   .menuButton { display: none; }
 }
+
+.desktopNav a[aria-current="page"] {
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 0.3em;
+}
