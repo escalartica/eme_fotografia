@@ -1000,25 +1000,34 @@ git commit -m "content: <describe the actual category fix once decided>"
 
 ### Task 9: Enrich JSON-LD structured data
 
-`lib/schema.ts`'s `localBusinessSchema()` and `creativeWorkSchema()` (base plan Task 29) omit several cheap, high-value SEO fields the final review flagged: `url`, `image`, `areaServed`, and opening hours for the business; `image`/`url` for each creative work.
+`lib/schema.ts`'s `localBusinessSchema()` and `creativeWorkSchema()` (base plan Task 29) omit several cheap, high-value SEO fields the final review flagged: `url`, `image`, `areaServed` for the business; `image`/`url` for each creative work.
+
+**Correction (2026-08-31, ruling recorded in this plan's ledger before Task 9 was dispatched):** this task originally also specced an `openingHoursSpecification` field sourced from a claimed "Lunes 9:00-13:00 / 16:00-19:00" real value in `content/site.ts`. That value does not exist anywhere in the codebase — `content/site.ts` has no opening-hours field at all, and `README.md` explicitly lists "el horario completo" as still pending client confirmation. Shipping invented hours into structured data would violate this plan's Global Constraint against fabricating business facts, so `openingHoursSpecification` is dropped from this task entirely; add it in a future task only once the client confirms real hours. The task text below is also corrected against the *current* `lib/schema.ts` (streetAddress/postalCode were added to the address block by base-plan work after this task was originally drafted — the replacement code below preserves them instead of silently dropping them), and `areaServed` now sources from `site.legalCity` (`'Sevilla'`, the metro area the studio markets itself to) rather than `site.addressLocality` (`'La Algaba'`, the precise but different registered-address town) — using the latter would have made the task's own test assertion (`areaServed` = `'Sevilla'`) fail. The real logo has since landed at `public/images/logo/eme-mark-square.png`, so `image` uses that instead of a placeholder hero photo.
 
 **Files:**
 - Modify: `lib/schema.ts`
 - Test: `lib/schema.test.ts` (existing file — extend)
 
 **Interfaces:**
-- Consumes: `site.legalCity`, `site.email`, `site.brandName`, `site.instagramUrl`, `site.facebookUrl` (all already used); needs one new field, `site.openingHoursText` or similar — check `content/site.ts` for what's already there (the base build documented "Lunes 9:00-13:00 / 16:00-19:00" as the one confirmed real slot in `content/site.ts`'s comments per the original spec's placeholder-honesty rule — reuse that exact value, do not invent additional days/hours).
+- Consumes: `site.legalCity`, `site.email`, `site.brandName`, `site.instagramUrl`, `site.facebookUrl`, `site.streetAddress`, `site.addressLocality`, `site.postalCode`, `site.addressCountry` (all already in `content/site.ts` / already used).
 - Produces: `localBusinessSchema()` and `creativeWorkSchema(project)` keep their existing signatures — only their returned object gains fields, nothing is removed or renamed (any code consuming these functions elsewhere is unaffected).
 
 - [ ] **Step 1: Write the failing test**
 
 ```ts
 // Add to lib/schema.test.ts
-it('includes url, image, areaServed, and openingHours on the LocalBusiness schema', () => {
+it('includes url, image, and areaServed on the LocalBusiness schema', () => {
   const schema = localBusinessSchema();
   expect(schema.url).toBe('https://www.emefotografiasevilla.es');
+  expect(schema.image).toBe('https://www.emefotografiasevilla.es/images/logo/eme-mark-square.png');
   expect(schema.areaServed).toBe('Sevilla');
-  expect(schema.openingHoursSpecification).toBeDefined();
+  expect(schema.address).toEqual({
+    '@type': 'PostalAddress',
+    streetAddress: site.streetAddress,
+    addressLocality: site.addressLocality,
+    postalCode: site.postalCode,
+    addressCountry: site.addressCountry,
+  });
 });
 
 it('includes image and url on the CreativeWork schema when the project has a cover image', () => {
@@ -1029,14 +1038,14 @@ it('includes image and url on the CreativeWork schema when the project has a cov
 });
 ```
 
+(Add `import { site } from '@/content/site';` to the test file if not already imported.)
+
 - [ ] **Step 2: Run it to verify it fails**
 
 Run: `npm test -- lib/schema.test.ts`
-Expected: FAIL — none of these fields exist yet.
+Expected: FAIL — `url`/`image`/`areaServed` don't exist yet on the LocalBusiness schema, and the CreativeWork schema has no `image`/`url`.
 
 - [ ] **Step 3: Implement**
-
-Read `content/site.ts` first to confirm the exact real opening-hours string already documented there (from the base plan's Task 3 verified-facts research) before hardcoding anything here.
 
 ```ts
 import { site } from '@/content/site';
@@ -1050,15 +1059,17 @@ export function localBusinessSchema() {
     '@type': 'LocalBusiness',
     name: site.brandName,
     url: SITE_URL,
-    image: `${SITE_URL}/images/hero/placeholder-hero-01.webp`, // update once the real logo/hero photo lands
+    image: `${SITE_URL}/images/logo/eme-mark-square.png`,
     email: site.email,
-    address: { '@type': 'PostalAddress', addressLocality: site.addressLocality, addressCountry: site.addressCountry },
-    areaServed: site.addressLocality,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: site.streetAddress,
+      addressLocality: site.addressLocality,
+      postalCode: site.postalCode,
+      addressCountry: site.addressCountry,
+    },
+    areaServed: site.legalCity,
     sameAs: [site.instagramUrl, site.facebookUrl],
-    openingHoursSpecification: [
-      { '@type': 'OpeningHoursSpecification', dayOfWeek: 'Monday', opens: '09:00', closes: '13:00' },
-      { '@type': 'OpeningHoursSpecification', dayOfWeek: 'Monday', opens: '16:00', closes: '19:00' },
-    ],
   };
 }
 
@@ -1076,8 +1087,6 @@ export function creativeWorkSchema(project: Project) {
 }
 ```
 
-(The `image` field pointing at the placeholder Hero photo is itself placeholder — flag with the inline comment above so whoever swaps in the real logo per `README.md` also updates this. Only Monday's hours are real per the base build's verified-facts research — do not add other days without the client confirming them, consistent with the base plan's Global Constraint against inventing business facts.)
-
 - [ ] **Step 4: Run it to verify it passes**
 
 Run: `npm test -- lib/schema.test.ts`
@@ -1092,7 +1101,7 @@ Expected: all pass — confirm the `<script>` injections in `app/layout.tsx`/`ap
 
 ```bash
 git add -A
-git commit -m "feat: enrich JSON-LD schema with url, image, areaServed, and opening hours"
+git commit -m "feat: enrich JSON-LD schema with url, image, and areaServed"
 ```
 
 ---
