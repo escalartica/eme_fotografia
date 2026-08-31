@@ -27,4 +27,24 @@ describe('Lightbox', () => {
     fireEvent.click(screen.getByTestId('lightbox-backdrop'));
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('moves focus into the modal content when it opens', () => {
+    render(<Lightbox isOpen onClose={() => {}}><p>Contenido</p></Lightbox>);
+    expect(screen.getByText('Contenido').parentElement).toHaveFocus();
+  });
+
+  it('restores focus to the previously-focused element when it closes', () => {
+    const trigger = document.createElement('button');
+    document.body.appendChild(trigger);
+    trigger.focus();
+    expect(trigger).toHaveFocus();
+
+    const { rerender } = render(<Lightbox isOpen onClose={() => {}}><p>Contenido</p></Lightbox>);
+    expect(trigger).not.toHaveFocus();
+
+    rerender(<Lightbox isOpen={false} onClose={() => {}}><p>Contenido</p></Lightbox>);
+    expect(trigger).toHaveFocus();
+
+    document.body.removeChild(trigger);
+  });
 });
