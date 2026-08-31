@@ -45,3 +45,9 @@ data/contact-submissions/
 
 # QA artifacts
 lighthouse-report.json
+
+# third-party Claude Code agent-skill packages (installed via `skills` CLI)
+# not part of this app -- keep out of app history and out of `git add -A`
+/.agents/
+/.claude/
+/skills-lock.json
