@@ -26,7 +26,7 @@ export const faqs: FaqEntry[] = [
   {
     id: 'derechos-imagen',
     question: '¿Quién tiene los derechos de las fotos y vídeos?',
-    answer: 'Las fotografías y el vídeo son para tu uso personal y el de tus invitados. EME Fotografía Sevilla se reserva el derecho a utilizar una selección de las imágenes en su web, redes sociales y portfolio, salvo que prefiráis lo contrario.',
+    answer: 'Las fotografías y el vídeo son para tu uso personal y el de tus invitados. EME Fotografía Sevilla se reserva el derecho a utilizar una selección de las imágenes en su web, redes sociales y portfolio, salvo que prefieras lo contrario.',
     isPendingConfirmation: true,
   },
   {
