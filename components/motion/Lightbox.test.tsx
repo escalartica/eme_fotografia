@@ -47,4 +47,32 @@ describe('Lightbox', () => {
 
     document.body.removeChild(trigger);
   });
+
+  it('traps Tab focus within the modal content, cycling from the last focusable element back to the first', async () => {
+    const user = userEvent.setup();
+    render(
+      <Lightbox isOpen onClose={() => {}}>
+        <button>Primero</button>
+        <button>Segundo</button>
+        <button>Último</button>
+      </Lightbox>
+    );
+    screen.getByText('Último').focus();
+    await user.tab();
+    expect(screen.getByText('Primero')).toHaveFocus();
+  });
+
+  it('traps Shift+Tab, cycling from the first focusable element back to the last', async () => {
+    const user = userEvent.setup();
+    render(
+      <Lightbox isOpen onClose={() => {}}>
+        <button>Primero</button>
+        <button>Segundo</button>
+        <button>Último</button>
+      </Lightbox>
+    );
+    screen.getByText('Primero').focus();
+    await user.tab({ shift: true });
+    expect(screen.getByText('Último')).toHaveFocus();
+  });
 });
