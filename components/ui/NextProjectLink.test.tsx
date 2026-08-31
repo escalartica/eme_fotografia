@@ -36,4 +36,16 @@ describe('NextProjectLink', () => {
     expect(event).toBe(true);
     expect(push).not.toHaveBeenCalled();
   });
+
+  it('applies an optional className to the underlying link', () => {
+    render(
+      <NextProjectLink
+        href="/trabajos/lucia-y-jorge"
+        label="Siguiente proyecto: Lucía y Jorge"
+        className="nextLink"
+      />
+    );
+    const link = screen.getByRole('link', { name: /siguiente proyecto/i });
+    expect(link).toHaveClass('nextLink');
+  });
 });

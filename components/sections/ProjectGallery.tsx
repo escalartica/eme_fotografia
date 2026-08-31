@@ -12,7 +12,7 @@ export function ProjectGallery({ project }: { project: Project }) {
 
   return (
     <>
-      <div>
+      <div className={styles.grid}>
         {project.gallery.map((media, i) =>
           media.type === 'image' ? (
             <div key={i} className={styles.imageWrap}>

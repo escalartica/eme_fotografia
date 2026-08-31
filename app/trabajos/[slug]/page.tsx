@@ -4,6 +4,7 @@ import { ProjectGallery } from '@/components/sections/ProjectGallery';
 import { NextProjectLink } from '@/components/ui/NextProjectLink';
 import { buildMetadata } from '@/lib/seo';
 import { creativeWorkSchema } from '@/lib/schema';
+import styles from './page.module.css';
 
 export async function generateStaticParams() {
   return projects.map((p) => ({ slug: p.slug }));
@@ -29,16 +30,20 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const next = projects[(index + 1) % projects.length];
 
   return (
-    <article>
+    <article className={styles.page}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(creativeWorkSchema(project)) }}
       />
       <h1>{project.title}</h1>
-      <p>{project.category} — {project.year} — {project.location}</p>
-      <p>{project.description}</p>
+      <p className={styles.meta}>{project.category} — {project.year} — {project.location}</p>
+      <p className={styles.description}>{project.description}</p>
       <ProjectGallery project={project} />
-      <NextProjectLink href={`/trabajos/${next.slug}`} label={`Siguiente proyecto: ${next.title}`} />
+      <NextProjectLink
+        href={`/trabajos/${next.slug}`}
+        label={`Siguiente proyecto: ${next.title}`}
+        className={styles.nextLink}
+      />
     </article>
   );
 }

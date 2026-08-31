@@ -4,7 +4,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { withPageTransition } from '@/components/motion/PageTransition';
 
-export function NextProjectLink({ href, label }: { href: string; label: string }) {
+export function NextProjectLink({
+  href,
+  label,
+  className,
+}: {
+  href: string;
+  label: string;
+  className?: string;
+}) {
   const router = useRouter();
 
   function handleClick(e: MouseEvent<HTMLAnchorElement>) {
@@ -14,7 +22,7 @@ export function NextProjectLink({ href, label }: { href: string; label: string }
   }
 
   return (
-    <Link href={href} onClick={handleClick}>
+    <Link href={href} onClick={handleClick} className={className}>
       {label}
     </Link>
   );
