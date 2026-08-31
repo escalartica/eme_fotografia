@@ -25,14 +25,14 @@ describe('VideoPreview', () => {
   it('plays when it enters the viewport', () => {
     (useReducedMotion as any).mockReturnValue(false);
     render(<VideoPreview media={media} onOpenFull={() => {}} />);
-    intersectCallback([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
+    intersectCallback!([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
     expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalled();
   });
 
   it('pauses when it leaves the viewport', () => {
     (useReducedMotion as any).mockReturnValue(false);
     render(<VideoPreview media={media} onOpenFull={() => {}} />);
-    intersectCallback([{ isIntersecting: false } as IntersectionObserverEntry], {} as IntersectionObserver);
+    intersectCallback!([{ isIntersecting: false } as IntersectionObserverEntry], {} as IntersectionObserver);
     expect(window.HTMLMediaElement.prototype.pause).toHaveBeenCalled();
   });
 
