@@ -16,6 +16,12 @@ export function Hero() {
     if (alreadyShown) return;
     if (reducedMotion) {
       // No flash-screen under reduced motion — mark it shown and skip straight to content.
+      // Also clear any intro state a prior stale run of this effect may have set: on
+      // mount, useReducedMotion() starts `false` and flips to `true` asynchronously in
+      // its own effect, so this effect can run once with the stale `false` value
+      // (scheduling the intro) before re-running here with the corrected `true` value.
+      // Without this, showIntro would stay stuck `true` with no timer left to clear it.
+      setShowIntro(false);
       sessionStorage.setItem(INTRO_KEY, 'true');
       return;
     }
