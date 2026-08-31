@@ -1,5 +1,12 @@
 import Link from 'next/link';
 import { services } from '@/content/services';
+import { buildMetadata } from '@/lib/seo';
+
+export const metadata = buildMetadata({
+  title: 'Servicios',
+  description: 'Fotografía de boda, vídeo, fotomatón y experiencia 360° en Sevilla.',
+  path: '/servicios',
+});
 
 export default function Page() {
   return (

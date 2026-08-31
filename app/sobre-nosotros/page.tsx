@@ -1,5 +1,12 @@
 import Image from 'next/image';
 import { site } from '@/content/site';
+import { buildMetadata } from '@/lib/seo';
+
+export const metadata = buildMetadata({
+  title: 'Sobre nosotros',
+  description: 'Contamos bodas y eventos como editoriales de moda: dirección de arte, luz cuidada y una narrativa propia.',
+  path: '/sobre-nosotros',
+});
 
 export default function Page() {
   return (

@@ -1,5 +1,12 @@
 import { ContactForm } from '@/components/ui/ContactForm';
 import { site } from '@/content/site';
+import { buildMetadata } from '@/lib/seo';
+
+export const metadata = buildMetadata({
+  title: 'Contacto',
+  description: 'Cuéntanos tu boda o evento en Sevilla. Respondemos con cita previa.',
+  path: '/contacto',
+});
 
 export default function Page() {
   return (

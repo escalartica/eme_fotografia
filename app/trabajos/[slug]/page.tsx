@@ -2,9 +2,22 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { projects } from '@/content/projects';
 import { ProjectGallery } from '@/components/sections/ProjectGallery';
+import { buildMetadata } from '@/lib/seo';
 
 export async function generateStaticParams() {
   return projects.map((p) => ({ slug: p.slug }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const project = projects.find((p) => p.slug === slug);
+  if (!project) return {};
+  return buildMetadata({
+    title: project.title,
+    description: project.description,
+    path: `/trabajos/${project.slug}`,
+    image: project.cover.type === 'image' ? project.cover.src : project.cover.poster,
+  });
 }
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
