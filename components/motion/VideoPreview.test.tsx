@@ -29,6 +29,16 @@ describe('VideoPreview', () => {
     expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalled();
   });
 
+  it('renders a focusable, operable play button even when motion is not reduced', () => {
+    (useReducedMotion as any).mockReturnValue(false);
+    const onOpenFull = vi.fn();
+    render(<VideoPreview media={media} onOpenFull={onOpenFull} />);
+    const button = screen.getByRole('button', { name: /reproducir/i });
+    expect(button).toBeInTheDocument();
+    fireEvent.click(button);
+    expect(onOpenFull).toHaveBeenCalledTimes(1);
+  });
+
   it('pauses when it leaves the viewport', () => {
     (useReducedMotion as any).mockReturnValue(false);
     render(<VideoPreview media={media} onOpenFull={() => {}} />);
