@@ -75,4 +75,23 @@ describe('Lightbox', () => {
     await user.tab({ shift: true });
     expect(screen.getByText('Último')).toHaveFocus();
   });
+
+  it('does not throw and still restores focus on close when the content has no conventionally-focusable descendants', async () => {
+    const trigger = document.createElement('button');
+    document.body.appendChild(trigger);
+    trigger.focus();
+
+    const { rerender } = render(
+      <Lightbox isOpen onClose={() => {}}>
+        <video data-testid="clip" />
+      </Lightbox>
+    );
+    expect(trigger).not.toHaveFocus();
+    expect(screen.getByTestId('clip').parentElement).toHaveFocus();
+
+    rerender(<Lightbox isOpen={false} onClose={() => {}}><video data-testid="clip" /></Lightbox>);
+    expect(trigger).toHaveFocus();
+
+    document.body.removeChild(trigger);
+  });
 });

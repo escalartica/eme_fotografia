@@ -43,3 +43,16 @@ if (typeof window !== 'undefined' && !window.IntersectionObserver) {
     disconnect() {}
   } as unknown as typeof window.IntersectionObserver;
 }
+
+// jsdom has no layout engine, so Element.getClientRects() always returns an
+// empty list. The `tabbable` library (used internally by `focus-trap`, which
+// Lightbox uses for its modal focus trap) treats "zero client rects" as
+// "hidden" and therefore excludes every element from its tabbable-nodes
+// search — without this stub, focus-trap would see zero tabbable nodes for
+// any real content in tests and always fall back to its `fallbackFocus`
+// target, even when real focusable descendants (e.g. buttons) are present.
+if (typeof window !== 'undefined' && typeof Element !== 'undefined') {
+  Element.prototype.getClientRects = function getClientRects() {
+    return [{ width: 1, height: 1 }] as unknown as DOMRectList;
+  };
+}
