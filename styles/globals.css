@@ -26,3 +26,16 @@ body {
   outline: 2px solid var(--color-accent);
   outline-offset: 3px;
 }
+
+::view-transition-old(root), ::view-transition-new(root) {
+  animation-duration: var(--duration-fast);
+}
+
+/* The reset.css `*` reduced-motion rule doesn't reach ::view-transition-*
+   pseudo-elements (they aren't matched by `*`), so they need their own
+   override here. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
