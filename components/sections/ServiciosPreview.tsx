@@ -8,12 +8,12 @@ export function ServiciosPreview() {
       <h2 id="servicios-heading">Servicios</h2>
       <ul>
         {services.map((service) => (
-          <ScrollReveal key={service.slug}>
-            <li>
+          <li key={service.slug}>
+            <ScrollReveal>
               <Link href={`/servicios#${service.slug}`}>{service.name}</Link>
               <p>{service.tagline}</p>
-            </li>
-          </ScrollReveal>
+            </ScrollReveal>
+          </li>
         ))}
       </ul>
     </section>
