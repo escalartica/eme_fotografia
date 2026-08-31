@@ -1435,7 +1435,7 @@ git commit -m "feat: add FAQ section to /contacto"
 
 **Files:**
 - Modify: `content/types.ts`, `content/testimonials.ts`, `components/sections/Testimonios.tsx`, `components/sections/Testimonios.module.css` (new)
-- Test: `content/testimonials.test.ts` (existing — extend), `components/sections/Testimonios.test.tsx` (new)
+- Test: `content/testimonials.test.ts` (new — confirmed no test file currently exists for `content/testimonials.ts`, despite this task's steps below referring to it as "existing"), `components/sections/Testimonios.test.tsx` (new — confirmed no test file currently exists for `components/sections/Testimonios.tsx` either, despite that component itself already existing)
 
 **Interfaces:**
 - Produces: `Testimonial.photo?: string` (optional — testimonials without a photo yet, or ones where the client prefers text-only, still render correctly).
@@ -1505,6 +1505,8 @@ Expected: FAIL only if `Testimonios.tsx` doesn't currently exist as importable i
 
 - [ ] **Step 6: Implement**
 
+(Note: this replacement preserves the current component's typographic curly quotes `“…”` around each testimonial — the code block below was corrected to match; do not regress to straight ASCII quotes `"…"`.)
+
 ```tsx
 // components/sections/Testimonios.tsx
 import Image from 'next/image';
@@ -1524,7 +1526,7 @@ export function Testimonios() {
                 <Image src={t.photo} alt={t.author} fill sizes="4rem" />
               </div>
             )}
-            <p>"{t.quote}"</p>
+            <p>“{t.quote}”</p>
             <cite>{t.author} — {t.role}</cite>
           </blockquote>
         </ScrollReveal>
