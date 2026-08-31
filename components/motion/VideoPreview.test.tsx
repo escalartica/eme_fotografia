@@ -54,4 +54,12 @@ describe('VideoPreview', () => {
     fireEvent.click(screen.getByRole('button', { name: /reproducir/i }));
     expect(onOpenFull).toHaveBeenCalled();
   });
+
+  it('calls onOpenFull exactly once when the play button is clicked (no bubbling double-fire)', () => {
+    (useReducedMotion as any).mockReturnValue(true);
+    const onOpenFull = vi.fn();
+    render(<VideoPreview media={media} onOpenFull={onOpenFull} />);
+    fireEvent.click(screen.getByRole('button', { name: /reproducir/i }));
+    expect(onOpenFull).toHaveBeenCalledTimes(1);
+  });
 });

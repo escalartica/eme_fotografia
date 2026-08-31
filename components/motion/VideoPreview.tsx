@@ -32,7 +32,15 @@ export function VideoPreview({ media, onOpenFull }: { media: ProjectMedia; onOpe
         aria-label={media.alt}
       />
       {reducedMotion && (
-        <button type="button" className={styles.playButton} onClick={onOpenFull} aria-label="Reproducir vídeo">
+        <button
+          type="button"
+          className={styles.playButton}
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenFull();
+          }}
+          aria-label="Reproducir vídeo"
+        >
           Reproducir
         </button>
       )}
