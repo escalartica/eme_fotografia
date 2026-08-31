@@ -1,0 +1,7 @@
+.section { padding: var(--space-5) var(--space-3); max-width: 44rem; margin-inline: auto; }
+.section h2 { font-family: var(--font-serif); font-size: var(--type-h3); margin-block-end: var(--space-3); }
+.item { padding-block: var(--space-3); border-top: 1px solid var(--color-muted); }
+.item:first-of-type { border-top: none; }
+.photoWrap { position: relative; width: 4rem; height: 4rem; border-radius: 50%; overflow: hidden; margin-block-end: var(--space-1); }
+.photoWrap img { object-fit: cover; }
+.quote cite { display: block; margin-block-start: var(--space-1); color: var(--color-muted); font-style: normal; }

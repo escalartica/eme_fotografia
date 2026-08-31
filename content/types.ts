@@ -57,6 +57,7 @@ export interface Testimonial {
   author: string;
   role: string;
   isPlaceholder: boolean;
+  photo?: string; // path under public/images/, e.g. '/images/testimonios/placeholder-01.webp'
 }
 
 export interface FaqEntry {
