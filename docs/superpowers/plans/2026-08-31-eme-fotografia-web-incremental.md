@@ -1830,6 +1830,428 @@ git commit -m "chore: remove dead code and unused assets flagged by the final re
 
 ---
 
+## Addendum — premium art-direction pass (added after Task 16)
+
+The client shared a large creative brief studying award-winning photography portfolios (Richard Prescott, Levon Biss, Benjamin Von Wong, Tim Tadder, Erik Almås, Awwwards) and asked for a premium redesign direction, following an analyze-first methodology. The research (visiting and inspecting each live site) found:
+
+- **Richard Prescott** genuinely uses WebGL (confirmed via a live canvas/WebGL context) — and it costs 25+ seconds of load time before content appears. A real, measured tradeoff, not a hypothetical one.
+- The equally-or-more-acclaimed sites that load fast (Von Wong, Tim Tadder, Levon Biss) achieve the premium feel WITHOUT WebGL: large-scale asymmetric imagery, oversized editorial typography, generous negative space, and — specifically on Von Wong — project cards carrying a real accent-colored impact/context line ("Recreado en 10 ciudades · 193 países"), not just an image and a title.
+- Tim Tadder's nav explicitly splits "Portfolios" (category discovery) from "Projects" (case studies) — a structure this site already has (`/trabajos` with category filters → `/trabajos/[slug]` detail).
+
+**Ruling: no WebGL.** The measured cost (25s+ load) directly contradicts this project's performance discipline (real Lighthouse Performance 0.95, retained and re-verified after every change in this plan) and the client's own explicit fallback instruction ("si puedes conseguir la misma sensación con CSS/GSAP, prioriza esa solución"). Everything below is CSS/GSAP — the same stack already in use, no new dependency.
+
+These five tasks extend the site's *existing* editorial identity (Fraunces/General Sans, the ink/accent/paper palette, `ScrollReveal`/GSAP/Lenis, the already-correct Home→Trabajos→Categoría→Proyecto→Galería→Contacto structure) rather than replacing it — approved by the client to append to this plan and continue execution.
+
+### Task 17: Asymmetric staggered grid for the work galleries
+
+Both the Home page's `SelectedWork` grid and the `/trabajos` listing grid currently lay out every card in a uniform row-aligned grid. This task staggers every third card vertically on wider viewports — the asymmetric, non-grid-aligned rhythm observed on Levon Biss and Diana Toloza — using pure CSS, no JS, no new markup.
+
+**Files:**
+- Modify: `components/sections/SelectedWork.module.css`, `app/trabajos/TrabajosFilter.module.css`
+
+**Interfaces:** none — pure CSS, no component/prop changes.
+
+- [ ] **Step 1: Add the staggered rule to `SelectedWork.module.css`**
+
+Read the current file first (shown in this plan's context above — `.grid`/`.card`/`.imageWrap`/`.title` already exist). Append:
+
+```css
+@media (min-width: 700px) {
+  .card:nth-child(3n+2) {
+    margin-block-start: var(--space-4);
+  }
+}
+```
+
+(Scoped to `min-width: 700px` so the vertical offset never applies on a single-column mobile layout, where it would just look like broken spacing rather than an intentional stagger.)
+
+- [ ] **Step 2: Add the identical rule to `app/trabajos/TrabajosFilter.module.css`**
+
+Same rule, same selector — this grid uses the identical `.card`/`.grid` class names (established in Task 6 of this plan by reusing `SelectedWork`'s pattern verbatim), so the same CSS applies without modification:
+
+```css
+@media (min-width: 700px) {
+  .card:nth-child(3n+2) {
+    margin-block-start: var(--space-4);
+  }
+}
+```
+
+- [ ] **Step 3: Run the full suite and build**
+
+Run: `npm test && npm run build`
+Expected: all pass — this is a pure-CSS change with no new testable behavior; the existing tests for both grids assert on content/links, not layout, so they're unaffected.
+
+- [ ] **Step 4: Visual check**
+
+Start a production server and view both `/` (scroll to "Trabajos seleccionados") and `/trabajos` at a viewport ≥700px wide — confirm every 2nd-of-3 card sits visibly lower than its neighbors, breaking the uniform grid rhythm. Check at 375px too — confirm the stagger does NOT apply (single column, no `margin-block-start` offset).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add -A
+git commit -m "style: stagger the work-gallery grids for an asymmetric editorial layout"
+```
+
+---
+
+### Task 18: Subtle hover-scale on gallery cards
+
+A very subtle image scale on hover — one of the interaction priorities the client explicitly listed ("scale muy sutil de fotografías"). Animates only `transform` (per this project's global constraint), respects `prefers-reduced-motion`.
+
+**Files:**
+- Modify: `components/sections/SelectedWork.module.css`, `app/trabajos/TrabajosFilter.module.css`
+
+**Interfaces:** none — pure CSS.
+
+- [ ] **Step 1: Add the hover-scale rule to `SelectedWork.module.css`**
+
+```css
+.imageWrap {
+  overflow: hidden;
+}
+.imageWrap img {
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.card:hover .imageWrap img {
+  transform: scale(1.04);
+}
+@media (prefers-reduced-motion: reduce) {
+  .imageWrap img { transition: none; }
+  .card:hover .imageWrap img { transform: none; }
+}
+```
+
+(`overflow: hidden` on `.imageWrap` is required so the scaled image doesn't visibly spill past its rounded box — `.imageWrap` is already `position: relative` with a fixed `aspect-ratio`, so this doesn't affect layout, only clips the hover overflow.)
+
+- [ ] **Step 2: Add the identical rule to `app/trabajos/TrabajosFilter.module.css`**
+
+Same CSS block, same class names, for the same reason as Task 17.
+
+- [ ] **Step 3: Run the full suite and build**
+
+Run: `npm test && npm run build`
+Expected: all pass.
+
+- [ ] **Step 4: Visual check**
+
+Hover a project card on `/` and `/trabajos` — confirm the image scales up very slightly (not the whole card, not the title) and returns smoothly on mouse-out. Then emulate `prefers-reduced-motion: reduce` in DevTools and confirm the hover scale no longer happens at all (not just "instant" — genuinely absent, per this project's established "no exceptions" reduced-motion rule).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add -A
+git commit -m "feat: add subtle hover-scale to gallery card images"
+```
+
+---
+
+### Task 19: Oversized typographic moment on Manifiesto
+
+The client's brief and the research both called out oversized editorial display type (Diana Toloza's hollow-stroke "Works" treatment, Von Wong's large headline) as a recurring premium signal. `Manifiesto` — the section closest in spirit to a brand statement — currently uses `--type-h3` (1.5–2.25rem), the same size as every other section subheading. This task gives it real presence: `--type-h2` (2.25–4rem), the same scale already used for interior-page `h1`s, without violating the established "`--type-h1` stays reserved for the Home Hero" rule (this is still an `h2` element, just a larger `h2`).
+
+**Files:**
+- Modify: `components/sections/Manifiesto.module.css`
+
+**Interfaces:** none — pure CSS, no markup/component change.
+
+- [ ] **Step 1: Update the heading size**
+
+Read the current file first (shown in this plan's context above). Change:
+
+```css
+.section h2 {
+  font-family: var(--font-serif);
+  font-size: var(--type-h2);
+  line-height: 0.98;
+  margin-block-end: var(--space-3);
+  max-width: 20ch;
+  margin-inline: auto;
+}
+```
+
+(`max-width: 20ch` + `margin-inline: auto` keeps the now-larger heading from stretching edge-to-edge into an unreadable single line on wide viewports — it wraps to 2–3 lines instead, matching the multi-line oversized-headline treatment observed on Von Wong and Diana Toloza. `line-height: 0.98` tightens the line spacing for a punchier, more editorial block at this larger size — matches the tightening already used on `Hero.module.css`'s `.content h1 { line-height: 0.95; }`.)
+
+- [ ] **Step 2: Run the full suite and build**
+
+Run: `npm test && npm run build`
+Expected: all pass — `Manifiesto.test.tsx` asserts on the heading role/text content, not its computed size, so it's unaffected.
+
+- [ ] **Step 3: Visual check**
+
+View `/` and scroll to Manifiesto — confirm the heading now reads noticeably larger than the section's body paragraph and the other sections' `h2`s (Trabajos seleccionados, Servicios, etc.), wrapping to 2–3 lines rather than one long line, at both 375px and 1440px.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add -A
+git commit -m "style: give Manifiesto's heading real oversized editorial presence"
+```
+
+---
+
+### Task 20: Optional project impact line
+
+Von Wong's project cards pair an accent-colored impact/result line with grey metadata (place/date) — turning a photo into "work with results," not just an image. This task adds that as an OPTIONAL field on `Project`, rendered on the detail page only when present. No existing seed project gets a fabricated value — this is infrastructure for when the client provides a real one (e.g., a guest count, a press mention, a venue detail worth calling out), consistent with this project's standing rule against inventing business facts.
+
+**Files:**
+- Modify: `content/types.ts`, `app/trabajos/[slug]/page.tsx`, `app/trabajos/[slug]/page.module.css`
+- Test: `app/trabajos/[slug]/page.test.tsx` (existing file — extend)
+
+**Interfaces:**
+- `Project` gains `impactLine?: string` (optional — every existing seed project and every existing test constructing a `Project` without one stays valid).
+
+- [ ] **Step 1: Extend the type**
+
+```ts
+// content/types.ts — extend the existing Project interface, don't redefine it
+export interface Project {
+  slug: string;
+  title: string;
+  category: ProjectCategory;
+  year: number;
+  client: string;
+  location: string;
+  description: string;
+  impactLine?: string;
+  cover: ProjectMedia;
+  gallery: ProjectMedia[];
+}
+```
+
+- [ ] **Step 2: Write the failing test**
+
+```tsx
+// Add to app/trabajos/[slug]/page.test.tsx
+it('renders the impact line when a project has one, styled distinctly from the metadata line', async () => {
+  // clara-y-manuel has no impactLine in the seed data — this test needs a project that does.
+  // If no seed project has one yet, this test is written against a stubbed/inline
+  // project object rather than the real content module — check the file's existing
+  // test setup pattern first and follow it (some tests here render the real Page
+  // against a real slug; if none of the 4 seed projects has impactLine set, add
+  // a minimal one to a NON-primary seed project's data for this test to exercise
+  // against, or test via a lower-level check appropriate to how this file's other
+  // tests are structured — use your judgment based on the actual file, and document
+  // your choice in the report).
+  const result = await Page({ params: Promise.resolve({ slug: 'clara-y-manuel' }) });
+  render(result);
+  // clara-y-manuel has no impactLine — confirm nothing renders for it.
+  expect(screen.queryByTestId('project-impact')).not.toBeInTheDocument();
+});
+```
+
+(This test deliberately checks the ABSENCE case first, since no seed project has real impact data yet — the presence case can't be tested against real content without fabricating a fact. If you judge a presence-case test is still valuable with an explicitly-fake, clearly-test-only value not touching `content/projects.ts`, add one — document your reasoning either way.)
+
+- [ ] **Step 3: Run it to verify it passes as a baseline (no seed data has this field yet, so there's nothing to turn red first here — this step confirms the absence-case assertion is meaningful against real current data)**
+
+Run: `npm test -- "app/trabajos/[slug]/page.test.tsx"`
+Expected: PASS (the component doesn't render anything for `project-impact` yet — same before and after Step 1's type addition alone; this becomes a real regression guard once Step 4 is implemented).
+
+- [ ] **Step 4: Implement the conditional render**
+
+Read the current `app/trabajos/[slug]/page.tsx` (shown in this plan's context above). Add, right after the existing `<p className={styles.meta}>` line and before `<p className={styles.description}>` — do NOT modify the existing meta line itself (a separate task in this plan may also touch that line; keep this addition independent):
+
+```tsx
+{project.impactLine && (
+  <p className={styles.impact} data-testid="project-impact">{project.impactLine}</p>
+)}
+```
+
+Add to `app/trabajos/[slug]/page.module.css`:
+
+```css
+.impact {
+  color: var(--color-accent);
+  font-weight: 600;
+  margin-block-end: var(--space-1);
+}
+```
+
+- [ ] **Step 5: Run it to verify it passes**
+
+Run: `npm test -- "app/trabajos/[slug]/page.test.tsx"`
+Expected: PASS.
+
+- [ ] **Step 6: Run the full suite and build**
+
+Run: `npm test && npm run build`
+Expected: all pass — confirm `content/projects.test.ts` (which iterates every seed project) doesn't break on the new optional field (it shouldn't, since nothing there asserts on `impactLine`'s presence/absence).
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add -A
+git commit -m "feat: add optional project impact line, rendered when present"
+```
+
+---
+
+### Task 21: Contained parallax on the Hero image
+
+The client's brief explicitly asked for "parallax muy contenido" (very contained) — scoped to the Hero only, not sitewide. GSAP `ScrollTrigger` (already a dependency, already used by `ScrollReveal`) drives a subtle `translateY` on the Hero background image as the user scrolls past it, animating only `transform` (per this project's global constraint), fully gated behind `useReducedMotion()`.
+
+**Files:**
+- Modify: `components/sections/Hero.tsx`, `components/sections/Hero.module.css`
+- Test: `components/sections/Hero.test.tsx` (existing file — extend)
+
+**Interfaces:** none — no new exports, `<Hero />` keeps its zero-prop signature.
+
+- [ ] **Step 1: Write the failing test**
+
+```tsx
+// Add to components/sections/Hero.test.tsx
+import { gsap } from 'gsap';
+
+vi.mock('gsap', () => ({ gsap: { to: vi.fn(), registerPlugin: vi.fn() } }));
+vi.mock('gsap/ScrollTrigger', () => ({ ScrollTrigger: {} }));
+
+it('sets up a contained parallax tween on the hero image when motion is not reduced', () => {
+  render(<Hero />);
+  expect(gsap.to).toHaveBeenCalledWith(
+    expect.anything(),
+    expect.objectContaining({ scrollTrigger: expect.objectContaining({ trigger: expect.anything() }) })
+  );
+});
+
+it('does not set up parallax when motion is reduced', () => {
+  // This file's existing tests already establish the pattern for driving
+  // useReducedMotion to true via a real window.matchMedia override — reuse
+  // that exact pattern here (check the file for it) rather than inventing
+  // a second mocking approach in the same file.
+});
+```
+
+(The brief gives the shape of this test rather than a byte-exact snippet, since it must integrate with `Hero.test.tsx`'s EXISTING `gsap`-mocking needs, if any — check the current file first: if it does not yet mock `gsap` at all, add the mock at the top of the file per the snippet above; if some other test in the file already renders `<Hero />` without expecting `gsap.to` to have been called, verify that test still passes once parallax is gated correctly behind `reducedMotion` — a mount with the default `matches: false` stub from `vitest.setup.ts` means `reducedMotion` starts `false`, so `gsap.to` WOULD be called on every existing test's render too, per the reduced-motion default already established for every other test in this file. Read the file fully before writing this test, and document exactly what you found and how you integrated with it.)
+
+- [ ] **Step 2: Run it to verify it fails**
+
+Run: `npm test -- components/sections/Hero.test.tsx`
+Expected: FAIL — no `gsap.to` call exists yet for the image parallax.
+
+- [ ] **Step 3: Implement the parallax effect**
+
+Read the current `components/sections/Hero.tsx` (shown in this plan's context above — it already imports `useEffect`, `useState`, `useReducedMotion`). Add a `ref` on the `<Image>`'s wrapping element and a GSAP effect:
+
+```tsx
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { site } from '@/content/site';
+import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
+import styles from './Hero.module.css';
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
+const INTRO_KEY = 'eme-intro-shown';
+
+export function Hero() {
+  const [showIntro, setShowIntro] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const heroRef = useRef<HTMLElement>(null);
+  const imageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const alreadyShown = sessionStorage.getItem(INTRO_KEY) === 'true';
+    if (alreadyShown) return;
+    if (reducedMotion) {
+      setShowIntro(false);
+      sessionStorage.setItem(INTRO_KEY, 'true');
+      return;
+    }
+    setShowIntro(true);
+    const timer = setTimeout(() => {
+      setShowIntro(false);
+      sessionStorage.setItem(INTRO_KEY, 'true');
+    }, 1400);
+    return () => clearTimeout(timer);
+  }, [reducedMotion]);
+
+  useEffect(() => {
+    if (reducedMotion || !heroRef.current || !imageRef.current) return;
+    const ctx = gsap.context(() => {
+      gsap.to(imageRef.current, {
+        yPercent: 12,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: heroRef.current,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        },
+      });
+    }, heroRef);
+    return () => ctx.revert();
+  }, [reducedMotion]);
+
+  return (
+    <section ref={heroRef} className={styles.hero} data-hero-fullbleed>
+      {showIntro && (
+        <div data-testid="intro-sequence" className={styles.intro}>
+          <span className={styles.introMark}>eme</span>
+        </div>
+      )}
+      <div ref={imageRef} className={styles.imageParallax}>
+        <Image
+          src="/images/hero/placeholder-hero-01.webp"
+          alt="Pareja de novios en un momento espontáneo, fotografía editorial de boda"
+          fill
+          priority
+          className={styles.image}
+        />
+      </div>
+      <div className={styles.content}>
+        <h1>{site.brandName}</h1>
+        <p>Fotografía y vídeo de bodas y eventos en {site.legalCity}, con la mirada de un editorial de moda.</p>
+      </div>
+    </section>
+  );
+}
+```
+
+Add to `components/sections/Hero.module.css`:
+
+```css
+.imageParallax {
+  position: absolute;
+  inset: -8% 0;
+  z-index: -1;
+}
+.imageParallax .image {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+```
+
+(The wrapping `.imageParallax` element replaces `.image`'s own `z-index: -1` as the positioned/animated node — `yPercent: 12` translates it within its own `inset: -8%` overscan box, so the parallax shift never reveals empty space at the section's top/bottom edges. `.image`'s existing `object-fit: cover` rule stays on the `next/image` element itself, now filling its parent `.imageParallax` box via the added `position: relative; width: 100%; height: 100%` — `next/image`'s `fill` prop still works identically, just measuring against the new wrapper instead of `.hero` directly.)
+
+- [ ] **Step 4: Run it to verify it passes**
+
+Run: `npm test -- components/sections/Hero.test.tsx`
+Expected: PASS, all tests including every pre-existing one in the file.
+
+- [ ] **Step 5: Run the full suite and build**
+
+Run: `npm test && npm run build`
+Expected: all pass.
+
+- [ ] **Step 6: Visual check**
+
+Start a production server, view `/`, and scroll past the Hero — confirm the background image shifts very subtly relative to the viewport (contained parallax, not a dramatic effect), while the `h1`/`p` content stays fixed in its own layer. Then emulate `prefers-reduced-motion: reduce` and confirm the image no longer shifts at all while scrolling.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add -A
+git commit -m "feat: add contained GSAP parallax to the Hero background image"
+```
+
+---
+
 ## Self-Review Notes
 
 - **Client's 6-point list coverage:** (1) Animations → Tasks 1–2 (View Transitions wiring, Confianza scroll-trigger), Framer Motion explicitly declined. (2) Accessibility → Task 3 (Lightbox focus trap), Task 4 (active-route `aria-current`); cursor's existing `aria-hidden`/`pointer-events:none`/reduced-motion handling was already reviewed clean in the base build, nothing new needed there. (3) Performance/SEO → Task 9 (JSON-LD enrichment), Task 10 (`sizes` audit, font token fix); Lighthouse/metadata/sitemap already shipped in the base build, re-verify scores after this plan's changes rather than re-building what exists. (4) Missing sections → Task 12 (FAQ), Task 13 (testimonial photos), Task 14 (contact form fields); dedicated "how we work" section explicitly declined as redundant with `/servicios`' existing per-service process. (5) i18n → explicitly deferred, no task. (6) CMS → explicitly declined, no task.
