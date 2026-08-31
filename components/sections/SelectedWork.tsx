@@ -20,7 +20,9 @@ export function SelectedWork() {
           <ScrollReveal key={project.slug} className={styles.card}>
             {project.cover.type === 'image' ? (
               <Link href={`/trabajos/${project.slug}`} aria-label={project.title} data-cursor="ver">
-                <Image src={project.cover.src} alt={project.cover.alt} width={800} height={1000} />
+                <div className={styles.imageWrap}>
+                  <Image src={project.cover.src} alt={project.cover.alt} fill sizes="(max-width: 700px) 100vw, 33vw" />
+                </div>
                 <span className={styles.title}>{project.title}</span>
               </Link>
             ) : (

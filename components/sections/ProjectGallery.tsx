@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { VideoPreview } from '@/components/motion/VideoPreview';
 import { Lightbox } from '@/components/motion/Lightbox';
 import type { Project } from '@/content/types';
+import styles from './ProjectGallery.module.css';
 
 export function ProjectGallery({ project }: { project: Project }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -14,7 +15,9 @@ export function ProjectGallery({ project }: { project: Project }) {
       <div>
         {project.gallery.map((media, i) =>
           media.type === 'image' ? (
-            <Image key={i} src={media.src} alt={media.alt} width={1600} height={1200} />
+            <div key={i} className={styles.imageWrap}>
+              <Image src={media.src} alt={media.alt} fill sizes="(max-width: 700px) 100vw, 50vw" />
+            </div>
           ) : (
             <VideoPreview key={i} media={media} onOpenFull={() => setOpenIndex(i)} />
           )

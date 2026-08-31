@@ -1,0 +1,2 @@
+.imageWrap { position: relative; width: 100%; aspect-ratio: 3 / 2; }
+.imageWrap img { object-fit: cover; }

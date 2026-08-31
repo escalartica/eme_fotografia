@@ -26,7 +26,7 @@ export default function Page() {
 
       <section aria-labelledby="equipo-heading">
         <h2 id="equipo-heading">Equipo</h2>
-        <Image src="/images/sobre-nosotros/placeholder-team.webp" alt="Equipo de EME Fotografía Sevilla (imagen de muestra)" width={800} height={1000} />
+        <Image src="/images/sobre-nosotros/placeholder-team.webp" alt="Equipo de EME Fotografía Sevilla (imagen de muestra)" width={800} height={1200} />
         <p>Nombre y trayectoria del equipo pendiente de confirmación por el cliente — esta sección se actualizará con los datos reales.</p>
       </section>
     </article>
