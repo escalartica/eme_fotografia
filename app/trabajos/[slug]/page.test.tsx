@@ -1,9 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Page, { generateStaticParams } from './page';
 import { projects } from '@/content/projects';
-
-vi.mock('@/lib/hooks/useReducedMotion', () => ({ useReducedMotion: () => true }));
 
 describe('generateStaticParams for /trabajos/[slug]', () => {
   it('returns one entry per seed project', async () => {
