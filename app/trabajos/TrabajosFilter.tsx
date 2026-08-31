@@ -4,16 +4,17 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Project } from '@/content/types';
+import { CATEGORY_LABELS } from '@/lib/category-labels';
 import { useProjectFilter } from '@/lib/hooks/useProjectFilter';
 import { withPageTransition } from '@/components/motion/PageTransition';
 import styles from './TrabajosFilter.module.css';
 
 const CATEGORIES: Array<{ value: 'todos' | 'boda' | 'video' | 'fotomaton' | '360'; label: string }> = [
   { value: 'todos', label: 'Todos' },
-  { value: 'boda', label: 'Bodas' },
-  { value: 'video', label: 'Vídeo' },
-  { value: 'fotomaton', label: 'Fotomatón' },
-  { value: '360', label: '360°' },
+  { value: 'boda', label: CATEGORY_LABELS.boda },
+  { value: 'video', label: CATEGORY_LABELS.video },
+  { value: 'fotomaton', label: CATEGORY_LABELS.fotomaton },
+  { value: '360', label: CATEGORY_LABELS['360'] },
 ];
 
 export function TrabajosFilter({ projects }: { projects: Project[] }) {

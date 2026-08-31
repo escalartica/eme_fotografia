@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { projects } from '@/content/projects';
+import { CATEGORY_LABELS } from '@/lib/category-labels';
 import { ProjectGallery } from '@/components/sections/ProjectGallery';
 import { NextProjectLink } from '@/components/ui/NextProjectLink';
 import { buildMetadata } from '@/lib/seo';
@@ -36,7 +37,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         dangerouslySetInnerHTML={{ __html: JSON.stringify(creativeWorkSchema(project)) }}
       />
       <h1>{project.title}</h1>
-      <p className={styles.meta}>{project.category} — {project.year} — {project.location}</p>
+      <p className={styles.meta}>{CATEGORY_LABELS[project.category]} — {project.year} — {project.location}</p>
       {project.impactLine && (
         <p className={styles.impact} data-testid="project-impact">{project.impactLine}</p>
       )}
