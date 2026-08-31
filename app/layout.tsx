@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Fraunces } from 'next/font/google';
 import localFont from 'next/font/local';
 import { site } from '@/content/site';
+import { Header } from '@/components/layout/Header';
 import '../styles/globals.css';
 
 const fraunces = Fraunces({
@@ -30,7 +31,8 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <a href="#main-content" className="skip-link">
           Saltar al contenido
         </a>
-        {children}
+        <Header />
+        <main id="main-content">{children}</main>
       </body>
     </html>
   );
