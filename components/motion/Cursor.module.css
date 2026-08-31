@@ -1,0 +1,20 @@
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  width: 0;
+  height: 0;
+}
+.label {
+  display: block;
+  transform: translate(-50%, -50%);
+  background: var(--color-accent);
+  color: var(--color-paper);
+  border-radius: 999px;
+  padding: var(--space-1) var(--space-2);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}

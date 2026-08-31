@@ -5,6 +5,7 @@ import { site } from '@/content/site';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { SmoothScrollProvider } from '@/components/motion/SmoothScrollProvider';
+import { Cursor } from '@/components/motion/Cursor';
 import '../styles/globals.css';
 
 const fraunces = Fraunces({
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     <html lang="es" className={`${fraunces.variable} ${generalSans.variable}`}>
       <body>
         <SmoothScrollProvider>
+          <Cursor />
           <a href="#main-content" className="skip-link">
             Saltar al contenido
           </a>
