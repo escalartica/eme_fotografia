@@ -35,21 +35,21 @@ export const projects: Project[] = [
     // Real footage from an actual EME Fotografía wedding shoot (provided by
     // the client 2026-08-31; original raw clips shot on Canon EOS 5D Mark IV,
     // "com.apple.quicktime.author: EME FOTOGRAFIA" in the source metadata).
-    // Title/couple name pending — the client has not yet confirmed the real
-    // couple's name; do not present "Elena y Pablo" or any other name as
-    // real. Update this title as soon as it's confirmed.
+    // Couple name "Eva y Rafa" given by the client 2026-08-31, PROVISIONAL —
+    // the client is still confirming the exact names with María Leal
+    // (founder). Update if that confirmation differs.
     slug: 'boda-real-01',
-    title: 'Boda real — nombre de la pareja pendiente de confirmación',
+    title: 'Eva y Rafa',
     category: 'video',
     year: 2026,
     client: 'Boda privada',
     location: 'Sevilla',
-    description: 'Selección de momentos reales del día de la boda: preparativos, salida y ceremonia. Montaje inicial a la espera de revisión del estudio.',
+    description: 'Selección de momentos reales del día de la boda: preparativos, salida y ceremonia.',
     cover: {
       type: 'video',
       src: '/videos/previews/real-boda-01-preview.mp4',
       poster: '/videos/posters/real-boda-01.webp',
-      alt: 'Vista previa de vídeo real de boda: preparativos y salida de la novia',
+      alt: 'Vista previa del vídeo de boda de Eva y Rafa: preparativos y salida de la novia',
       isPlaceholderMedia: false,
     },
     gallery: [
@@ -58,7 +58,7 @@ export const projects: Project[] = [
         type: 'video',
         src: '/videos/previews/real-boda-01-full.mp4',
         poster: '/videos/posters/real-boda-01-full.webp',
-        alt: 'Montaje de vídeo real de boda: preparativos, salida y ceremonia',
+        alt: 'Vídeo de la boda de Eva y Rafa: preparativos, salida y ceremonia',
         isPlaceholderMedia: false,
       },
     ],
