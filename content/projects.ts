@@ -67,6 +67,10 @@ export const projects: Project[] = [
         alt: 'Vista aérea de la boda de Eva y Rafa: llegada y ceremonia en la hacienda',
         isPlaceholderMedia: false,
       },
+      { type: 'image', src: '/images/trabajos/boda-real-01/real-boda-01-maquillaje.webp', alt: 'Maquillaje de la novia antes de la ceremonia', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/boda-real-01/real-boda-01-anillos.webp', alt: 'Intercambio de anillos durante la ceremonia', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/boda-real-01/real-boda-01-familia.webp', alt: 'Los novios abrazados por sus sobrinos', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/boda-real-01/real-boda-01-pajes.webp', alt: 'Los pajes de la boda con gafas de sol', isPlaceholderMedia: false },
     ],
   },
   {
