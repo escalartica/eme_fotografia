@@ -142,23 +142,38 @@
 .overlapSecondary {
   position: absolute;
   overflow: hidden;
-  /* Base-anchored flush with the primary's own bottom edge (bottom: 0,
-     resolved against .overlapStage, whose height is defined purely by
-     .overlapPrimary) — then shifted down via transform: translate(), per
-     the brief, for the actual overlap. Because the base position is
-     flush rather than already-offset, the translate's own percentage
-     (relative to the secondary's own box) is the only source of
-     overhang past the primary's bottom edge, so however tall the
-     secondary image renders at this width, the overhang stays a bounded
-     fraction of ITS OWN height rather than compounding — a top-anchored
-     percentage offset can't bound that distance when the secondary's
-     real aspect ratio makes it taller than the primary (verified
-     in-browser: a portrait detail shot at even 34% width routinely
-     renders taller than a landscape establishing shot at full stage
-     width). */
+  /* FIX (Task 4 review, Finding 1): the previous version sized this box by
+     width (34%) alone with height:auto, so a real image's own aspect
+     ratio fully decided its rendered height — unbounded. A portrait
+     secondary against a landscape primary (this variant's own recommended
+     "wide establishing + tall detail" pairing) routinely renders taller
+     than the primary by enough that bottom-anchoring + translateY(10%)
+     pushed its TOP edge above the whole composition's top, with nothing
+     to clip it.
+     Two changes, addressing both the overflow bug and (Finding 3) the
+     original's thin 8%-of-stage-width horizontal overlap:
+     1. width reduced to 28% and shifted further left (right: 20%, was
+        12%) -- at this width a typical 2:3/4:5 portrait secondary renders
+        close to parity with the primary's height instead of ~1.2x it, and
+        the horizontal overlap with .overlapPrimary widens from 8% to 12%
+        of stage width (62% - (100-20-28)=50% = 12).
+     2. max-height: 105% of .overlapStage's own definite height (percentages
+        on an absolutely-positioned element's height resolve against a
+        positioned ancestor's definite height, which .overlapStage has --
+        set purely by .overlapPrimary) is a hard mathematical ceiling:
+        worst case (cap engaged) puts the top edge at
+        H_p - 0.9*1.05*H_p = 0.055*H_p -- always positive, regardless of
+        source aspect ratio, no pairing can reopen this. It only actually
+        crops (via the overflow:hidden already on this box) for a secondary
+        taller than that -- typical wedding-detail portrait crops (2:3,
+        4:5) render close to or under the cap in practice; only unusually
+        elongated ratios lose a modest slice, the same class of narrowly-
+        scoped trade-off panoramic's own single documented crop already
+        makes elsewhere in this component. */
   bottom: 0;
-  right: 12%;
-  width: 34%;
+  right: 20%;
+  width: 28%;
+  max-height: 105%;
   z-index: 2;
   transform: translateY(10%);
 }
@@ -170,11 +185,13 @@
 .overlapMeta {
   position: relative;
   z-index: 3;
-  /* Generous, viewport-scaling clearance (not the smaller --space-2 used
-     elsewhere) — .overlapSecondary's bottom edge sits a fixed 14% of
-     .overlapPrimary's height below the primary's own bottom edge (see
-     .overlapSecondary above); --space-4 comfortably clears that at both
-     390px and 1440px, verified in-browser. */
+  /* .overlapSecondary's bottom edge sits at most ~10.5% of
+     .overlapPrimary's own height below the primary's bottom edge (10% of
+     the secondary's own height via translateY, and the secondary's own
+     height is itself capped at 105% of the primary's -- see
+     .overlapSecondary's max-height above) — bounded regardless of image
+     pairing. --space-4 comfortably clears that at both 390px and 1440px,
+     verified in-browser. */
   margin-top: var(--space-4);
   display: flex;
   align-items: baseline;
@@ -185,7 +202,6 @@
     width: 78%;
   }
   .overlapSecondary {
-    width: 44%;
     right: 0;
   }
 }
