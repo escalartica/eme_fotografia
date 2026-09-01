@@ -2,10 +2,10 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render } from '@testing-library/react';
 import { SmoothScrollProvider } from './SmoothScrollProvider';
 
-const lenisInstances: Array<{ raf: ReturnType<typeof vi.fn>; destroy: ReturnType<typeof vi.fn> }> = [];
+const lenisInstances: Array<{ raf: ReturnType<typeof vi.fn>; destroy: ReturnType<typeof vi.fn>; on: ReturnType<typeof vi.fn> }> = [];
 vi.mock('lenis', () => ({
   default: vi.fn().mockImplementation(function LenisMock() {
-    const instance = { raf: vi.fn(), destroy: vi.fn() };
+    const instance = { raf: vi.fn(), destroy: vi.fn(), on: vi.fn() };
     lenisInstances.push(instance);
     return instance;
   }),
