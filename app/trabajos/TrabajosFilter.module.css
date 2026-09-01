@@ -10,17 +10,46 @@
   line-height: 1;
   margin-block-end: var(--space-3);
 }
-.tablist { display: flex; gap: var(--space-2); margin-block-end: var(--space-4); flex-wrap: wrap; }
+.tablist {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-end: var(--space-4);
+}
 .tab {
   background: none;
-  border: 1px solid var(--color-muted);
-  padding: var(--space-1) var(--space-2);
+  border: none;
+  padding-block: var(--space-1);
+  padding-inline: 0;
   cursor: pointer;
   font: inherit;
+  font-family: var(--font-sans);
+  font-size: clamp(0.75rem, 0.7rem + 0.2vw, 0.9375rem);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-muted);
 }
+/* Thin divider between labels instead of the old bordered boxes — a
+   typographic row, not buttons. */
+.tab + .tab {
+  border-inline-start: 1px solid var(--color-muted);
+  padding-inline-start: var(--space-2);
+}
+.tab:hover {
+  color: var(--color-ink);
+}
+/* Underline treatment intentionally mirrors Header.module.css's
+   `[aria-current="page"]` underline CSS *values* (text-decoration-color,
+   text-underline-offset) for visual consistency between the two
+   typographic nav treatments on the site. The ARIA pattern itself stays
+   role="tab" / aria-selected — a tab-like filter widget, not navigation
+   links — per this task's explicit scope. */
 .tab[aria-selected="true"] {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 0.3em;
 }
 .empty { color: var(--color-muted); padding-block: var(--space-3); }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-3); list-style: none; padding: 0; }
@@ -32,6 +61,13 @@
 @media (min-width: 700px) {
   .card:nth-child(3n+2) {
     margin-block-start: var(--space-4);
+  }
+  /* The filtered set changes per category, so — unlike the Home page's
+     content-aware "video card" span — the rhythm here is positional: the
+     first card of every group of 4 gets extra width, staying intentional
+     no matter which projects are currently in view. */
+  .card:nth-child(4n+1) {
+    grid-column: span 2;
   }
 }
 

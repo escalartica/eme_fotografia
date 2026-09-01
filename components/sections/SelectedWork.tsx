@@ -17,7 +17,12 @@ export function SelectedWork() {
       <h2 id="selected-work-heading">Trabajos seleccionados</h2>
       <div className={styles.grid}>
         {projects.map((project) => (
-          <ScrollReveal key={project.slug} className={styles.card}>
+          <ScrollReveal
+            key={project.slug}
+            className={
+              project.cover.type === 'video' ? `${styles.card} ${styles.wide}` : styles.card
+            }
+          >
             {project.cover.type === 'image' ? (
               <Link href={`/trabajos/${project.slug}`} aria-label={project.title} data-cursor="ver">
                 <div className={styles.imageWrap}>
