@@ -18,3 +18,15 @@
   font-size: var(--type-h3);
   text-align: center;
 }
+.list a {
+  display: inline-block;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+.list a:hover,
+.list a:focus-visible {
+  opacity: 0.65;
+}
+.list a:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 6px;
+}

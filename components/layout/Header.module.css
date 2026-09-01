@@ -31,6 +31,15 @@
   font-size: clamp(0.6875rem, 0.65rem + 0.15vw, 0.8125rem);
   text-transform: uppercase;
   letter-spacing: 0.14em;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+.desktopNav a:hover,
+.desktopNav a:focus-visible {
+  opacity: 0.65;
+}
+.desktopNav a:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 4px;
 }
 .menuButton {
   position: relative;
@@ -45,6 +54,10 @@
   cursor: pointer;
   mix-blend-mode: difference;
   color: var(--color-paper);
+}
+.menuButton:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 4px;
 }
 
 @media (min-width: 768px) {

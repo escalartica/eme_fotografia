@@ -40,10 +40,10 @@ export function ContactForm() {
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
       <label htmlFor="nombre">Nombre</label>
-      <input id="nombre" name="nombre" required />
+      <input id="nombre" name="nombre" autoComplete="name" required />
 
       <label htmlFor="email">Correo electrónico</label>
-      <input id="email" name="email" type="email" required />
+      <input id="email" name="email" type="email" autoComplete="email" required />
 
       <label htmlFor="tipoEvento">Tipo de evento</label>
       <select id="tipoEvento" name="tipoEvento" required defaultValue="">
