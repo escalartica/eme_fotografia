@@ -45,6 +45,35 @@ describe('/trabajos/[slug] page', () => {
   });
 });
 
+describe('/trabajos/[slug] page — cover hero block', () => {
+  // project.cover was previously used only in generateMetadata() for the OG
+  // image, never rendered in the page's JSX. These assert the new cover
+  // hero block actually renders, sourced from project.cover.src, for both
+  // an image-cover project and a video-cover project.
+  it('renders an <img> sourced from project.cover.src for an image-cover project', async () => {
+    const project = projects.find((p) => p.slug === 'clara-y-manuel')!;
+    if (project.cover.type !== 'image') throw new Error('fixture assumption: clara-y-manuel has an image cover');
+    const result = await Page({ params: Promise.resolve({ slug: project.slug }) });
+    render(result);
+    // next/image rewrites `src` through its optimizer loader in the
+    // rendered <img>, so match on the encoded original path rather than
+    // an exact equality.
+    const coverImg = screen
+      .getAllByRole('img')
+      .find((img) => img.getAttribute('src')?.includes(encodeURIComponent(project.cover.src)));
+    expect(coverImg).toBeDefined();
+  });
+
+  it('renders a <video> sourced from project.cover.src for a video-cover project', async () => {
+    const project = projects.find((p) => p.slug === 'boda-real-01')!;
+    if (project.cover.type !== 'video') throw new Error('fixture assumption: boda-real-01 has a video cover');
+    const result = await Page({ params: Promise.resolve({ slug: project.slug }) });
+    render(result);
+    const coverVideo = document.querySelector(`video[src="${project.cover.src}"]`);
+    expect(coverVideo).toBeInTheDocument();
+  });
+});
+
 describe('project impact line conditional render', () => {
   // Page reads `projects` from a module-level import (`@/content/projects`).
   // To exercise the REAL Page component's conditional render (not a

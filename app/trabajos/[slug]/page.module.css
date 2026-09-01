@@ -17,6 +17,24 @@
   margin-block-end: var(--space-1);
 }
 .description { max-width: 44rem; margin-block-end: var(--space-4); }
+
+/* Cover hero: a dominant opening shot above the gallery grid, taller on
+   mobile and wide/short on desktop. Duplicated verbatim from
+   ProjectGallery.module.css's .coverWrap (which handles the video-cover
+   case) — CSS Modules scope classes per file, so the same rule set is
+   defined once per file rather than imported across component
+   boundaries. */
+.coverWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  margin-block-end: var(--space-4);
+}
+.coverWrap img { object-fit: cover; }
+@media (min-width: 700px) {
+  .coverWrap { aspect-ratio: 2 / 1; }
+}
 .nextLink {
   display: inline-block;
   margin-block-start: var(--space-4);

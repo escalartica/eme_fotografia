@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import { projects } from '@/content/projects';
 import { CATEGORY_LABELS } from '@/lib/category-labels';
 import { ProjectGallery } from '@/components/sections/ProjectGallery';
@@ -42,6 +43,16 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <p className={styles.impact} data-testid="project-impact">{project.impactLine}</p>
       )}
       <p className={styles.description}>{project.description}</p>
+      {/* The cover-media hero: the opening shot of the story, dominant
+          above the gallery grid. Image covers are static, so they're
+          rendered right here with no client boundary. Video covers need
+          gated autoplay + a shared lightbox, so that case is handled by
+          ProjectGallery (see components/sections/ProjectGallery.tsx). */}
+      {project.cover.type === 'image' && (
+        <div className={styles.coverWrap}>
+          <Image src={project.cover.src} alt={project.cover.alt} fill sizes="100vw" priority />
+        </div>
+      )}
       <ProjectGallery project={project} />
       <NextProjectLink
         href={`/trabajos/${next.slug}`}

@@ -1,3 +1,53 @@
-.imageWrap { position: relative; width: 100%; aspect-ratio: 3 / 2; }
-.imageWrap img { object-fit: cover; }
+/* Cover hero: a dominant opening shot above the gallery grid, taller on
+   mobile and wide/short on desktop. Shared verbatim (aspect-ratio values
+   included) with page.module.css's .coverWrap, which renders the
+   image-cover case — CSS Modules scope classes per file so this is
+   duplicated rather than imported across component boundaries. */
+.coverWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  margin-block-end: var(--space-4);
+}
+.coverWrap img { object-fit: cover; }
+/* VideoPreview's own root element is `position: relative` with no set
+   height; stretch it (and the poster/video/button inside it) to fill the
+   aspect-ratio box this wrapper establishes. Higher specificity than
+   VideoPreview's own `.wrapper` class rule, so this wins regardless of
+   CSS Modules' generated class-name/source order. */
+.coverWrap > div {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@media (min-width: 700px) {
+  .coverWrap { aspect-ratio: 2 / 1; }
+}
+
+.imageWrap { position: relative; width: 100%; aspect-ratio: 3 / 2; overflow: hidden; }
+.imageWrap img {
+  object-fit: cover;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.imageWrap:hover img { transform: scale(1.04); }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-2); margin-block: var(--space-3); }
+
+@media (min-width: 700px) {
+  /* Editorial rhythm: let the first gallery item (image or video) run
+     fullbleed-within-the-page-shell instead of every thumbnail being the
+     same size — same mixed-sizing principle used for the portfolio grid
+     in Task 4 (SelectedWork.module.css's .wide), applied per-project here. */
+  .grid > :first-child {
+    grid-column: 1 / -1;
+  }
+  .large {
+    aspect-ratio: 21 / 9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .imageWrap img { transition: none; }
+  .imageWrap:hover img { transform: none; }
+}
