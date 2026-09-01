@@ -8,7 +8,6 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-2) var(--space-3);
-  transform: translateY(0);
 }
 .header[data-hidden='true'] {
   transform: translateY(-100%);
@@ -34,6 +33,12 @@
   letter-spacing: 0.14em;
 }
 .menuButton {
+  position: relative;
+  /* Above MobileMenu's full-screen overlay (z-index: 100) so the button
+     stays visible and tappable as the "Cerrar" affordance once the menu
+     is open — otherwise touch users (no Escape key) have no way to close
+     it. mix-blend-mode keeps it legible against the overlay's dark fill. */
+  z-index: 101;
   background: none;
   border: none;
   font: inherit;
