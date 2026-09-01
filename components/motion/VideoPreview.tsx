@@ -12,6 +12,10 @@ export function VideoPreview({ media, onOpenFull }: { media: ProjectMedia; onOpe
   useEffect(() => {
     if (reducedMotion || !videoRef.current) return;
     const el = videoRef.current;
+    // The `muted` JSX prop alone is unreliable for autoplay purposes (same
+    // reasoning as Hero.tsx's identical fix) — set it imperatively so it's
+    // guaranteed true before any .play() call this observer makes.
+    el.muted = true;
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) el.play().catch(() => {});
       else el.pause();

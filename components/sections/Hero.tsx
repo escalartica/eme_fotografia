@@ -168,6 +168,13 @@ export function Hero() {
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
+    // The `muted` JSX prop alone is unreliable for autoplay purposes —
+    // React assigns it as a DOM property, which can land after the
+    // browser has already evaluated the element for its autoplay policy
+    // (docs/PATRONES-AWWWARDS.md's video-best-practices section). Setting
+    // it imperatively here guarantees it's true before .play() is ever
+    // called, every time this effect runs.
+    el.muted = true;
     if (reducedMotion) {
       el.pause();
       return;
