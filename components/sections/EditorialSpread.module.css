@@ -1,0 +1,316 @@
+/* EditorialSpread — 4 distinct portfolio composition variants. Each
+   variant's markup/CSS is bespoke on purpose: the flagged "WordPress" smell
+   was every card sharing one uniform `aspect-ratio: 3/2` crop regardless of
+   the source photo. Only `.panoramicImage` crops (documented at its own
+   rule below) — the other three variants always render the real image
+   ratio via next/image's `width`/`height` props, never a forced
+   `aspect-ratio`. */
+
+.spread {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Variant root classes are deliberately near-empty (specificity anchors
+   for the shared hover/focus zoom selectors below) — each variant's real
+   layout lives on its own *Outer class. */
+.fullBleed,
+.panoramic,
+.overlapPair,
+.diptych {
+  display: block;
+}
+
+/* ---------- full-bleed ---------- */
+/* Breakout spans the full viewport width so the negative space beside the
+   image is real full-bleed space, not space inside a centered column — but
+   the image itself is sized by height (near-viewport-tall, width auto from
+   its real ratio), not stretched to fill that width. The title/chapter
+   number float in whatever width is left over, beside or below the image
+   depending on how much room that leaves — never centered on or over the
+   photo. */
+.fullBleedOuter {
+  composes: breakout from global;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  padding-block: var(--space-4);
+  padding-inline: var(--space-3);
+}
+.fullBleedImageWrap {
+  position: relative;
+  overflow: hidden;
+  flex: 0 1 auto;
+}
+.fullBleedImage {
+  display: block;
+  height: min(82vh, 860px);
+  width: auto;
+  max-width: 100%;
+}
+@media (max-width: 700px) {
+  .fullBleedImage {
+    height: min(60vh, 560px);
+  }
+}
+.fullBleedMeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1 1 240px;
+}
+
+/* ---------- panoramic ---------- */
+/* Full-bleed width via the same .breakout utility, but the height is
+   capped for a letterbox feel — the one variant in this system that
+   crops (object-fit: cover): a wide real photo spanning the full
+   viewport width AND held to a short height can't keep its exact
+   source ratio in both dimensions at once. That's an intentional,
+   single-variant creative choice driven by an already-wide source image,
+   not the uniform forced-crop the design audit flagged. */
+.panoramicOuter {
+  composes: breakout from global;
+  padding-block: var(--space-2);
+}
+.panoramicImageWrap {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 56vh;
+}
+@media (max-width: 700px) {
+  .panoramicImageWrap {
+    height: 40vh;
+  }
+}
+.panoramicImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.panoramicScrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(31, 38, 46, 0.65), transparent 55%);
+  pointer-events: none;
+}
+.panoramicMeta {
+  position: absolute;
+  left: var(--space-3);
+  bottom: var(--space-2);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+/* ---------- overlap-pair ---------- */
+/* Two images from the same project, deliberately offset via absolute
+   positioning + transform (not a symmetric grid) — the secondary
+   (detail) image overlaps into the primary (establishing) one. No
+   border or shadow on the overlapping edge, per the brief. */
+.overlapOuter {
+  padding-block: var(--space-4);
+  padding-inline: var(--space-3);
+}
+/* .overlapStage is the position: relative containing block for
+   .overlapSecondary, and holds ONLY the two images (not .overlapMeta) —
+   so .overlapSecondary's top/right percentages resolve against
+   .overlapPrimary's own rendered box (the stage's height is defined
+   purely by primary, its one normal-flow child), keeping the offset
+   predictable regardless of what .overlapMeta below needs. An earlier
+   version nested .overlapMeta inside this same positioned ancestor, which
+   inflated the containing block's height and made the offset math
+   resolve against the wrong number — verified wrong via in-browser
+   measurement, hence pulling .overlapMeta out as a sibling below. */
+.overlapStage {
+  position: relative;
+}
+.overlapPrimary {
+  position: relative;
+  overflow: hidden;
+  width: 62%;
+  z-index: 1;
+}
+.overlapPrimaryImage {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.overlapSecondary {
+  position: absolute;
+  overflow: hidden;
+  /* Base-anchored flush with the primary's own bottom edge (bottom: 0,
+     resolved against .overlapStage, whose height is defined purely by
+     .overlapPrimary) — then shifted down via transform: translate(), per
+     the brief, for the actual overlap. Because the base position is
+     flush rather than already-offset, the translate's own percentage
+     (relative to the secondary's own box) is the only source of
+     overhang past the primary's bottom edge, so however tall the
+     secondary image renders at this width, the overhang stays a bounded
+     fraction of ITS OWN height rather than compounding — a top-anchored
+     percentage offset can't bound that distance when the secondary's
+     real aspect ratio makes it taller than the primary (verified
+     in-browser: a portrait detail shot at even 34% width routinely
+     renders taller than a landscape establishing shot at full stage
+     width). */
+  bottom: 0;
+  right: 12%;
+  width: 34%;
+  z-index: 2;
+  transform: translateY(10%);
+}
+.overlapSecondaryImage {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.overlapMeta {
+  position: relative;
+  z-index: 3;
+  /* Generous, viewport-scaling clearance (not the smaller --space-2 used
+     elsewhere) — .overlapSecondary's bottom edge sits a fixed 14% of
+     .overlapPrimary's height below the primary's own bottom edge (see
+     .overlapSecondary above); --space-4 comfortably clears that at both
+     390px and 1440px, verified in-browser. */
+  margin-top: var(--space-4);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+@media (max-width: 700px) {
+  .overlapPrimary {
+    width: 78%;
+  }
+  .overlapSecondary {
+    width: 44%;
+    right: 0;
+  }
+}
+
+/* ---------- diptych ---------- */
+/* Intentionally uneven 60/40 split (3fr/2fr), not two equal columns — the
+   secondary panel also carries a vertical offset so the pair doesn't
+   degrade into a symmetric two-up grid by accident. */
+.diptychOuter {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  column-gap: var(--space-2);
+  padding-block: var(--space-3);
+  padding-inline: var(--space-3);
+}
+.diptychMain {
+  position: relative;
+  overflow: hidden;
+  grid-column: 1;
+  grid-row: 1;
+}
+.diptychSecondary {
+  position: relative;
+  overflow: hidden;
+  grid-column: 2;
+  grid-row: 1;
+  margin-block-start: var(--space-4);
+}
+.diptychImage {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.diptychMeta {
+  grid-column: 1 / -1;
+  margin-top: var(--space-2);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+@media (max-width: 700px) {
+  .diptychOuter {
+    grid-template-columns: 1fr;
+    row-gap: var(--space-2);
+  }
+  .diptychSecondary {
+    grid-column: 1;
+    grid-row: 2;
+    margin-block-start: var(--space-3);
+    width: 70%;
+    justify-self: end;
+  }
+  .diptychMeta {
+    grid-row: 3;
+  }
+}
+
+/* ---------- shared meta type ---------- */
+.chapterNumber {
+  composes: chapterNumber from global;
+}
+.title {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+}
+/* Overrides for meta rendered directly over a photo (panoramic only) —
+   per styles/layout.css's own doc comment on .chapterNumber: callers
+   placing it over a photo should override color/opacity locally rather
+   than duplicate the whole rule. Also set smaller here — "title set
+   small and to one side" per the brief, not the full ghost-numeral scale. */
+.chapterNumberOnPhoto {
+  composes: chapterNumber from global;
+  color: var(--color-paper);
+  opacity: 0.85;
+  font-size: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+}
+.titleOnPhoto {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: var(--type-body);
+  color: var(--color-paper);
+}
+
+/* ---------- hover/focus zoom ---------- */
+/* Extends the existing zoom-on-hover-or-focus pattern from
+   SelectedWork.module.css (:hover + :focus-within parity) to every
+   image in every variant. */
+.fullBleedImage,
+.panoramicImage,
+.overlapPrimaryImage,
+.overlapSecondaryImage,
+.diptychImage {
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.spread:hover .fullBleedImage,
+.spread:focus-within .fullBleedImage,
+.spread:hover .panoramicImage,
+.spread:focus-within .panoramicImage,
+.spread:hover .overlapPrimaryImage,
+.spread:focus-within .overlapPrimaryImage,
+.spread:hover .overlapSecondaryImage,
+.spread:focus-within .overlapSecondaryImage,
+.spread:hover .diptychImage,
+.spread:focus-within .diptychImage {
+  transform: scale(1.04);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fullBleedImage,
+  .panoramicImage,
+  .overlapPrimaryImage,
+  .overlapSecondaryImage,
+  .diptychImage {
+    transition: none;
+  }
+  .spread:hover .fullBleedImage,
+  .spread:focus-within .fullBleedImage,
+  .spread:hover .panoramicImage,
+  .spread:focus-within .panoramicImage,
+  .spread:hover .overlapPrimaryImage,
+  .spread:focus-within .overlapPrimaryImage,
+  .spread:hover .overlapSecondaryImage,
+  .spread:focus-within .overlapSecondaryImage,
+  .spread:hover .diptychImage,
+  .spread:focus-within .diptychImage {
+    transform: none;
+  }
+}
