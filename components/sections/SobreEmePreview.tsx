@@ -27,6 +27,11 @@ export function SobreEmePreview() {
         </ScrollReveal>
         <div className={styles.text}>
           <ScrollReveal>
+            <span className={styles.chapterNumber} aria-hidden="true">
+              02
+            </span>
+          </ScrollReveal>
+          <ScrollReveal>
             <p className={styles.eyebrow}>Sobre {site.brandName}</p>
           </ScrollReveal>
           {/* `blur` layers a filter: blur(6px) → 0 transition on top of the

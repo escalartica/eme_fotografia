@@ -43,6 +43,9 @@ export function Manifiesto() {
 
   return (
     <section ref={sectionRef} className={styles.section} aria-labelledby="manifiesto-heading">
+      <span className={styles.chapterNumber} aria-hidden="true">
+        01
+      </span>
       <div className={styles.headingWrap}>
         <h2 id="manifiesto-heading" className={styles.headingBase}>
           {HEADING_TEXT}

@@ -39,7 +39,7 @@
 
 /* Text block is deliberately left-aligned (the browser default here, kept
    explicit via `align-items: flex-start`) rather than centered like
-   Manifiesto.module.css's `.section` — an echo of Hero.module.css's
+   Manifiesto's statement column — an echo of Hero.module.css's
    left-anchored `.content` column, repeated as a visual motif across the
    Home page's identity-carrying sections. */
 .text {
@@ -48,6 +48,18 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-2);
+}
+
+/* Chapter numeral: the same site-wide `.chapterNumber` ghost-numeral
+   utility used by EditorialSpread/servicios (styles/layout.css), applied
+   here as a quiet section-level marker rather than a per-item one. "02"
+   pairs it thematically with Manifiesto's "01" — the manifesto states the
+   philosophy, this section elaborates on it — not a literal count of the
+   Home page's full section sequence (which would be brittle to reorder).
+   No margin-block-end needed: `.text` is already a flex column with its
+   own `gap`, which spaces this from the eyebrow below it. */
+.chapterNumber {
+  composes: chapterNumber from global;
 }
 
 /* Small uppercase label above the statement — echoes Hero.module.css's
@@ -62,10 +74,18 @@
   margin: 0;
 }
 
+/* Pushed from the more conservative --type-h2 to --type-h1 (the same token
+   Hero's wordmark uses) — with the desktop column now narrower than the
+   image column (see `.layout`'s asymmetric split below), this statement
+   wraps onto several lines at a genuinely large size instead of sitting
+   safely on one or two, verified live to still read cleanly at both narrow
+   and wide viewports. line-height tightened to suit the larger size
+   without going as tight as Hero's wordmark (0.86) — this is a body
+   statement, not the site's single largest graphic element. */
 .heading {
   font-family: var(--font-serif);
-  font-size: var(--type-h2);
-  line-height: 1.05;
+  font-size: var(--type-h1);
+  line-height: 0.95;
   margin: 0;
   max-width: 18ch;
 }
@@ -89,7 +109,13 @@
 
 @media (min-width: 700px) {
   .layout {
-    grid-template-columns: 1fr 1fr;
+    /* Intentionally uneven split (2fr/3fr), not a clean 50/50 — replaces
+       the old symmetric two-up grid flagged by Task 1's old-idiom audit.
+       The narrower text column (vs. the wider image) is what makes the
+       now-much-larger `.heading` (--type-h1) wrap onto several dramatic
+       short lines instead of stretching thin across a full half-width
+       column. */
+    grid-template-columns: 2fr 3fr;
     grid-template-areas: 'text image';
     align-items: center;
     gap: var(--space-4);

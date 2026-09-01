@@ -1,8 +1,30 @@
+/* Deliberately NOT the flagged `.section { padding; max-width;
+   margin-inline: auto; text-align: center }` wrapper idiom (Task 1's
+   old-idiom audit named this file) — centering/measure now live on the
+   specific inner elements below (`.chapterNumber`, `.section p`) instead
+   of one shared section-level recipe copy-pasted across the site. The
+   masked-photo heading mechanic itself (`.headingWrap`/`.headingBase`/
+   `.headingMasked` below) is untouched: it already centers itself via its
+   own `margin-inline: auto; max-width: 20ch`, so it needed no help from
+   `.section` to look correct here regardless. */
 .section {
-  max-width: 44rem;
-  margin-inline: auto;
   padding: var(--space-5) var(--space-3);
+}
+
+/* Small chapter numeral, centered above the statement — deliberately NOT
+   the full --type-chapter ghost-numeral scale (this section's masked
+   heading is already the visual centerpiece; a giant numeral would
+   compete with it). Same smaller-override precedent as EditorialSpread's
+   `.chapterNumberOnPhoto`. "01" pairs thematically with SobreEmePreview's
+   "02" — this manifesto states the philosophy first, the About section
+   elaborates on it second — not a literal count of the Home page's full
+   section sequence. */
+.chapterNumber {
+  composes: chapterNumber from global;
+  display: block;
   text-align: center;
+  font-size: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+  margin-block-end: var(--space-2);
 }
 
 .headingWrap {
@@ -62,7 +84,17 @@
   filter: grayscale(1) contrast(1.25) brightness(0.85);
 }
 
-.section p { color: var(--color-muted); }
+/* Was inherited free from `.section { text-align: center; max-width: 44rem;
+   margin-inline: auto }` before that shared idiom was dropped above — now
+   declared explicitly here so the paragraph keeps its prior centered,
+   readable measure without the rest of `.section` needing to be centered
+   too. */
+.section p {
+  max-width: 34rem;
+  margin-inline: auto;
+  text-align: center;
+  color: var(--color-muted);
+}
 
 @media (max-width: 40rem) {
   .headingMasked {
