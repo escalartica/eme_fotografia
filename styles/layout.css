@@ -27,15 +27,20 @@
 
 /* Full-bleed breakout: escapes a max-width/centered parent so the element
    spans the full viewport width, regardless of how deeply it's nested.
-   Technique: 100vw is measured from the viewport's left edge, not the
-   parent's, so setting width:100vw and pulling the inline margins back by
-   half the viewport-vs-container difference re-centers it edge to edge.
-   KNOWN CONSTRAINT: 100vw includes the width of any vertical scrollbar, so
-   this only breaks out cleanly to the true visible edge when the page has
-   no horizontal scrollbar at the time it's applied — an existing horizontal
-   overflow elsewhere on the page will make `.breakout` overshoot the right
-   edge by the scrollbar's width. Verify the page has no horizontal overflow
-   before relying on this class. */
+   Technique: 100vw is measured from the document's initial containing
+   block, not the parent, so setting width:100vw and pulling the inline
+   margins back by half the viewport-vs-container difference re-centers it
+   edge to edge. KNOWN CONSTRAINT: this only holds while the page has no
+   horizontal scrollbar when the class is applied. `100vw` also always
+   includes the vertical scrollbar's width (unlike `100%`), so on a page
+   that has a horizontal scrollbar already — from unrelated overflowing
+   content, or from `.breakout` itself compounding with another cause —
+   `100vw` stops matching `window.innerWidth` and the element overshoots
+   the visible right edge by the scrollbar's width, instead of landing
+   flush. Verified in-browser at 360px and 1440px viewports with no
+   scrollbar present: left=0, right=viewport width, no overflow introduced.
+   Callers should verify the same on any page/viewport before relying on
+   it. */
 .breakout {
   width: 100vw;
   margin-inline: calc(50% - 50vw);
