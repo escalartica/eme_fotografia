@@ -13,6 +13,7 @@ export function ScrollReveal({
   children,
   className,
   blur,
+  delay = 0,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -29,6 +30,15 @@ export function ScrollReveal({
    * never runs when the user prefers reduced motion.
    */
   blur?: boolean;
+  /**
+   * Optional stagger delay in seconds (GSAP `delay`), for callers rendering
+   * a list of ScrollReveal instances that should reveal in visible sequence
+   * rather than each firing independently the instant it individually
+   * crosses the trigger threshold (which, for tightly-grouped siblings,
+   * often crosses close enough in time to read as simultaneous rather than
+   * staggered). Defaults to 0 — no behavior change for existing callers.
+   */
+  delay?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
@@ -42,12 +52,13 @@ export function ScrollReveal({
         y: 0,
         ...(blur ? { filter: 'blur(0px)' } : {}),
         duration: motion.duration.slow,
+        delay,
         ease: motion.ease.standard,
         scrollTrigger: { trigger: ref.current, start: 'top 85%' },
       });
     }, ref);
     return () => ctx.revert();
-  }, [reducedMotion, blur]);
+  }, [reducedMotion, blur, delay]);
 
   return <div ref={ref} className={className}>{children}</div>;
 }

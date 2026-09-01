@@ -16,12 +16,13 @@ export function SelectedWork() {
     <section className={styles.section} aria-labelledby="selected-work-heading">
       <h2 id="selected-work-heading">Trabajos seleccionados</h2>
       <div className={styles.grid}>
-        {projects.map((project) => (
+        {projects.map((project, i) => (
           <ScrollReveal
             key={project.slug}
             className={
               project.cover.type === 'video' ? `${styles.card} ${styles.wide}` : styles.card
             }
+            delay={(i % 3) * 0.1}
           >
             {project.cover.type === 'image' ? (
               <Link href={`/trabajos/${project.slug}`} aria-label={project.title} data-cursor="ver">

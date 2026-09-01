@@ -7,8 +7,8 @@ export function Testimonios() {
   return (
     <section aria-labelledby="testimonios-heading" className={styles.section}>
       <h2 id="testimonios-heading">Lo que dicen de nosotros</h2>
-      {testimonials.map((t) => (
-        <ScrollReveal key={t.id} className={styles.item}>
+      {testimonials.map((t, i) => (
+        <ScrollReveal key={t.id} className={styles.item} delay={i * 0.08}>
           <blockquote className={styles.quote}>
             {t.photo && (
               <div className={styles.photoWrap}>

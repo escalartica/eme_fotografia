@@ -19,7 +19,7 @@ export function ServiciosPreview() {
         <ol className={styles.list}>
           {services.map((service, index) => (
             <li key={service.slug} className={styles.item}>
-              <ScrollReveal>
+              <ScrollReveal delay={index * 0.08}>
                 <Link
                   href={`/servicios#${service.slug}`}
                   className={styles.link}

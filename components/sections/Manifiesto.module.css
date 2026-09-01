@@ -47,6 +47,14 @@
   opacity: 0;
   pointer-events: none;
   user-select: none;
+  /* Static filter (not animated — only `opacity` is animated, per this
+     project's motion rule) so the photo reads as an editorial tone-shift
+     instead of a literal color image at every point of the crossfade.
+     A full-color photo blended mid-opacity against the solid-ink base
+     layer produced a muddy, noisy look (verified visually) — grayscale +
+     boosted contrast keeps the reveal legible and on-palette throughout,
+     not just at its resting opacity: 1 state. */
+  filter: grayscale(1) contrast(1.25) brightness(0.85);
 }
 
 .section p { color: var(--color-muted); }
