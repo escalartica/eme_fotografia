@@ -51,3 +51,7 @@ lighthouse-report.json
 /.agents/
 /.claude/
 /skills-lock.json
+
+# local Playwright CLI session artifacts (screenshots, snapshots, console
+# logs from manual browser-driven verification) -- not part of this app
+/.playwright-cli/
