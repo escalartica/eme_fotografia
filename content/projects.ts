@@ -2,33 +2,55 @@ import type { Project } from './types';
 
 export const projects: Project[] = [
   {
-    slug: 'clara-y-manuel',
-    title: 'Clara y Manuel',
+    // Real photos from an actual EME Fotografía wedding shoot (provided by
+    // the client 2026-09-01, organized by the client into a folder named
+    // "raquel y fran"). EXIF capture timestamps on the source files are
+    // consistent across all of them (2026-06-16, same morning) — a real,
+    // verified date, not a guess. Replaces a previous placeholder entry
+    // ("Clara y Manuel", stock Unsplash photos).
+    slug: 'raquel-y-fran',
+    title: 'Raquel y Fran',
     category: 'boda',
-    year: 2025,
+    year: 2026,
     client: 'Boda privada',
-    location: 'Hacienda de San Rafael, Sevilla',
-    description: 'Una boda de tarde-noche con luz dorada andaluza, contada como un editorial de moda.',
-    cover: { type: 'image', src: '/images/trabajos/clara-y-manuel/placeholder-cover.webp', alt: 'Pareja de novios caminando al atardecer', isPlaceholderMedia: true, sourceCredit: 'Unsplash' },
+    location: 'Sevilla',
+    description: 'Una boda con un pie de foto y otro en la carretera: coche clásico, jardines y una celebración sin postureo.',
+    cover: {
+      type: 'image',
+      src: '/images/trabajos/raquel-y-fran/cover.webp',
+      alt: 'Los novios celebrando de pie en un coche descapotable clásico frente a un edificio señorial',
+      isPlaceholderMedia: false,
+    },
     gallery: [
-      { type: 'image', src: '/images/trabajos/clara-y-manuel/placeholder-01.webp', alt: 'Detalle del vestido de novia', isPlaceholderMedia: true, sourceCredit: 'Unsplash' },
-      { type: 'image', src: '/images/trabajos/clara-y-manuel/placeholder-02.webp', alt: 'Anillos de boda sobre tela', isPlaceholderMedia: true, sourceCredit: 'Unsplash' },
-      { type: 'image', src: '/images/trabajos/clara-y-manuel/placeholder-03.webp', alt: 'Primer baile de los novios', isPlaceholderMedia: true, sourceCredit: 'Unsplash' },
+      { type: 'image', src: '/images/trabajos/raquel-y-fran/detalle-ojal.webp', alt: 'Detalle del ojal de lavanda del novio', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/raquel-y-fran/primer-baile.webp', alt: 'Primer baile de los novios', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/raquel-y-fran/candido.webp', alt: 'Momento cómplice y desenfadado del novio', isPlaceholderMedia: false },
     ],
   },
   {
-    slug: 'lucia-y-jorge',
-    title: 'Lucía y Jorge',
+    // Real photos from an actual EME Fotografía wedding shoot (provided by
+    // the client 2026-09-01, organized by the client into a folder named
+    // "andrea y jesus"). Source files' EXIF capture date was not reliably
+    // preserved (metadata matches file-copy time, not a real capture
+    // timestamp), so only the year is stated, not a specific date — no
+    // guessed detail beyond what's actually confirmed. Replaces a previous
+    // placeholder entry ("Lucía y Jorge", stock Unsplash photos).
+    slug: 'andrea-y-jesus',
+    title: 'Andrea y Jesús',
     category: 'boda',
-    year: 2024,
+    year: 2026,
     client: 'Boda privada',
-    location: 'Cortijo El Esparragal, Sevilla',
-    description: 'Ceremonia íntima al aire libre con un enfoque documental y editorial a la vez.',
-    cover: { type: 'image', src: '/images/trabajos/lucia-y-jorge/placeholder-cover.webp', alt: 'Novia sonriendo junto a un coche clásico', isPlaceholderMedia: true, sourceCredit: 'Unsplash' },
+    location: 'Sevilla',
+    description: 'De los preparativos al primer baile bajo luces de escenario: una boda con mucha fiesta y ningún momento posado de más.',
+    cover: {
+      type: 'image',
+      src: '/images/trabajos/andrea-y-jesus/cover.webp',
+      alt: 'Primer baile de los novios bajo luces de escenario',
+      isPlaceholderMedia: false,
+    },
     gallery: [
-      { type: 'image', src: '/images/trabajos/lucia-y-jorge/placeholder-01.webp', alt: 'Ceremonia civil al aire libre', isPlaceholderMedia: true, sourceCredit: 'Unsplash' },
-      { type: 'image', src: '/images/trabajos/lucia-y-jorge/placeholder-02.webp', alt: 'Ramo de novia sobre mesa de madera', isPlaceholderMedia: true, sourceCredit: 'Unsplash' },
-      { type: 'image', src: '/images/trabajos/lucia-y-jorge/placeholder-03.webp', alt: 'Brindis de los invitados', isPlaceholderMedia: true, sourceCredit: 'Unsplash' },
+      { type: 'image', src: '/images/trabajos/andrea-y-jesus/preparativos.webp', alt: 'La novia reflejada en un espejo durante los preparativos', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/andrea-y-jesus/fiesta.webp', alt: 'Invitadas bailando y celebrando en la fiesta', isPlaceholderMedia: false },
     ],
   },
   {

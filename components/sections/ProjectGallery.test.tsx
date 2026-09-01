@@ -7,7 +7,7 @@ vi.mock('@/lib/hooks/useReducedMotion', () => ({ useReducedMotion: () => true })
 
 describe('ProjectGallery', () => {
   it('renders an image for each image gallery item', () => {
-    const project = projects.find((p) => p.slug === 'clara-y-manuel')!;
+    const project = projects.find((p) => p.slug === 'raquel-y-fran')!;
     render(<ProjectGallery project={project} />);
     expect(screen.getAllByRole('img').length).toBe(project.gallery.length);
   });

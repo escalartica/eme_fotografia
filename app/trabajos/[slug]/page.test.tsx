@@ -24,14 +24,14 @@ describe('generateStaticParams for /trabajos/[slug]', () => {
 
 describe('/trabajos/[slug] page', () => {
   it('renders the project title, category, and gallery images', async () => {
-    const result = await Page({ params: Promise.resolve({ slug: 'clara-y-manuel' }) });
+    const result = await Page({ params: Promise.resolve({ slug: 'raquel-y-fran' }) });
     render(result);
-    expect(screen.getByRole('heading', { name: 'Clara y Manuel' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Raquel y Fran' })).toBeInTheDocument();
     expect(screen.getAllByRole('img').length).toBeGreaterThan(0);
   });
 
   it('renders prev/next navigation to adjacent projects', async () => {
-    const result = await Page({ params: Promise.resolve({ slug: 'lucia-y-jorge' }) });
+    const result = await Page({ params: Promise.resolve({ slug: 'andrea-y-jesus' }) });
     render(result);
     expect(screen.getByRole('link', { name: /siguiente proyecto/i })).toBeInTheDocument();
   });
@@ -39,7 +39,7 @@ describe('/trabajos/[slug] page', () => {
   it('does not render an impact line for a project that has none', async () => {
     // All 4 current seed projects lack impactLine — this is a real assertion
     // against real content, exercising the actual Page component end to end.
-    const result = await Page({ params: Promise.resolve({ slug: 'clara-y-manuel' }) });
+    const result = await Page({ params: Promise.resolve({ slug: 'raquel-y-fran' }) });
     render(result);
     expect(screen.queryByTestId('project-impact')).not.toBeInTheDocument();
   });
@@ -51,8 +51,8 @@ describe('/trabajos/[slug] page — cover hero block', () => {
   // hero block actually renders, sourced from project.cover.src, for both
   // an image-cover project and a video-cover project.
   it('renders an <img> sourced from project.cover.src for an image-cover project', async () => {
-    const project = projects.find((p) => p.slug === 'clara-y-manuel')!;
-    if (project.cover.type !== 'image') throw new Error('fixture assumption: clara-y-manuel has an image cover');
+    const project = projects.find((p) => p.slug === 'raquel-y-fran')!;
+    if (project.cover.type !== 'image') throw new Error('fixture assumption: raquel-y-fran has an image cover');
     const result = await Page({ params: Promise.resolve({ slug: project.slug }) });
     render(result);
     // next/image rewrites `src` through its optimizer loader in the

@@ -5,6 +5,6 @@ import { SelectedWork } from './SelectedWork';
 describe('SelectedWork', () => {
   it('renders a card for each seed project with a link to its detail page', () => {
     render(<SelectedWork />);
-    expect(screen.getByRole('link', { name: /Clara y Manuel/i })).toHaveAttribute('href', '/trabajos/clara-y-manuel');
+    expect(screen.getByRole('link', { name: /Raquel y Fran/i })).toHaveAttribute('href', '/trabajos/raquel-y-fran');
   });
 });

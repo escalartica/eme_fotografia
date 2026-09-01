@@ -29,15 +29,15 @@ describe('TrabajosFilter', () => {
       return { finished: Promise.resolve() };
     });
     render(<TrabajosFilter projects={projects} />);
-    const link = screen.getByRole('link', { name: 'Ver proyecto Clara y Manuel' });
+    const link = screen.getByRole('link', { name: 'Ver proyecto Raquel y Fran' });
     fireEvent.click(link, { button: 0 });
     expect((document as any).startViewTransition).toHaveBeenCalled();
-    expect(push).toHaveBeenCalledWith('/trabajos/clara-y-manuel');
+    expect(push).toHaveBeenCalledWith('/trabajos/raquel-y-fran');
   });
 
   it('does not intercept modifier-key clicks on a project link', () => {
     render(<TrabajosFilter projects={projects} />);
-    const link = screen.getByRole('link', { name: 'Ver proyecto Clara y Manuel' });
+    const link = screen.getByRole('link', { name: 'Ver proyecto Raquel y Fran' });
     const event = fireEvent.click(link, { button: 0, ctrlKey: true });
     // fireEvent.click returns false when preventDefault() was called
     expect(event).toBe(true);
@@ -46,7 +46,7 @@ describe('TrabajosFilter', () => {
 
   it('has data-cursor="ver" attribute on project card links for custom cursor', () => {
     render(<TrabajosFilter projects={projects} />);
-    const link = screen.getByRole('link', { name: 'Ver proyecto Clara y Manuel' });
+    const link = screen.getByRole('link', { name: 'Ver proyecto Raquel y Fran' });
     expect(link).toHaveAttribute('data-cursor', 'ver');
   });
 });

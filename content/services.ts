@@ -7,10 +7,9 @@ export const services: Service[] = [
     tagline: 'Cada boda, contada como una historia editorial.',
     includes: ['Cobertura completa del día', 'Preboda opcional', 'Álbum editorial impreso', 'Galería digital privada'],
     idealFor: 'Parejas que quieren fotografías con dirección artística, no solo un reportaje.',
-    // Known placeholder — Unsplash stock, already shown as-is on /trabajos
-    // and the Home SelectedWork grid. Reused here to avoid introducing new
-    // stock imagery; not implied to be a real client photo.
-    previewImage: '/images/trabajos/clara-y-manuel/placeholder-cover.webp',
+    // Genuinely real client asset — the same raquel-y-fran cover photo
+    // shown on /trabajos and the Home SelectedWork grid.
+    previewImage: '/images/trabajos/raquel-y-fran/cover.webp',
     process: [
       { step: 1, title: 'Primera conversación', description: 'Conocemos la pareja, el lugar y el estilo que buscan.' },
       { step: 2, title: 'Planificación', description: 'Diseñamos la cobertura del día junto a la pareja y el resto de proveedores.' },

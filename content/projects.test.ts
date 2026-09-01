@@ -10,11 +10,13 @@ describe('projects content', () => {
   });
 
   it('flags every seed media item as placeholder, except real media explicitly marked otherwise', () => {
-    // 'boda-real-01' carries genuine client footage and photos (video
-    // provided 2026-08-31, photos 2026-09-01) — every other seed project
-    // is still stock/placeholder content.
+    // 'boda-real-01', 'raquel-y-fran', and 'andrea-y-jesus' all carry
+    // genuine client photos/footage (provided 2026-08-31 and 2026-09-01,
+    // organized by the client into per-couple folders) — every other seed
+    // project is still stock/placeholder content.
+    const realSlugs = ['boda-real-01', 'raquel-y-fran', 'andrea-y-jesus'];
     for (const project of projects) {
-      const expectPlaceholder = project.slug !== 'boda-real-01';
+      const expectPlaceholder = !realSlugs.includes(project.slug);
       expect(project.cover.isPlaceholderMedia).toBe(expectPlaceholder);
       for (const media of project.gallery) {
         expect(media.isPlaceholderMedia).toBe(expectPlaceholder);
