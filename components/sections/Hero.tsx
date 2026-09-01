@@ -98,6 +98,9 @@ export function Hero() {
           loop
           playsInline
           preload="auto"
+          // @ts-expect-error -- fetchPriority is valid on <video> in browsers but
+          // not yet in this project's React/DOM type definitions.
+          fetchPriority="high"
           aria-label="Vídeo de la boda de Eva y Rafa: preparativos, salida y ceremonia"
         />
       </div>
