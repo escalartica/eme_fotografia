@@ -3,8 +3,19 @@ import Link from 'next/link';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import styles from './EditorialSpread.module.css';
 
-export interface EditorialSpreadImage {
+export interface EditorialSpreadMedia {
+  /**
+   * Matches `ProjectMedia['type']` (content/types.ts) — this component
+   * renders photo and video tiles through the same code path (one
+   * conditional in `MediaFrame` below), not divergent per-variant
+   * branches. Adding a future media kind (360°, fotomatón) is one more
+   * case in that single function, not a new component per variant.
+   */
+  type: 'image' | 'video';
   src: string;
+  /** Required for `type: 'video'` — the frame shown in the tile (this
+   * component never autoplays inline, see MediaFrame's own doc comment). */
+  poster?: string;
   alt: string;
   /** Real intrinsic width in px, from the source file — never guessed. */
   width: number;
@@ -23,7 +34,7 @@ export interface EditorialSpreadProps {
    * project's gallery pair well for the two-image variants — this
    * component has no content of its own.
    */
-  images: EditorialSpreadImage[];
+  images: EditorialSpreadMedia[];
   title: string;
   /** e.g. "01", "02" — rendered via the `.chapterNumber` ghost-numeral utility. */
   chapterNumber: string;
@@ -71,6 +82,56 @@ export function EditorialSpread({
   );
 }
 
+/**
+ * The C1 "media-agnostic tile" engine (docs/PATRONES-AWWWARDS.md, applied
+ * as the underlying renderer only — NOT as a uniform tile grid, which
+ * would undo this component's whole reason for existing: replacing the
+ * uniform card grid the design audit flagged). Every variant below calls
+ * this once instead of duplicating an <Image>/<video> conditional four
+ * times — adding a future media kind (360°, fotomatón) is one more branch
+ * here, not a new component per variant.
+ *
+ * Video never autoplays inline here: this whole spread is one <Link> to
+ * the project detail page (or, for overlap-pair/diptych, one of a pair of
+ * images), not a video player — restructuring that to open an in-place
+ * lightbox (like SelectedWork.tsx's video card does) would break the
+ * single-link invariant every variant is tested against. Instead: show
+ * the poster frame with a "Reproducir" visual cue (a nested
+ * data-cursor="reproducir" wins over the outer Link's data-cursor="ver"
+ * via closest()'s nearest-match behavior) and let the project detail page
+ * — already built to handle cover-video playback — do the actual playing
+ * once the visitor lands there.
+ */
+function MediaFrame({
+  media,
+  className,
+  sizes,
+}: {
+  media: EditorialSpreadMedia;
+  className?: string;
+  sizes: string;
+}) {
+  const image = (
+    <Image
+      src={media.type === 'video' ? (media.poster ?? media.src) : media.src}
+      alt={media.alt}
+      width={media.width}
+      height={media.height}
+      sizes={sizes}
+      className={className}
+    />
+  );
+  if (media.type !== 'video') return image;
+  return (
+    <div className={styles.videoFrame} data-cursor="reproducir">
+      {image}
+      <span className={styles.playLabel} aria-hidden="true">
+        Reproducir
+      </span>
+    </div>
+  );
+}
+
 function variantClass(variant: EditorialSpreadVariant) {
   switch (variant) {
     case 'full-bleed':
@@ -89,21 +150,14 @@ function FullBleed({
   title,
   chapterNumber,
 }: {
-  image: EditorialSpreadImage;
+  image: EditorialSpreadMedia;
   title: string;
   chapterNumber: string;
 }) {
   return (
     <div className={styles.fullBleedOuter}>
       <div className={styles.fullBleedImageWrap}>
-        <Image
-          src={image.src}
-          alt={image.alt}
-          width={image.width}
-          height={image.height}
-          sizes="(max-width: 700px) 90vw, 50vw"
-          className={styles.fullBleedImage}
-        />
+        <MediaFrame media={image} sizes="(max-width: 700px) 90vw, 50vw" className={styles.fullBleedImage} />
       </div>
       <div className={styles.fullBleedMeta}>
         <span className={styles.chapterNumber} aria-hidden="true">
@@ -120,7 +174,7 @@ function Panoramic({
   title,
   chapterNumber,
 }: {
-  image: EditorialSpreadImage;
+  image: EditorialSpreadMedia;
   title: string;
   chapterNumber: string;
 }) {
@@ -135,14 +189,7 @@ function Panoramic({
             an already-wide source image, not the uniform aspect-ratio: 3/2
             forced on every card that the design audit flagged — the other
             three variants never crop. */}
-        <Image
-          src={image.src}
-          alt={image.alt}
-          width={image.width}
-          height={image.height}
-          sizes="100vw"
-          className={styles.panoramicImage}
-        />
+        <MediaFrame media={image} sizes="100vw" className={styles.panoramicImage} />
         {/* Explicit scrim element (rather than a ::after pseudo-element on
             panoramicImageWrap) so it paints between the image and the meta
             text in DOM/paint order — a pseudo-element on the wrap would
@@ -165,8 +212,8 @@ function OverlapPair({
   title,
   chapterNumber,
 }: {
-  primary: EditorialSpreadImage;
-  secondary: EditorialSpreadImage;
+  primary: EditorialSpreadMedia;
+  secondary: EditorialSpreadMedia;
   title: string;
   chapterNumber: string;
 }) {
@@ -174,24 +221,10 @@ function OverlapPair({
     <div className={styles.overlapOuter}>
       <div className={styles.overlapStage}>
         <div className={styles.overlapPrimary}>
-          <Image
-            src={primary.src}
-            alt={primary.alt}
-            width={primary.width}
-            height={primary.height}
-            sizes="(max-width: 700px) 80vw, 55vw"
-            className={styles.overlapPrimaryImage}
-          />
+          <MediaFrame media={primary} sizes="(max-width: 700px) 80vw, 55vw" className={styles.overlapPrimaryImage} />
         </div>
         <div className={styles.overlapSecondary}>
-          <Image
-            src={secondary.src}
-            alt={secondary.alt}
-            width={secondary.width}
-            height={secondary.height}
-            sizes="(max-width: 700px) 55vw, 32vw"
-            className={styles.overlapSecondaryImage}
-          />
+          <MediaFrame media={secondary} sizes="(max-width: 700px) 55vw, 32vw" className={styles.overlapSecondaryImage} />
         </div>
       </div>
       <div className={styles.overlapMeta}>
@@ -210,32 +243,18 @@ function Diptych({
   title,
   chapterNumber,
 }: {
-  primary: EditorialSpreadImage;
-  secondary: EditorialSpreadImage;
+  primary: EditorialSpreadMedia;
+  secondary: EditorialSpreadMedia;
   title: string;
   chapterNumber: string;
 }) {
   return (
     <div className={styles.diptychOuter}>
       <div className={styles.diptychMain}>
-        <Image
-          src={primary.src}
-          alt={primary.alt}
-          width={primary.width}
-          height={primary.height}
-          sizes="(max-width: 700px) 60vw, 58vw"
-          className={styles.diptychImage}
-        />
+        <MediaFrame media={primary} sizes="(max-width: 700px) 60vw, 58vw" className={styles.diptychImage} />
       </div>
       <div className={styles.diptychSecondary}>
-        <Image
-          src={secondary.src}
-          alt={secondary.alt}
-          width={secondary.width}
-          height={secondary.height}
-          sizes="(max-width: 700px) 40vw, 36vw"
-          className={styles.diptychImage}
-        />
+        <MediaFrame media={secondary} sizes="(max-width: 700px) 40vw, 36vw" className={styles.diptychImage} />
       </div>
       <div className={styles.diptychMeta}>
         <span className={styles.chapterNumber} aria-hidden="true">

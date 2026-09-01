@@ -259,6 +259,33 @@
   }
 }
 
+/* ---------- MediaFrame (C1 media-agnostic tile engine) ---------- */
+/* display:contents makes this wrapper invisible to layout -- its children
+   (the poster Image + the label) render as if directly inside whichever
+   variant's own *ImageWrap/*Primary/*Secondary/*Main container is the real
+   parent, so it never interferes with that container's own sizing rules.
+   .playLabel's position:absolute skips right through it to that same real
+   ancestor (all four containers already set position:relative), which is
+   why this works identically across all four variants without a variant-
+   specific override. */
+.videoFrame {
+  display: contents;
+}
+.playLabel {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-paper);
+  background: rgba(31, 38, 46, 0.55);
+  padding: var(--space-1) var(--space-2);
+  pointer-events: none;
+}
+
 /* ---------- shared meta type ---------- */
 .chapterNumber {
   composes: chapterNumber from global;
