@@ -53,7 +53,7 @@ export default function Page() {
                         <span className={styles.itemNumber} aria-hidden="true">
                           {String(itemIndex + 1).padStart(2, '0')}
                         </span>
-                        <span className={styles.itemText}>{item}</span>
+                        <div className={styles.itemText}>{item}</div>
                       </div>
                     ))}
                   </div>
@@ -68,10 +68,10 @@ export default function Page() {
                         <span className={styles.itemNumber} aria-hidden="true">
                           {String(step.step).padStart(2, '0')}
                         </span>
-                        <span className={styles.itemText}>
+                        <div className={styles.itemText}>
                           <span className={styles.stepTitle}>{step.title}</span>
                           <p className={styles.stepDescription}>{step.description}</p>
-                        </span>
+                        </div>
                       </div>
                     ))}
                   </div>
