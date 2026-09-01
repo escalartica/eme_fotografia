@@ -20,22 +20,49 @@
   margin-block-end: var(--space-2);
 }
 
-.section a {
-  display: inline-block;
-  background: var(--color-accent);
-  color: var(--color-paper);
-  padding: var(--space-2);
+.badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(7rem, 6rem + 4vw, 9rem);
+  height: clamp(7rem, 6rem + 4vw, 9rem);
+  margin-block-start: var(--space-2);
   text-decoration: none;
   cursor: pointer;
   transition: opacity var(--duration-fast) var(--ease-standard);
 }
-
-.section a:hover,
-.section a:focus-visible {
-  opacity: 0.85;
+.badge:hover,
+.badge:focus-visible {
+  opacity: 0.75;
 }
-
-.section a:focus-visible {
+.badge:focus-visible {
   outline: 2px solid var(--color-ink);
-  outline-offset: 2px;
+  outline-offset: 4px;
+}
+.badgeRing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.badgeRingSpin {
+  animation: cta-badge-spin 14s linear infinite;
+}
+.badgeText {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  fill: var(--color-ink);
+  text-transform: uppercase;
+}
+.badgeArrow {
+  font-size: 1.75rem;
+  color: var(--color-accent);
+  line-height: 1;
+}
+@keyframes cta-badge-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
