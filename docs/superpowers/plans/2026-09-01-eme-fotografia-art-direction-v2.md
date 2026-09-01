@@ -141,7 +141,7 @@ In both grids, use CSS `grid-column: span 2` (or equivalent) on a deliberate sub
 
 - [ ] **Step 2: Typographic filter nav**
 
-Replace `TrabajosFilter.tsx`'s current bordered-box category buttons with a typographic treatment: tracked-uppercase labels in a horizontal row, separated by a thin divider or generous spacing (not boxes), with the active state shown via the underline treatment already established elsewhere (`Header.tsx`'s `aria-current` underline) rather than a colored border — for visual consistency between the two typographic nav treatments now in the site (Header's nav, this one).
+Replace `TrabajosFilter.tsx`'s current bordered-box category buttons with a typographic treatment: tracked-uppercase labels in a horizontal row, separated by a thin divider or generous spacing (not boxes), with the active state shown via a *visually similar* underline treatment to `Header.tsx`'s `aria-current` styling — for visual consistency between the two typographic nav treatments now in the site. **Do not change the underlying ARIA pattern to match**: `TrabajosFilter.tsx`'s category buttons correctly use `role="tab"` + `aria-selected` (the right pattern for a tab-like filter widget, already implemented and not part of this task's scope) — `Header.tsx`'s `aria-current="page"` is for a different widget (navigation links to separate pages), and swapping one for the other would be an accessibility regression, not a fix. Style the underline off the existing `[aria-selected="true"]` state, matching the Header's underline CSS *values* (`text-decoration-color`, `text-underline-offset`) for consistency, not its ARIA attribute.
 
 - [ ] **Step 3: Animated re-flow on filter change**
 
