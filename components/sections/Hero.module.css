@@ -18,12 +18,15 @@
 .video { object-fit: cover; }
 
 /* Cinematic scrim so the wordmark and eyebrow stay legible over real,
-   unpredictable footage — darkest at the bottom-left where the type sits. */
+   unpredictable footage — darkest at the bottom-left where the type sits.
+   CSS gradient angles point toward the END color, so the START (darkest)
+   stop sits in the OPPOSITE direction: 20deg's end is up-and-right, which
+   correctly puts the dark 0% stop down-and-left, where .content lives. */
 .overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
-    200deg,
+    20deg,
     rgba(17, 20, 24, 0.72) 0%,
     rgba(17, 20, 24, 0.32) 32%,
     rgba(17, 20, 24, 0) 60%
