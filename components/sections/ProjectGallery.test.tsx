@@ -13,14 +13,16 @@ describe('ProjectGallery', () => {
   });
 
   it('renders a VideoPreview for video gallery items and opens the lightbox on click', () => {
-    // boda-real-01 has both a video cover (rendered by ProjectGallery
-    // itself, see the component) and a video gallery item, so there are
-    // two "Reproducir" buttons sharing one Lightbox — assert on the
-    // gallery grid's one specifically, not "the" single play button.
+    // boda-real-01 has a video cover (rendered by ProjectGallery itself,
+    // see the component) plus two video gallery items (the ground-level
+    // edit and the aerial highlight), so there are three "Reproducir"
+    // buttons total sharing one Lightbox — assert the count reflects
+    // cover + gallery videos, and that clicking a gallery one opens it.
     const project = projects.find((p) => p.slug === 'boda-real-01')!;
     render(<ProjectGallery project={project} />);
     const playButtons = screen.getAllByRole('button', { name: /reproducir/i });
-    expect(playButtons).toHaveLength(2);
+    const videoGalleryCount = project.gallery.filter((m) => m.type === 'video').length;
+    expect(playButtons).toHaveLength(1 + videoGalleryCount);
     fireEvent.click(playButtons[1]);
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });

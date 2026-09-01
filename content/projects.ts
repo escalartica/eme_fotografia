@@ -53,12 +53,18 @@ export const projects: Project[] = [
       isPlaceholderMedia: false,
     },
     gallery: [
-      { type: 'image', src: '/images/trabajos/boda-elena-y-pablo-video/placeholder-01.webp', alt: 'Fotograma de los votos', isPlaceholderMedia: true, sourceCredit: 'Unsplash' },
       {
         type: 'video',
         src: '/videos/previews/real-boda-01-full.mp4',
         poster: '/videos/posters/real-boda-01-full.webp',
         alt: 'Vídeo de la boda de Eva y Rafa: preparativos, salida y ceremonia',
+        isPlaceholderMedia: false,
+      },
+      {
+        type: 'video',
+        src: '/videos/previews/real-boda-01-aerial.mp4',
+        poster: '/videos/posters/real-boda-01-aerial.webp',
+        alt: 'Vista aérea de la boda de Eva y Rafa: llegada y ceremonia en la hacienda',
         isPlaceholderMedia: false,
       },
     ],
