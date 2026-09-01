@@ -24,6 +24,9 @@ export const projects: Project[] = [
       src: '/images/trabajos/andrea-y-enrique/cover.webp',
       alt: 'Los novios riendo juntos bajo un arco de piedra durante la ceremonia',
       isPlaceholderMedia: false,
+      // Verified via `sips -g pixelWidth -g pixelHeight`.
+      width: 1067,
+      height: 1600,
     },
     gallery: [
       { type: 'image', src: '/images/trabajos/andrea-y-enrique/preparativos-novio.webp', alt: 'El novio riendo junto a un amigo mientras se viste', isPlaceholderMedia: false },
@@ -51,9 +54,12 @@ export const projects: Project[] = [
       src: '/images/trabajos/marta-y-alvaro/cover.webp',
       alt: 'La novia sonriendo con su ramo de claveles y una cinta bordada con la fecha de la boda',
       isPlaceholderMedia: false,
+      // Verified via `sips -g pixelWidth -g pixelHeight`.
+      width: 1067,
+      height: 1600,
     },
     gallery: [
-      { type: 'image', src: '/images/trabajos/marta-y-alvaro/preparativos-novio.webp', alt: 'El novio arreglándose frente al espejo antes de la ceremonia', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/marta-y-alvaro/preparativos-novio.webp', alt: 'El novio arreglándose frente al espejo antes de la ceremonia', isPlaceholderMedia: false, width: 1600, height: 1067 },
       { type: 'image', src: '/images/trabajos/marta-y-alvaro/ceremonia.webp', alt: 'Los novios y los pajes durante la ceremonia al aire libre', isPlaceholderMedia: false },
       { type: 'image', src: '/images/trabajos/marta-y-alvaro/detalle.webp', alt: 'Detalle de la corbata y los gemelos del novio', isPlaceholderMedia: false },
     ],
@@ -76,6 +82,9 @@ export const projects: Project[] = [
       src: '/images/trabajos/maria-y-francisco-manuel/cover.webp',
       alt: 'Retrato de la novia con diadema y ramo de rosas blancas y eucalipto',
       isPlaceholderMedia: false,
+      // Verified via `sips -g pixelWidth -g pixelHeight`.
+      width: 1067,
+      height: 1600,
     },
     gallery: [
       { type: 'image', src: '/images/trabajos/maria-y-francisco-manuel/llegada.webp', alt: 'La novia llegando en un coche clásico rojo junto a su padre', isPlaceholderMedia: false },
@@ -102,10 +111,13 @@ export const projects: Project[] = [
       src: '/images/trabajos/rocio-y-juanje/cover.webp',
       alt: 'Retrato de la novia con tiara y ramo de rosas blancas sobre suelo de damero',
       isPlaceholderMedia: false,
+      // Verified via `sips -g pixelWidth -g pixelHeight`.
+      width: 1067,
+      height: 1600,
     },
     gallery: [
       { type: 'image', src: '/images/trabajos/rocio-y-juanje/detalle.webp', alt: 'El novio mostrando un anillo con un guiño personal', isPlaceholderMedia: false },
-      { type: 'image', src: '/images/trabajos/rocio-y-juanje/llegada.webp', alt: 'El novio esperando junto a un coche clásico mientras llega la novia', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/rocio-y-juanje/llegada.webp', alt: 'El novio esperando junto a un coche clásico mientras llega la novia', isPlaceholderMedia: false, width: 1600, height: 1067 },
       { type: 'image', src: '/images/trabajos/rocio-y-juanje/fiesta.webp', alt: 'El novio levantado en volandas por sus amigos durante la fiesta', isPlaceholderMedia: false },
     ],
   },
@@ -128,9 +140,12 @@ export const projects: Project[] = [
       src: '/images/trabajos/raquel-y-fran/cover.webp',
       alt: 'Los novios celebrando de pie en un coche descapotable clásico frente a un edificio señorial',
       isPlaceholderMedia: false,
+      // Verified via `sips -g pixelWidth -g pixelHeight`.
+      width: 1600,
+      height: 1066,
     },
     gallery: [
-      { type: 'image', src: '/images/trabajos/raquel-y-fran/detalle-ojal.webp', alt: 'Detalle del ojal de lavanda del novio', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/raquel-y-fran/detalle-ojal.webp', alt: 'Detalle del ojal de lavanda del novio', isPlaceholderMedia: false, width: 1066, height: 1600 },
       { type: 'image', src: '/images/trabajos/raquel-y-fran/primer-baile.webp', alt: 'Primer baile de los novios', isPlaceholderMedia: false },
       { type: 'image', src: '/images/trabajos/raquel-y-fran/candido.webp', alt: 'Momento cómplice y desenfadado del novio', isPlaceholderMedia: false },
     ],
@@ -155,9 +170,12 @@ export const projects: Project[] = [
       src: '/images/trabajos/andrea-y-jesus/cover.webp',
       alt: 'Primer baile de los novios bajo luces de escenario',
       isPlaceholderMedia: false,
+      // Verified via `sips -g pixelWidth -g pixelHeight`.
+      width: 1600,
+      height: 1066,
     },
     gallery: [
-      { type: 'image', src: '/images/trabajos/andrea-y-jesus/preparativos.webp', alt: 'La novia reflejada en un espejo durante los preparativos', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/andrea-y-jesus/preparativos.webp', alt: 'La novia reflejada en un espejo durante los preparativos', isPlaceholderMedia: false, width: 1066, height: 1600 },
       { type: 'image', src: '/images/trabajos/andrea-y-jesus/fiesta.webp', alt: 'Invitadas bailando y celebrando en la fiesta', isPlaceholderMedia: false },
     ],
   },
@@ -218,7 +236,18 @@ export const projects: Project[] = [
     client: 'Evento corporativo',
     location: 'Hotel Alfonso XIII, Sevilla',
     description: 'Fotomatón temático y plataforma 360° como protagonistas de una gala corporativa.',
-    cover: { type: 'image', src: '/images/trabajos/gala-empresa-fotomaton-360/placeholder-cover.webp', alt: 'Invitados posando en la plataforma 360°', isPlaceholderMedia: true, sourceCredit: 'Unsplash' },
+    cover: {
+      type: 'image',
+      src: '/images/trabajos/gala-empresa-fotomaton-360/placeholder-cover.webp',
+      alt: 'Invitados posando en la plataforma 360°',
+      isPlaceholderMedia: true,
+      sourceCredit: 'Unsplash',
+      // Verified via `sips -g pixelWidth -g pixelHeight` — the stock photo
+      // itself is a placeholder, but its pixel dimensions are real,
+      // measured from the actual file, not guessed.
+      width: 2000,
+      height: 2692,
+    },
     gallery: [
       { type: 'image', src: '/images/trabajos/gala-empresa-fotomaton-360/placeholder-01.webp', alt: 'Fotomatón con atrezzo temático', isPlaceholderMedia: true, sourceCredit: 'Unsplash' },
       {

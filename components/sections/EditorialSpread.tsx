@@ -1,3 +1,4 @@
+import type { MouseEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
@@ -39,10 +40,29 @@ export interface EditorialSpreadProps {
   /** e.g. "01", "02" — rendered via the `.chapterNumber` ghost-numeral utility. */
   chapterNumber: string;
   href: string;
-  /** Optional className applied to the outer ScrollReveal wrapper, for a caller's own grid/list layout (spacing, column placement, etc). */
+  /** Optional className applied to the outer wrapper (ScrollReveal, or a plain div when `reveal={false}`), for a caller's own grid/list layout (spacing, column placement, etc). */
   className?: string;
-  /** Optional stagger delay in seconds, forwarded to ScrollReveal — see ScrollReveal's own doc comment. */
+  /** Optional stagger delay in seconds, forwarded to ScrollReveal — see ScrollReveal's own doc comment. Ignored when `reveal={false}`. */
   delay?: number;
+  /**
+   * Whether to wrap this spread in its own scroll-triggered `ScrollReveal`
+   * entrance (default `true`). Set `false` when the caller already runs its
+   * OWN entrance/exit animation over the same list (e.g.
+   * `TrabajosFilter.tsx`'s filter-change fade+scale re-flow, keyed off
+   * category changes rather than scroll position) — nesting ScrollReveal's
+   * own `gsap.set(opacity: 0)`-on-mount inside a parent that's
+   * independently animating opacity on the SAME re-mounted subtree is
+   * exactly the nested-ScrollReveal conflict this project hit once already
+   * (prior plan's Task 7/9): the two systems fight over the same property,
+   * producing a visible flash. `reveal={false}` renders a plain div in
+   * ScrollReveal's place instead, so the caller's own animation is the only
+   * one touching this subtree's opacity.
+   */
+  reveal?: boolean;
+  /** Optional click handler forwarded to the outer `<Link>` — for a caller
+   * that intercepts navigation (e.g. `TrabajosFilter.tsx`'s
+   * router.push-inside-a-view-transition click handling). */
+  onClick?: (e: MouseEvent<HTMLAnchorElement>) => void;
 }
 
 export function EditorialSpread({
@@ -53,31 +73,42 @@ export function EditorialSpread({
   href,
   className,
   delay,
+  reveal = true,
+  onClick,
 }: EditorialSpreadProps) {
   const primary = images[0];
   const secondary = images[1];
 
+  const link = (
+    <Link
+      href={href}
+      aria-label={`Ver proyecto ${title}`}
+      data-cursor="ver"
+      onClick={onClick}
+      className={`${styles.spread} ${variantClass(variant)}`}
+    >
+      {variant === 'full-bleed' && primary && (
+        <FullBleed image={primary} title={title} chapterNumber={chapterNumber} />
+      )}
+      {variant === 'panoramic' && primary && (
+        <Panoramic image={primary} title={title} chapterNumber={chapterNumber} />
+      )}
+      {variant === 'overlap-pair' && primary && secondary && (
+        <OverlapPair primary={primary} secondary={secondary} title={title} chapterNumber={chapterNumber} />
+      )}
+      {variant === 'diptych' && primary && secondary && (
+        <Diptych primary={primary} secondary={secondary} title={title} chapterNumber={chapterNumber} />
+      )}
+    </Link>
+  );
+
+  if (!reveal) {
+    return <div className={className}>{link}</div>;
+  }
+
   return (
     <ScrollReveal className={className} delay={delay}>
-      <Link
-        href={href}
-        aria-label={`Ver proyecto ${title}`}
-        data-cursor="ver"
-        className={`${styles.spread} ${variantClass(variant)}`}
-      >
-        {variant === 'full-bleed' && primary && (
-          <FullBleed image={primary} title={title} chapterNumber={chapterNumber} />
-        )}
-        {variant === 'panoramic' && primary && (
-          <Panoramic image={primary} title={title} chapterNumber={chapterNumber} />
-        )}
-        {variant === 'overlap-pair' && primary && secondary && (
-          <OverlapPair primary={primary} secondary={secondary} title={title} chapterNumber={chapterNumber} />
-        )}
-        {variant === 'diptych' && primary && secondary && (
-          <Diptych primary={primary} secondary={secondary} title={title} chapterNumber={chapterNumber} />
-        )}
-      </Link>
+      {link}
     </ScrollReveal>
   );
 }

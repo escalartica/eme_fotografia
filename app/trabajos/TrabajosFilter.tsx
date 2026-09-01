@@ -1,7 +1,5 @@
 'use client';
 import { useLayoutEffect, useRef, useState, type MouseEvent } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { gsap } from 'gsap';
 import type { Project } from '@/content/types';
@@ -10,6 +8,8 @@ import { useProjectFilter } from '@/lib/hooks/useProjectFilter';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import { motion } from '@/lib/motion-tokens';
 import { withPageTransition } from '@/components/motion/PageTransition';
+import { EditorialSpread } from '@/components/sections/EditorialSpread';
+import { buildProjectSpreads } from '@/lib/editorial-spread-assignment';
 import styles from './TrabajosFilter.module.css';
 
 const CATEGORIES: Array<{ value: 'todos' | 'boda' | 'video' | 'fotomaton' | '360'; label: string }> = [
@@ -105,25 +105,30 @@ export function TrabajosFilter({ projects }: { projects: Project[] }) {
         <p className={styles.empty} aria-live="polite">Todavía no hay trabajos en esta categoría — vuelve pronto.</p>
       ) : (
         <ul className={styles.grid} ref={gridRef} aria-live="polite">
-          {renderedProjects.map((project) => (
+          {/* Variant assignment is recomputed against `renderedProjects` (the
+              CURRENTLY FILTERED set) so consecutive spreads never repeat a
+              variant within whatever category is actually on screen — see
+              lib/editorial-spread-assignment.ts's own doc comment for the
+              heuristic itself. Each EditorialSpread renders with
+              `reveal={false}`: this page already runs its own filter-driven
+              fade+scale re-flow animation (the effects above, keyed off
+              category changes) over these same `[data-project-card]`
+              elements -- letting EditorialSpread ALSO wrap each one in its
+              own scroll-triggered ScrollReveal would stack two animation
+              systems fighting over the same subtree's opacity, the
+              nested-ScrollReveal conflict this project hit once already
+              (prior plan's Task 7/9). */}
+          {buildProjectSpreads(renderedProjects).map(({ project, variant, images }, i) => (
             <li key={project.slug} className={styles.card} data-project-card>
-              <Link
+              <EditorialSpread
+                variant={variant}
+                images={images}
+                title={project.title}
+                chapterNumber={String(i + 1).padStart(2, '0')}
                 href={`/trabajos/${project.slug}`}
-                aria-label={`Ver proyecto ${project.title}`}
-                data-cursor="ver"
+                reveal={false}
                 onClick={(e) => handleProjectClick(e, `/trabajos/${project.slug}`)}
-              >
-                {project.cover.type === 'image' ? (
-                  <div className={styles.imageWrap}>
-                    <Image src={project.cover.src} alt={project.cover.alt} fill sizes="(max-width: 700px) 100vw, 33vw" />
-                  </div>
-                ) : (
-                  <div className={styles.imageWrap}>
-                    <Image src={project.cover.poster ?? project.cover.src} alt={project.cover.alt} fill sizes="(max-width: 700px) 100vw, 33vw" />
-                  </div>
-                )}
-                <span className={styles.title}>{project.title}</span>
-              </Link>
+              />
             </li>
           ))}
         </ul>

@@ -1,50 +1,34 @@
-'use client';
-import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
 import { projects } from '@/content/projects';
-import { ScrollReveal } from '@/components/motion/ScrollReveal';
-import { VideoPreview } from '@/components/motion/VideoPreview';
-import { Lightbox } from '@/components/motion/Lightbox';
+import { EditorialSpread } from '@/components/sections/EditorialSpread';
+import { buildProjectSpreads } from '@/lib/editorial-spread-assignment';
 import styles from './SelectedWork.module.css';
 
-export function SelectedWork() {
-  const [openSlug, setOpenSlug] = useState<string | null>(null);
-  const openProject = projects.find((p) => p.slug === openSlug) ?? null;
+// Real project spreads: variant + primary/secondary images assigned by the
+// real-dimension-driven heuristic in lib/editorial-spread-assignment.ts —
+// not hardcoded per project. The video project (boda-real-01) goes through
+// EditorialSpread's own poster+"Reproducir" video path (click navigates to
+// the detail page) rather than the old VideoPreview+Lightbox inline-player
+// combo this section used to special-case; see that heuristic module's own
+// doc comment for the full rationale.
+const spreads = buildProjectSpreads(projects);
 
+export function SelectedWork() {
   return (
     <section className={styles.section} aria-labelledby="selected-work-heading">
       <h2 id="selected-work-heading">Trabajos seleccionados</h2>
-      <div className={styles.grid}>
-        {projects.map((project, i) => (
-          <ScrollReveal
+      <div className={styles.list}>
+        {spreads.map(({ project, variant, images }, i) => (
+          <EditorialSpread
             key={project.slug}
-            className={
-              project.cover.type === 'video' ? `${styles.card} ${styles.wide}` : styles.card
-            }
+            variant={variant}
+            images={images}
+            title={project.title}
+            chapterNumber={String(i + 1).padStart(2, '0')}
+            href={`/trabajos/${project.slug}`}
             delay={(i % 3) * 0.1}
-          >
-            {project.cover.type === 'image' ? (
-              <Link href={`/trabajos/${project.slug}`} aria-label={project.title} data-cursor="ver">
-                <div className={styles.imageWrap}>
-                  <Image src={project.cover.src} alt={project.cover.alt} fill sizes="(max-width: 700px) 100vw, 33vw" />
-                </div>
-                <span className={styles.title}>{project.title}</span>
-              </Link>
-            ) : (
-              <div>
-                <VideoPreview media={project.cover} onOpenFull={() => setOpenSlug(project.slug)} />
-                <Link href={`/trabajos/${project.slug}`} className={styles.title} data-cursor="ver">{project.title}</Link>
-              </div>
-            )}
-          </ScrollReveal>
+          />
         ))}
       </div>
-      <Lightbox isOpen={!!openProject} onClose={() => setOpenSlug(null)}>
-        {openProject?.cover.type === 'video' && (
-          <video src={openProject.cover.src} controls autoPlay poster={openProject.cover.poster} aria-label={openProject.cover.alt} />
-        )}
-      </Lightbox>
     </section>
   );
 }

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { EditorialSpread } from './EditorialSpread';
 
 const portrait = { type: 'image' as const, src: '/images/portrait.jpg', alt: 'Retrato de novia', width: 1200, height: 1800 };
@@ -112,6 +112,23 @@ describe('EditorialSpread', () => {
       expect(links[0]).toHaveAttribute('data-cursor', 'ver');
       expect(links[0]).toContainElement(images[0]);
       expect(links[0]).toContainElement(images[1]);
+    });
+  });
+
+  describe('reveal={false} (caller-driven entrance/exit, e.g. TrabajosFilter)', () => {
+    it('still renders the link and image, without crashing when the internal ScrollReveal is opted out', () => {
+      render(<EditorialSpread variant="full-bleed" images={[portrait]} reveal={false} {...base} />);
+      expect(screen.getByRole('link', { name: `Ver proyecto ${base.title}` })).toHaveAttribute('href', base.href);
+      expect(screen.getAllByRole('img')).toHaveLength(1);
+    });
+  });
+
+  describe('onClick pass-through', () => {
+    it('forwards an onClick handler to the outer Link, for a caller that intercepts navigation', () => {
+      const onClick = vi.fn();
+      render(<EditorialSpread variant="full-bleed" images={[portrait]} onClick={onClick} {...base} />);
+      fireEvent.click(screen.getByRole('link', { name: `Ver proyecto ${base.title}` }));
+      expect(onClick).toHaveBeenCalledTimes(1);
     });
   });
 

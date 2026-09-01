@@ -52,37 +52,21 @@
   text-underline-offset: 0.3em;
 }
 .empty { color: var(--color-muted); padding-block: var(--space-3); }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-3); list-style: none; padding: 0; }
-.card { position: relative; }
-.imageWrap { position: relative; width: 100%; aspect-ratio: 3 / 2; }
-.imageWrap img { object-fit: cover; }
-.title { display: block; margin-top: var(--space-1); font-family: var(--font-serif); }
-
-@media (min-width: 700px) {
-  .card:nth-child(3n+2) {
-    margin-block-start: var(--space-4);
-  }
-  /* The filtered set changes per category, so — unlike the Home page's
-     content-aware "video card" span — the rhythm here is positional: the
-     first card of every group of 4 gets extra width, staying intentional
-     no matter which projects are currently in view. */
-  .card:nth-child(4n+1) {
-    grid-column: span 2;
-  }
+/* No grid here on purpose: each `.card` (<li>) wraps one EditorialSpread
+   instance, which already manages its own full-bleed/breakout width via
+   styles/layout.css's .breakout utility — a wrapping CSS grid with its own
+   width constraint would clip that breakout (see .breakout's own doc
+   comment on the ancestor-overflow failure mode) and reintroduce the
+   uniform card-grid pattern this task retires. Vertical rhythm between
+   spreads comes from each variant's own block padding; `list-style`/`padding`
+   resets are still needed since this stays a semantic <ul>/<li> pair for the
+   GSAP re-flow animation's `[data-project-card]` targeting below. */
+.grid {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  padding: 0;
 }
-
-.imageWrap {
-  overflow: hidden;
-}
-.imageWrap img {
-  transition: transform var(--duration-fast) var(--ease-standard);
-}
-.card:hover .imageWrap img,
-.card:focus-within .imageWrap img {
-  transform: scale(1.04);
-}
-@media (prefers-reduced-motion: reduce) {
-  .imageWrap img { transition: none; }
-  .card:hover .imageWrap img,
-  .card:focus-within .imageWrap img { transform: none; }
+.card {
+  position: relative;
 }

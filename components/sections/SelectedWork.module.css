@@ -1,34 +1,17 @@
-.section { padding: var(--space-5) var(--space-3); }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-3); }
-.card { position: relative; }
-.imageWrap { position: relative; width: 100%; aspect-ratio: 3 / 2; }
-.imageWrap img { object-fit: cover; }
-.title { display: block; margin-top: var(--space-1); font-family: var(--font-serif); }
-
-@media (min-width: 700px) {
-  .card:nth-child(3n+2) {
-    margin-block-start: var(--space-4);
-  }
-  /* The video project (a real client shoot) is given a wider grid span to
-     read as the editorial anchor of the row — mixed sizing instead of a
-     uniform grid, per the art-direction reconstruction. */
-  .wide {
-    grid-column: span 2;
-  }
+.section {
+  padding-block: var(--space-5);
 }
-
-.imageWrap {
-  overflow: hidden;
+.section h2 {
+  padding-inline: var(--space-3);
 }
-.imageWrap img {
-  transition: transform var(--duration-fast) var(--ease-standard);
-}
-.card:hover .imageWrap img,
-.card:focus-within .imageWrap img {
-  transform: scale(1.04);
-}
-@media (prefers-reduced-motion: reduce) {
-  .imageWrap img { transition: none; }
-  .card:hover .imageWrap img,
-  .card:focus-within .imageWrap img { transform: none; }
+/* No grid here on purpose: each child is an EditorialSpread instance,
+   which already manages its own full-bleed/breakout width via
+   styles/layout.css's .breakout utility (composed inside
+   EditorialSpread.module.css) -- a wrapping grid/flex with its own width
+   constraint would clip that breakout (see .breakout's own doc comment on
+   the ancestor-overflow failure mode). Vertical rhythm between spreads
+   comes from each variant's own block padding. */
+.list {
+  display: flex;
+  flex-direction: column;
 }
