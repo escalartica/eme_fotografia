@@ -40,7 +40,12 @@
    flush. Verified in-browser at 360px and 1440px viewports with no
    scrollbar present: left=0, right=viewport width, no overflow introduced.
    Callers should verify the same on any page/viewport before relying on
-   it. */
+   it. ALSO FAILS SILENTLY if any ancestor between this element and the
+   viewport has `overflow: hidden`/`overflow: clip` -- that ancestor clips
+   the breakout instead of letting it reach the edge, with no error and no
+   visible sign of why. This codebase already has several such ancestors
+   (image-crop/hover wrappers) -- check the DOM path before nesting
+   `.breakout` inside one. */
 .breakout {
   width: 100vw;
   margin-inline: calc(50% - 50vw);
