@@ -1,5 +1,12 @@
+/* Deliberately not the shared `.section { padding; max-width;
+   margin-inline: auto; text-align: center }` idiom retired in Task 1 --
+   only vertical rhythm here; horizontal breathing room now lives on the
+   heading/layout below, matching the pattern already established by the
+   other rebuilt Home sections (e.g. SelectedWork.module.css), so a future
+   full-bleed child of this section is never clipped by section-level
+   inline padding. */
 .section {
-  padding: var(--space-5) var(--space-3);
+  padding-block: var(--space-5);
 }
 
 .heading {
@@ -7,12 +14,14 @@
   font-size: var(--type-h2);
   line-height: 1;
   margin-block-end: var(--space-3);
+  padding-inline: var(--space-3);
 }
 
 .layout {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-3);
+  padding-inline: var(--space-3);
 }
 
 .list {

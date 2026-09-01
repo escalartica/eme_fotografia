@@ -1,41 +1,160 @@
+/* Bespoke to this page — deliberately NOT the flagged
+   `.section { padding; max-width; margin-inline: auto; text-align: center }`
+   idiom (styles/layout.css's file header documents why). No outer
+   max-width here: each service's own `.copy` column keeps a readable
+   measure via its own max-width, while `.imageWrap` is free to run flush
+   to the viewport edge for a genuine full-bleed image, not a centered
+   card. */
 .page {
-  max-width: 75rem;
-  margin-inline: auto;
-  padding-inline: var(--space-3);
-  padding-block: var(--space-4) var(--space-5);
+  padding-block-end: var(--space-5);
 }
-.page h1 {
+
+.pageHeading {
   font-family: var(--font-serif);
   font-size: var(--type-h2);
   line-height: 1;
-  margin-block-end: var(--space-4);
+  padding: var(--space-4) var(--space-3) 0;
 }
+
+.revealWrap {
+  width: 100%;
+}
+
+/* Each service gets a generous, near-full-viewport "moment" via min-height
+   + vertical padding (not scroll-snap — this project has no precedent for
+   combining scroll-snap with Lenis's smooth-scroll and the risk of the two
+   fighting isn't worth it for this task). */
 .service {
-  max-width: 44rem;
-  padding-block: var(--space-4);
+  min-height: 92svh;
+  display: flex;
+  align-items: center;
+  padding-block: var(--space-5);
   border-top: 1px solid var(--color-muted);
 }
-.service:first-of-type { border-top: none; padding-top: 0; }
-.service h2 {
+.service:first-of-type {
+  border-top: none;
+}
+
+.serviceInner {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .serviceInner {
+    /* Text column first in source order (already the DOM order) so
+       reading order and visual order match; image column runs flush to
+       the viewport's right edge since nothing above it constrains width. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .serviceInner.noImage {
+    grid-template-columns: 1fr;
+  }
+}
+
+.copy {
+  max-width: 34rem;
+  padding-inline: var(--space-3);
+}
+.noImage .copy {
+  max-width: 44rem;
+  margin-inline: auto;
+}
+
+.chapterNumber {
+  composes: chapterNumber from global;
+  display: block;
+  margin-block-end: var(--space-2);
+}
+
+.name {
   font-family: var(--font-serif);
-  font-size: var(--type-h3);
-  margin-block-end: var(--space-1);
+  font-size: var(--type-h2);
+  line-height: 1;
+  margin: 0 0 var(--space-2);
 }
-.serviceHeading {
+
+.tagline {
+  font-size: var(--type-body);
+  color: var(--color-ink);
+  margin: 0 0 var(--space-3);
+}
+
+.idealFor {
+  color: var(--color-muted);
+  margin: 0 0 var(--space-4);
+}
+
+/* Numbered sequence: replaces the old `<ul><li>• ...</li></ul>` rendering
+   for both `includes` and `process`. `role="list"`/`role="listitem"` on
+   plain divs keep real list semantics for assistive tech (item count,
+   position) without a native <ul>/<li> element anywhere -- the numeral
+   itself is the visible marker, styled as a scaled-down version of the
+   same `.chapterNumber` treatment (serif, tight line-height, low visual
+   weight), never a bullet character. */
+.numberedGroup {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
+  flex-direction: column;
+  margin-block-end: var(--space-4);
 }
-.number {
-  color: var(--color-accent);
+
+.numberedItem {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  padding-block: var(--space-1);
+  border-top: 1px solid var(--color-muted);
+}
+.numberedItem:first-child {
+  border-top: none;
+}
+
+.itemNumber {
+  font-family: var(--font-serif);
+  /* Same treatment as .chapterNumber (serif, tight line-height, muted
+     weight) at a much smaller scale -- a "chapter numeral" reduced to an
+     item marker, not a different visual language. */
+  font-size: var(--type-h3);
+  line-height: 0.85;
+  color: var(--color-muted);
   flex-shrink: 0;
 }
-.service p { color: var(--color-muted); margin-block-end: var(--space-2); }
-.service ul { margin-block: var(--space-2); padding-left: var(--space-2); }
-.service ol { margin-block: var(--space-2); padding-left: var(--space-2); }
-.service a {
+
+.itemText {
+  display: block;
+}
+
+.stepTitle {
+  display: block;
+  font-weight: 600;
+}
+
+.stepDescription {
+  color: var(--color-muted);
+  margin: 0.25em 0 0;
+}
+
+.cta {
   display: inline-block;
-  margin-block-start: var(--space-2);
   color: var(--color-accent);
   font-weight: 600;
+}
+
+.imageWrap {
+  position: relative;
+  aspect-ratio: 4 / 5;
+}
+
+@media (min-width: 900px) {
+  .imageWrap {
+    aspect-ratio: auto;
+    height: min(70svh, 46rem);
+  }
+}
+
+.image {
+  object-fit: cover;
 }
