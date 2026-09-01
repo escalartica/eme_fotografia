@@ -37,6 +37,7 @@ export function Header() {
 
     let lastY = window.scrollY;
     let ticking = false;
+    let rafId: number | null = null;
 
     const update = () => {
       const currentY = window.scrollY;
@@ -49,17 +50,26 @@ export function Header() {
       }
       lastY = currentY;
       ticking = false;
+      rafId = null;
     };
 
     const onScroll = () => {
       if (!ticking) {
         ticking = true;
-        window.requestAnimationFrame(update);
+        rafId = window.requestAnimationFrame(update);
       }
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      // Cancel any in-flight frame from a scroll event that fired just before
+      // the menu opened — without this, a stale `update()` bound to the
+      // pre-menu-open closure can call setHidden(true) right after this
+      // effect's own setHidden(false), defeating "never hide while the menu
+      // is open" on mobile momentum-scroll.
+      if (rafId !== null) window.cancelAnimationFrame(rafId);
+    };
   }, [menuOpen]);
 
   return (

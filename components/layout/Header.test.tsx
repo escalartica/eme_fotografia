@@ -77,4 +77,19 @@ describe('Header — scroll visibility', () => {
 
     expect(screen.getByRole('banner')).toHaveAttribute('data-hidden', 'false');
   });
+
+  it('does not re-hide from a scroll frame that was already queued when the menu opens', async () => {
+    render(<Header />);
+    setScrollY(300);
+    // Queues a requestAnimationFrame callback bound to the pre-menu-open
+    // closure, before the menu has opened.
+    fireEvent.scroll(window);
+    // Opens the menu synchronously, before that queued frame has run.
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir menú' }));
+    // Give the queued frame a chance to run (and be cancelled by cleanup)
+    // before asserting.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(screen.getByRole('banner')).toHaveAttribute('data-hidden', 'false');
+  });
 });
