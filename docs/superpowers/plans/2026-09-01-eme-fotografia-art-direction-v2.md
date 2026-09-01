@@ -106,20 +106,22 @@ git commit -m "feat: scroll-aware header with typographic nav treatment"
 
 `components/motion/Cursor.tsx` already supports `ver`/`reproducir`/`arrastrar` (Task 16 of the incremental plan removed the last one as dead — it's being reintroduced here with a real consumer, which is why that removal was correct at the time: don't treat this as contradicting that earlier ruling). Wire real `data-cursor` consumers across the site instead of just `SelectedWork.tsx`'s existing `data-cursor="ver"`.
 
+**Correction (2026-09-01, ruling recorded in this plan's ledger before Task 3 was dispatched):** the original draft of this task listed `components/sections/ServiciosPreview.tsx` as a file to modify, and `app/trabajos/[slug]/page.tsx` under a mistaken assumption it has its own direct links. Both are wrong: `ServiciosPreview.tsx` is about to be entirely rebuilt by Task 6 (numbered list, hover/focus-driven imagery) — adding `data-cursor` to its current bare `<ul>` markup now would be immediately superseded/discarded, wasted work. Removed from this task's scope; Task 6's implementer adds the appropriate `data-cursor` state directly as part of that rebuild instead. Separately, `app/trabajos/[slug]/page.tsx` was checked and has zero direct `<a>`/`<Link>` elements of its own — its only link is rendered via `<NextProjectLink>`, already separately listed — so it needs no changes here and is removed from the file list. `components/sections/ProjectGallery.tsx` was also checked and already renders its video items via `<VideoPreview>`, which already sets `data-cursor="reproducir"` on itself internally — that mapping is already fully done sitewide, no gallery-specific work needed; removed from the file list too. Added instead: `components/layout/Footer.tsx` (+ its existing test file), which the task's own prose already correctly identified as needing the `abrir` treatment for its real Instagram/Facebook external links (confirmed present at `Footer.tsx:14-15`) but which the original file list omitted.
+
 **Files:**
-- Modify: `components/motion/Cursor.tsx` (add `abrir`/`explorar` labels), `components/sections/ServiciosPreview.tsx`, `app/trabajos/TrabajosFilter.tsx`, `app/trabajos/[slug]/page.tsx` (external/next-project links), `components/ui/NextProjectLink.tsx`
+- Modify: `components/motion/Cursor.tsx` (add `abrir`/`explorar` labels), `app/trabajos/TrabajosFilter.tsx`, `components/ui/NextProjectLink.tsx`, `components/layout/Footer.tsx`
 - Test: `components/motion/Cursor.test.tsx` (existing — extend for new labels), plus each touched component's existing test file (extend to assert the new `data-cursor` attribute is present)
 
 **Interfaces:** `LABELS` in `Cursor.tsx` gains `abrir: 'ABRIR'` and `explorar: 'EXPLORAR'`. No signature changes.
 
-- [ ] **Step 1–4 (TDD per consumer):** for each touched component, add the failing test asserting the relevant interactive element has the correct `data-cursor` value, verify it fails, add the attribute, verify it passes. Mapping: project cards in `TrabajosFilter.tsx` → `ver` (matches `SelectedWork.tsx`'s existing convention); video-opening triggers → `reproducir` (already the case via `VideoPreview.tsx`, confirm/extend to `ProjectGallery.tsx`'s gallery-item video triggers too); `NextProjectLink.tsx` → `explorar`; any external link (Instagram/Facebook in the Footer, `info@...` mailto is NOT external in this sense, skip it) → `abrir`.
+- [ ] **Step 1–4 (TDD per consumer):** for each touched component, add the failing test asserting the relevant interactive element has the correct `data-cursor` value, verify it fails, add the attribute, verify it passes. Mapping: project cards in `TrabajosFilter.tsx` → `ver` (matches `SelectedWork.tsx`'s existing convention); `NextProjectLink.tsx` → `explorar`; `Footer.tsx`'s Instagram/Facebook links (`target="_blank"`) → `abrir` (the `mailto:` link is NOT external in this sense, leave it alone). Video-opening triggers already have `reproducir` sitewide via `VideoPreview.tsx` — nothing to do there, don't add a redundant attribute.
 
 - [ ] **Step 5: Verify** `npm test && npm run build`, manually hover each updated element on desktop (cursor only activates on `pointer: fine` devices per the existing `Cursor.tsx` check — nothing to change there) and confirm the correct label appears.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add components/motion/Cursor.tsx components/motion/Cursor.test.tsx components/sections/ServiciosPreview.tsx app/trabajos/TrabajosFilter.tsx app/trabajos/[slug]/page.tsx components/ui/NextProjectLink.tsx <their test files>
+git add components/motion/Cursor.tsx components/motion/Cursor.test.tsx app/trabajos/TrabajosFilter.tsx components/ui/NextProjectLink.tsx components/layout/Footer.tsx <their test files>
 git commit -m "feat: extend custom cursor states to more interactive elements sitewide"
 ```
 
