@@ -162,18 +162,32 @@ git commit -m "feat: editorial grid rhythm and typographic filter nav for portfo
 
 ### Task 5: Project detail page — editorial gallery rhythm
 
+**Correction (2026-09-01, ruling recorded in this plan's ledger before Task 5 was dispatched):** this task's original Step 2 assumed `page.tsx` already renders `project.cover` somewhere on the page, just too small, and asked to "increase its dominance." Checked directly: it doesn't render it AT ALL — `project.cover` is currently used ONLY inside `generateMetadata()` for the Open Graph `image` field, never in the page's visible JSX. `Page()` currently renders, in order: `<h1>`, meta line, optional impact line, description, `<ProjectGallery>` (which renders `project.gallery`, a *separate* field from `cover`), then `<NextProjectLink>`. So Step 2 isn't "resize an existing element" — it's "add a real cover-media hero block that doesn't exist yet." Rewritten below with a concrete design that reuses this project's already-established media components rather than inventing new autoplay/lightbox logic a third time.
+
 **Files:**
 - Modify: `app/trabajos/[slug]/page.tsx`, `app/trabajos/[slug]/page.module.css`, `components/sections/ProjectGallery.tsx`, `components/sections/ProjectGallery.module.css`
+- Test: `app/trabajos/[slug]/page.test.tsx` (existing — extend)
 
-- [ ] **Step 1:** Apply the same mixed-sizing rhythm principle from Task 4 to `ProjectGallery.tsx`'s gallery grid — not every image the same size; let 1–2 images per project run larger/fullbleed-within-the-page-shell.
-- [ ] **Step 2:** Increase the hero media's (the project's cover image/video, shown at the top of the detail page) dominance — it should feel like the opening shot of the story, not a smaller version of a gallery thumbnail. Check the current `page.tsx` for how the cover is currently sized and increase its viewport share.
-- [ ] **Step 3:** Verify `NextProjectLink.tsx`'s existing page-transition wiring (Task 1/7 of the incremental plan) still works after your markup changes — don't regress the View Transitions behavior.
-- [ ] **Step 4: Verify** `npm test && npm run build`; visually check `/trabajos/boda-real-01` and at least one photo-only project (e.g. `/trabajos/clara-y-manuel`) at desktop and mobile.
-- [ ] **Step 5: Commit**
+- [ ] **Step 1: Add the cover hero block (the actual gap Step 2 originally described).**
+
+In `Page()`, between the `<h1>`/meta block and `<ProjectGallery>`, add a new cover-media element rendering `project.cover`:
+- If `project.cover.type === 'image'`: a large `next/image` in a `.coverWrap` (matching the established `position: relative; aspect-ratio: X; overflow: hidden` + `fill` + `object-fit: cover` pattern from `SelectedWork.module.css`), sized to dominate the top of the page (e.g. a wide, shortish aspect-ratio like `16/9` or `2/1` at desktop, taller on mobile) — genuinely bigger and more prominent than any single gallery thumbnail below it.
+- If `project.cover.type === 'video'`: reuse `VideoPreview` (already used inside `ProjectGallery.tsx` for gallery video items — same component, same established gated-autoplay/poster/Lightbox-opening pattern) at this larger size, wired to the SAME `Lightbox` state `ProjectGallery` already manages internally today — this likely means either (a) lifting the `openIndex`/`Lightbox` state up from `ProjectGallery.tsx` into `Page.tsx` so both the new cover block and the gallery grid can open the same lightbox, or (b) giving the cover block its own independent small `Lightbox` instance. Prefer (a) if it's a clean lift (check how much `ProjectGallery.tsx`'s internals would need to change); fall back to (b) and document why if (a) turns out messy — either is acceptable, but don't duplicate the video-autoplay-gating logic itself, always go through `VideoPreview`.
+- The seed data currently has 3 photo-cover projects (`clara-y-manuel`, `lucia-y-jorge`, `gala-empresa-fotomaton-360`) and 1 video-cover project (`boda-real-01`) — your implementation must handle both correctly, verify against at least one of each.
+
+- [ ] **Step 2 (TDD):** extend `page.test.tsx` to assert the cover media actually renders (an `<img>`/`<video>` sourced from `project.cover.src`, findable via the existing test's project-mock pattern) for both an image-cover and a video-cover test case.
+
+- [ ] **Step 3: Mixed gallery rhythm.** Apply the same mixed-sizing rhythm principle from Task 4 to `ProjectGallery.tsx`'s gallery grid — not every image the same size; let 1–2 images per project run larger/fullbleed-within-the-page-shell.
+
+- [ ] **Step 4:** Verify `NextProjectLink.tsx`'s existing page-transition wiring (base incremental plan's Tasks 1/7) still works after your markup changes — don't regress the View Transitions behavior.
+
+- [ ] **Step 5: Verify** `npm test && npm run build`; visually check `/trabajos/boda-real-01` (video cover) and at least one photo-cover project (e.g. `/trabajos/clara-y-manuel`) at desktop and mobile — confirm the new cover block genuinely reads as "the opening shot of the story," and that clicking a video cover still opens the same lightbox experience as before.
+
+- [ ] **Step 6: Commit**
 
 ```bash
-git add app/trabajos/[slug]/page.tsx app/trabajos/[slug]/page.module.css components/sections/ProjectGallery.tsx components/sections/ProjectGallery.module.css
-git commit -m "feat: editorial gallery rhythm and larger hero media on project detail pages"
+git add app/trabajos/[slug]/page.tsx app/trabajos/[slug]/page.module.css components/sections/ProjectGallery.tsx components/sections/ProjectGallery.module.css app/trabajos/[slug]/page.test.tsx
+git commit -m "feat: add dominant cover hero block and editorial gallery rhythm to project detail pages"
 ```
 
 ---
