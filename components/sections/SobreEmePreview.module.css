@@ -1,0 +1,97 @@
+.section {
+  padding: var(--space-5) var(--space-3);
+}
+
+/* Two-column editorial layout: stacked (image above text) on narrow
+   viewports, side-by-side on wider ones. Uses named grid-template-areas
+   rather than DOM order so the visual order can differ from source order
+   without a11y tab-order surprises — the heading/copy/link stay in a
+   natural reading order in the DOM either way. */
+.layout {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-areas:
+    'image'
+    'text';
+  max-width: 75rem;
+  margin-inline: auto;
+}
+
+/* Fixes the original bug: the image previously rendered with raw
+   width={800} height={1200} and no container at all, so it occupied
+   whatever intrinsic box the browser gave it — roughly half the viewport,
+   with empty space beside it. This establishes the same
+   `position: relative; aspect-ratio; overflow: hidden` + `fill` +
+   `object-fit: cover` containment pattern already used in
+   SelectedWork.module.css / TrabajosFilter.module.css's `.imageWrap`.
+   2 / 3 matches the real asset's native 800×1200 ratio, so `cover` never
+   needs to crop it on a same-ratio container. */
+.imageWrap {
+  grid-area: image;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+}
+.imageWrap img {
+  object-fit: cover;
+}
+
+/* Text block is deliberately left-aligned (the browser default here, kept
+   explicit via `align-items: flex-start`) rather than centered like
+   Manifiesto.module.css's `.section` — an echo of Hero.module.css's
+   left-anchored `.content` column, repeated as a visual motif across the
+   Home page's identity-carrying sections. */
+.text {
+  grid-area: text;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+/* Small uppercase label above the statement — echoes Hero.module.css's
+   `.eyebrow` treatment for the same repeated-motif reason as `.text`
+   above. */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: clamp(0.6875rem, 0.65rem + 0.15vw, 0.8125rem);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-muted);
+  margin: 0;
+}
+
+.heading {
+  font-family: var(--font-serif);
+  font-size: var(--type-h2);
+  line-height: 1.05;
+  margin: 0;
+  max-width: 18ch;
+}
+
+.body {
+  color: var(--color-muted);
+  margin: 0;
+  max-width: 45ch;
+}
+
+.link {
+  font-family: var(--font-sans);
+  font-size: clamp(0.75rem, 0.7rem + 0.2vw, 0.9375rem);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 0.3em;
+  color: var(--color-ink);
+}
+
+@media (min-width: 700px) {
+  .layout {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: 'text image';
+    align-items: center;
+    gap: var(--space-4);
+  }
+}

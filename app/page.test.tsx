@@ -12,7 +12,7 @@ describe('Home page', () => {
       'No contamos bodas. Contamos historias con fecha.',
       'Trabajos seleccionados',
       'Servicios',
-      `Sobre EME Fotografía Sevilla`,
+      'No dirigimos la boda: la seguimos de cerca hasta que se cuenta sola.',
       'Lo que dicen de nosotros',
       '¿Celebras algo importante?',
     ]);

@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
-const { gsapTo } = vi.hoisted(() => ({
+const { gsapTo, gsapSet } = vi.hoisted(() => ({
   gsapTo: vi.fn(),
+  gsapSet: vi.fn(),
 }));
 
 vi.mock('gsap', () => ({
@@ -13,7 +14,7 @@ vi.mock('gsap', () => ({
       cb();
       return { revert: vi.fn() };
     }),
-    set: vi.fn(),
+    set: gsapSet,
   },
 }));
 vi.mock('gsap/ScrollTrigger', () => ({ ScrollTrigger: {} }));
@@ -41,5 +42,26 @@ describe('ScrollReveal', () => {
     (useReducedMotion as any).mockReturnValue(false);
     render(<ScrollReveal><p>Contenido</p></ScrollReveal>);
     expect(gsapTo).toHaveBeenCalled();
+  });
+
+  it('does not add a filter property by default', () => {
+    (useReducedMotion as any).mockReturnValue(false);
+    render(<ScrollReveal><p>Contenido</p></ScrollReveal>);
+    expect(gsapSet.mock.calls[0][1]).not.toHaveProperty('filter');
+    expect(gsapTo.mock.calls[0][1]).not.toHaveProperty('filter');
+  });
+
+  it('layers a blur filter transition on top of the base reveal when blur is true', () => {
+    (useReducedMotion as any).mockReturnValue(false);
+    render(<ScrollReveal blur><p>Contenido</p></ScrollReveal>);
+    expect(gsapSet.mock.calls[0][1]).toMatchObject({ opacity: 0, y: 40, filter: 'blur(6px)' });
+    expect(gsapTo.mock.calls[0][1]).toMatchObject({ opacity: 1, y: 0, filter: 'blur(0px)' });
+  });
+
+  it('skips the blur filter too when motion is reduced, even with blur set', () => {
+    (useReducedMotion as any).mockReturnValue(true);
+    render(<ScrollReveal blur><p>Contenido</p></ScrollReveal>);
+    expect(gsapSet).not.toHaveBeenCalled();
+    expect(gsapTo).not.toHaveBeenCalled();
   });
 });
