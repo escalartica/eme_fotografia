@@ -1,5 +1,6 @@
 @import './reset.css';
 @import './tokens.css';
+@import './layout.css';
 
 body {
   background: var(--color-paper);

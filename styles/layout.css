@@ -1,0 +1,56 @@
+/* Layout primitives for the editorial redesign (Task 1 of the
+   2026-09-01-eme-fotografia-editorial-v3 plan). These replace the old
+   one-size-fits-all `.section { max-width; margin-inline: auto;
+   text-align: center }` wrapper idiom that made every section on the site
+   read the same. Later section-rebuild tasks compose these utilities into
+   their own CSS Modules instead of reinventing them.
+
+   HOW TO CONSUME FROM A CSS MODULE:
+   This file is loaded as *global* CSS (imported from styles/globals.css,
+   itself imported once in app/layout.tsx), so `.breakout` and
+   `.chapterNumber` are real global class names, not module-scoped ones.
+   From a `*.module.css` file you have two options:
+
+   1. Merge it into a local class with the CSS Modules `composes` syntax:
+        .heroBreakout {
+          composes: breakout from global;
+        }
+      then use `styles.heroBreakout` as normal in the component.
+
+   2. Apply it directly alongside a module class in JSX, since it's already
+      a plain global class name (no `styles.` lookup needed):
+        <div className={`${styles.hero} breakout`}>
+
+   Both are equivalent; prefer (1) when the element also needs component-
+   specific overrides layered on top, since `composes` keeps every class the
+   element needs inside the single `styles.x` reference. */
+
+/* Full-bleed breakout: escapes a max-width/centered parent so the element
+   spans the full viewport width, regardless of how deeply it's nested.
+   Technique: 100vw is measured from the viewport's left edge, not the
+   parent's, so setting width:100vw and pulling the inline margins back by
+   half the viewport-vs-container difference re-centers it edge to edge.
+   KNOWN CONSTRAINT: 100vw includes the width of any vertical scrollbar, so
+   this only breaks out cleanly to the true visible edge when the page has
+   no horizontal scrollbar at the time it's applied — an existing horizontal
+   overflow elsewhere on the page will make `.breakout` overshoot the right
+   edge by the scrollbar's width. Verify the page has no horizontal overflow
+   before relying on this class. */
+.breakout {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+
+/* Oversized chapter numeral (e.g. "01", "02") used as a quiet structural
+   marker rather than a headline — large serif figure, tight line-height so
+   it doesn't add vertical rhythm of its own, and deliberately low visual
+   weight (muted color) so it reads as a page-furniture detail, not content.
+   Callers needing a different weight/placement (e.g. over a photo, where
+   `opacity` instead of `color` may read better) should override `color`/
+   `opacity` locally rather than duplicating this whole rule. */
+.chapterNumber {
+  font-family: var(--font-serif);
+  font-size: var(--type-chapter);
+  line-height: 0.85;
+  color: var(--color-muted);
+}
