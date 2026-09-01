@@ -11,8 +11,8 @@ export function Footer() {
         <a href={`mailto:${site.email}`}>{site.email}</a>
       </div>
       <div className={styles.row}>
-        <a href={site.instagramUrl} target="_blank" rel="noreferrer">Instagram</a>
-        <a href={site.facebookUrl} target="_blank" rel="noreferrer">Facebook</a>
+        <a href={site.instagramUrl} target="_blank" rel="noreferrer" data-cursor="abrir">Instagram</a>
+        <a href={site.facebookUrl} target="_blank" rel="noreferrer" data-cursor="abrir">Facebook</a>
       </div>
       {showPlaceholderNotice && (
         <p className={styles.notice}>Contenido de muestra — pendiente de sustitución por trabajo real de {site.brandName}.</p>

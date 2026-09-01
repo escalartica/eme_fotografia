@@ -46,6 +46,7 @@ export function TrabajosFilter({ projects }: { projects: Project[] }) {
               <Link
                 href={`/trabajos/${project.slug}`}
                 aria-label={`Ver proyecto ${project.title}`}
+                data-cursor="ver"
                 onClick={(e) => handleProjectClick(e, `/trabajos/${project.slug}`)}
               >
                 {project.cover.type === 'image' ? (

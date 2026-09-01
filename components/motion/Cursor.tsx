@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import styles from './Cursor.module.css';
 
-const LABELS: Record<string, string> = { ver: 'VER', reproducir: 'REPRODUCIR' };
+const LABELS: Record<string, string> = { ver: 'VER', reproducir: 'REPRODUCIR', abrir: 'ABRIR', explorar: 'EXPLORAR' };
 
 export function Cursor() {
   const [enabled, setEnabled] = useState(false);

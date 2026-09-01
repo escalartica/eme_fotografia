@@ -34,4 +34,28 @@ describe('Cursor', () => {
     render(<Cursor />);
     expect(screen.queryByTestId('cursor-label')).not.toBeInTheDocument();
   });
+
+  it('shows the "ABRIR" label when entering an abrir data-cursor target', () => {
+    mockPointerFine();
+    render(
+      <>
+        <Cursor />
+        <a href="https://example.com" target="_blank" data-cursor="abrir">Enlace externo</a>
+      </>
+    );
+    fireEvent.mouseOver(screen.getByText('Enlace externo'));
+    expect(screen.getByTestId('cursor-label')).toHaveTextContent('ABRIR');
+  });
+
+  it('shows the "EXPLORAR" label when entering an explorar data-cursor target', () => {
+    mockPointerFine();
+    render(
+      <>
+        <Cursor />
+        <a href="/siguiente" data-cursor="explorar">Siguiente proyecto</a>
+      </>
+    );
+    fireEvent.mouseOver(screen.getByText('Siguiente proyecto'));
+    expect(screen.getByTestId('cursor-label')).toHaveTextContent('EXPLORAR');
+  });
 });

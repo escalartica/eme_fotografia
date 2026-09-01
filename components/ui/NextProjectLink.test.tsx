@@ -48,4 +48,10 @@ describe('NextProjectLink', () => {
     const link = screen.getByRole('link', { name: /siguiente proyecto/i });
     expect(link).toHaveClass('nextLink');
   });
+
+  it('has data-cursor="explorar" attribute for custom cursor', () => {
+    render(<NextProjectLink href="/trabajos/lucia-y-jorge" label="Siguiente proyecto: Lucía y Jorge" />);
+    const link = screen.getByRole('link', { name: /siguiente proyecto/i });
+    expect(link).toHaveAttribute('data-cursor', 'explorar');
+  });
 });

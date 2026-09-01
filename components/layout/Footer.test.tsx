@@ -29,4 +29,18 @@ describe('Footer', () => {
     render(<Footer />);
     expect(screen.getByRole('link', { name: /instagram/i })).toHaveAttribute('href', expect.stringContaining('instagram.com'));
   });
+
+  it('has data-cursor="abrir" attribute on external social media links for custom cursor', () => {
+    process.env.NEXT_PUBLIC_SHOW_PLACEHOLDER_NOTICE = 'false';
+    render(<Footer />);
+    expect(screen.getByRole('link', { name: /instagram/i })).toHaveAttribute('data-cursor', 'abrir');
+    expect(screen.getByRole('link', { name: /facebook/i })).toHaveAttribute('data-cursor', 'abrir');
+  });
+
+  it('does not add data-cursor to email link', () => {
+    process.env.NEXT_PUBLIC_SHOW_PLACEHOLDER_NOTICE = 'false';
+    render(<Footer />);
+    const emailLink = screen.getByRole('link', { name: /info@emefotografiasevilla.es/i });
+    expect(emailLink).not.toHaveAttribute('data-cursor');
+  });
 });

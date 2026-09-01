@@ -43,4 +43,10 @@ describe('TrabajosFilter', () => {
     expect(event).toBe(true);
     expect(push).not.toHaveBeenCalled();
   });
+
+  it('has data-cursor="ver" attribute on project card links for custom cursor', () => {
+    render(<TrabajosFilter projects={projects} />);
+    const link = screen.getByRole('link', { name: 'Ver proyecto Clara y Manuel' });
+    expect(link).toHaveAttribute('data-cursor', 'ver');
+  });
 });

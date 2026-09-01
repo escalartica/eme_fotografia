@@ -22,7 +22,7 @@ export function NextProjectLink({
   }
 
   return (
-    <Link href={href} onClick={handleClick} className={className}>
+    <Link href={href} onClick={handleClick} className={className} data-cursor="explorar">
       {label}
     </Link>
   );
