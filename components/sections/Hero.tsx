@@ -200,10 +200,21 @@ export function Hero() {
       </div>
       <div className={styles.overlay} aria-hidden="true" />
       <div className={styles.content}>
-        <p className={styles.eyebrow}>
-          Fotografía y vídeo de bodas y eventos en {site.legalCity}, con la mirada de un editorial de moda.
-        </p>
+        {/* City + service-area statement lives INSIDE the H1 (not a sibling
+            <p>) so it carries real SEO weight as the page's single most
+            prominent heading, not a de-emphasized subtitle — matching this
+            session's Patrones-Awwwards audit (A2). The service-area phrase
+            ("Andalucía y donde haga falta") isn't a new claim: it compresses
+            the already-approved FAQ answer ("Sí, cubrimos bodas y eventos
+            fuera de Sevilla... según distancia", content/faq.ts) rather than
+            inventing a new one. It's a <span>, not a <p> -- <p> isn't valid
+            phrasing content inside <h1> -- and shares the wordmark reveal
+            timeline below (Array.from(wordmarkRef.current.children)) as its
+            first staggered line. */}
         <h1 ref={wordmarkRef} className={styles.wordmark}>
+          <span className={styles.eyebrow}>
+            Fotografía y vídeo de bodas y eventos en {site.legalCity}, Andalucía y donde haga falta, con la mirada de un editorial de moda.
+          </span>
           <span className={styles.wordmarkLine}>EME</span>{' '}
           <span className={styles.wordmarkLine}>Fotografía {site.legalCity}</span>
         </h1>

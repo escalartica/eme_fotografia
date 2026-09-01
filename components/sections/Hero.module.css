@@ -60,6 +60,10 @@
 }
 
 .eyebrow {
+  /* Now a <span> inside <h1> (was a sibling <p>) so it carries real SEO
+     weight as part of the page's one heading — needs an explicit block
+     display since <span> defaults to inline. */
+  display: block;
   font-family: var(--font-sans);
   font-size: clamp(0.6875rem, 0.65rem + 0.15vw, 0.8125rem);
   text-transform: uppercase;
