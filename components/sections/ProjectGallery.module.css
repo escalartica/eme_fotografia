@@ -1,4 +1,4 @@
-/* Cover hero: a dominant opening shot above the gallery grid, taller on
+/* Cover hero: a dominant opening shot above the gallery flow, taller on
    mobile and wide/short on desktop. Shared verbatim (aspect-ratio values
    included) with page.module.css's .coverWrap, which renders the
    image-cover case — CSS Modules scope classes per file so this is
@@ -26,28 +26,89 @@
   .coverWrap { aspect-ratio: 2 / 1; }
 }
 
-.imageWrap { position: relative; width: 100%; aspect-ratio: 3 / 2; overflow: hidden; }
-.imageWrap img {
-  object-fit: cover;
-  transition: transform var(--duration-fast) var(--ease-standard);
+/* Continuous, full-bleed editorial photo-essay flow (A3 pattern,
+   docs/PATRONES-AWWWARDS.md): a single column of items in strict source
+   order (no CSS Grid dense-packing reflow, which would reorder photos out
+   of their real narrative sequence), each with its own width tier via the
+   `span` field rather than one rigid width across every item. `.breakout`
+   (styles/layout.css) escapes .page's centered max-width so the whole flow
+   reaches the viewport edges; no ancestor here has overflow:hidden, so its
+   one documented caveat (silent clipping) doesn't apply. */
+.flow {
+  composes: breakout from global;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-block: var(--space-5);
 }
-.imageWrap:hover img { transform: scale(1.04); }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-2); margin-block: var(--space-3); }
+
+/* One gallery item: the ScrollTrigger `trigger` for both its own entrance
+   reveal (opacity, set on this element) and its per-image parallax (a
+   translate on the .parallaxInner child, see ProjectGallery.tsx) --
+   `overflow: hidden` here is what clips that child's -8%/+8% travel range
+   down to this box. No opacity default is set here in CSS: the entrance
+   reveal's "hidden" state is only ever applied by JS (`gsap.set`), so if
+   that JS never runs, every item stays fully visible from first paint. */
+.item {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+}
+
+/* Extra 8% top/bottom slack so the parallax translate never reveals empty
+   space at the item's edges — the same `inset: -8%` technique Hero.module.css
+   uses for its own scroll parallax layer (.imageParallax). */
+.parallaxInner {
+  position: absolute;
+  inset: -8% 0;
+}
+/* Stretch the parallax layer's direct child (VideoPreview's own wrapper div,
+   or the image <button> below) to fill this enlarged box, overriding
+   VideoPreview's intrinsic aspect-ratio sizing — same trick as .coverWrap >
+   div above. */
+.parallaxInner > div,
+.imageButton {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.imageButton {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.imageButton img { object-fit: cover; }
+
+/* Width/aspect-ratio tiers driven by the `span` field -- genuine variety,
+   not one rigid width: full-bleed vertical, a wide horizontal letterbox, and
+   a narrower half-width horizontal, matching A3's "alternando verticales a
+   sangre y horizontales a media anchura". */
+.full { aspect-ratio: 4 / 5; }
+.wide { aspect-ratio: 21 / 9; }
+.half { aspect-ratio: 1 / 1; }
 
 @media (min-width: 700px) {
-  /* Editorial rhythm: let the first gallery item (image or video) run
-     fullbleed-within-the-page-shell instead of every thumbnail being the
-     same size — same mixed-sizing principle used for the portfolio grid
-     in Task 4 (SelectedWork.module.css's .wide), applied per-project here. */
-  .grid > :first-child {
-    grid-column: 1 / -1;
+  .wide {
+    width: 70%;
+    margin-inline: auto;
   }
-  .large {
-    aspect-ratio: 21 / 9;
+  .half {
+    width: 46%;
+    margin-inline: auto;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .imageWrap img { transition: none; }
-  .imageWrap:hover img { transform: none; }
+/* Lightbox content for an image gallery item: letterboxed within the
+   Lightbox's own max-width, showing the whole photo uncropped (unlike the
+   flow's own cover-cropped thumbnails). */
+.lightboxImageWrap {
+  position: relative;
+  width: 100%;
+  height: 80vh;
 }
+.lightboxImageWrap img { object-fit: contain; }

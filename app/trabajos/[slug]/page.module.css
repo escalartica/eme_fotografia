@@ -4,13 +4,30 @@
   padding-inline: var(--space-3);
   padding-block: var(--space-4) var(--space-5);
 }
-.page h1 {
+/* Elevated to match the Hero/portfolio type scale (docs/PATRONES-AWWWARDS.md
+   A3, per this task's typography decision): the couple's real name is the
+   identifying title -- not a poetic non-naming headline -- and now reads
+   with the same graphic weight as the site's other lead headings, instead
+   of the previous plain single-line treatment. */
+.title {
   font-family: var(--font-serif);
-  font-size: var(--type-h2);
-  line-height: 1;
-  margin-block-end: var(--space-1);
+  font-size: var(--type-h1);
+  line-height: 0.95;
+  margin-block-end: var(--space-2);
+  max-width: 24ch;
 }
-.meta { color: var(--color-muted); margin-block-end: var(--space-2); }
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-muted);
+  margin-block-end: var(--space-3);
+}
+.meta span[aria-hidden] { opacity: 0.5; }
 .impact {
   color: var(--color-accent);
   font-weight: 600;
@@ -18,8 +35,8 @@
 }
 .description { max-width: 44rem; margin-block-end: var(--space-4); }
 
-/* Cover hero: a dominant opening shot above the gallery grid, taller on
-   mobile and wide/short on desktop. Duplicated verbatim from
+/* Cover hero: a dominant opening shot above the editorial gallery flow,
+   taller on mobile and wide/short on desktop. Duplicated verbatim from
    ProjectGallery.module.css's .coverWrap (which handles the video-cover
    case) — CSS Modules scope classes per file, so the same rule set is
    defined once per file rather than imported across component
@@ -35,11 +52,26 @@
 @media (min-width: 700px) {
   .coverWrap { aspect-ratio: 2 / 1; }
 }
+/* Understated text-link idiom (no button chrome) -- this plan's global CTA
+   direction, applied here ahead of Task 11's own CTA/Footer rebuild.
+   `.breakout` makes the divider read as a full-bleed close to the editorial
+   flow above rather than reintroducing the page's centered max-width. */
 .nextLink {
-  display: inline-block;
+  composes: breakout from global;
+  display: flex;
+  justify-content: center;
   margin-block-start: var(--space-4);
-  padding-block-start: var(--space-3);
+  padding-block: var(--space-4);
   border-top: 1px solid var(--color-muted);
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+.nextLink:hover,
+.nextLink:focus-visible {
   color: var(--color-accent);
-  font-family: var(--font-serif);
 }

@@ -53,6 +53,19 @@ export interface ProjectMedia {
    */
   width?: number;
   height?: number;
+  /**
+   * Optional per-item width for the project detail page's editorial gallery
+   * flow (components/sections/ProjectGallery.tsx, A3 pattern from
+   * docs/PATRONES-AWWWARDS.md): 'full' renders full-bleed across the flow's
+   * whole width, 'wide'/'half' render narrower, centered columns for
+   * variety ("alternando verticales a sangre y horizontales a media
+   * anchura", not one rigid width). Absent means "no curated width decision
+   * made for this item yet" -- which width best suits a specific real photo
+   * is real curatorial judgment, out of scope for this data file to invent
+   * wholesale, so the gallery flow falls back to a deterministic
+   * full/wide/half cycle by index rather than guessing.
+   */
+  span?: 'full' | 'wide' | 'half';
 }
 
 export interface Project {

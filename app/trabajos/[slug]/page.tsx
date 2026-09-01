@@ -37,8 +37,14 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(creativeWorkSchema(project)) }}
       />
-      <h1>{project.title}</h1>
-      <p className={styles.meta}>{CATEGORY_LABELS[project.category]} — {project.year} — {project.location}</p>
+      <h1 className={styles.title}>{project.title}</h1>
+      <p className={styles.meta}>
+        <span>{CATEGORY_LABELS[project.category]}</span>
+        <span aria-hidden="true">·</span>
+        <span>{project.year}</span>
+        <span aria-hidden="true">·</span>
+        <span>{project.location}</span>
+      </p>
       {project.impactLine && (
         <p className={styles.impact} data-testid="project-impact">{project.impactLine}</p>
       )}
