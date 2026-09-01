@@ -30,7 +30,12 @@ export function ProjectGallery({ project }: { project: Project }) {
         {project.gallery.map((media, i) =>
           media.type === 'image' ? (
             <div key={i} className={i === 0 ? `${styles.imageWrap} ${styles.large}` : styles.imageWrap}>
-              <Image src={media.src} alt={media.alt} fill sizes="(max-width: 700px) 100vw, 50vw" />
+              <Image
+                src={media.src}
+                alt={media.alt}
+                fill
+                sizes={i === 0 ? '100vw' : '(max-width: 700px) 100vw, 50vw'}
+              />
             </div>
           ) : (
             <VideoPreview key={i} media={media} onOpenFull={() => setOpenMedia(media)} />
