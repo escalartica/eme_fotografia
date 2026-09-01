@@ -23,10 +23,12 @@
 .imageWrap img {
   transition: transform var(--duration-fast) var(--ease-standard);
 }
-.card:hover .imageWrap img {
+.card:hover .imageWrap img,
+.card:focus-within .imageWrap img {
   transform: scale(1.04);
 }
 @media (prefers-reduced-motion: reduce) {
   .imageWrap img { transition: none; }
-  .card:hover .imageWrap img { transform: none; }
+  .card:hover .imageWrap img,
+  .card:focus-within .imageWrap img { transform: none; }
 }
