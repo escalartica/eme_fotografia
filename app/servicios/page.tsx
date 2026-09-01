@@ -13,9 +13,14 @@ export default function Page() {
   return (
     <div className={styles.page}>
       <h1>Servicios</h1>
-      {services.map((service) => (
+      {services.map((service, index) => (
         <section key={service.slug} id={service.slug} className={styles.service} aria-labelledby={`${service.slug}-heading`}>
-          <h2 id={`${service.slug}-heading`}>{service.name}</h2>
+          <h2 id={`${service.slug}-heading`} className={styles.serviceHeading}>
+            <span className={styles.number} aria-hidden="true">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            {service.name}
+          </h2>
           <p>{service.tagline}</p>
           <ul>{service.includes.map((item) => <li key={item}>{item}</li>)}</ul>
           <p>{service.idealFor}</p>

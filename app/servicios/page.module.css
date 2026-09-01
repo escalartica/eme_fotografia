@@ -21,6 +21,15 @@
   font-size: var(--type-h3);
   margin-block-end: var(--space-1);
 }
+.serviceHeading {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.number {
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
 .service p { color: var(--color-muted); margin-block-end: var(--space-2); }
 .service ul { margin-block: var(--space-2); padding-left: var(--space-2); }
 .service ol { margin-block: var(--space-2); padding-left: var(--space-2); }

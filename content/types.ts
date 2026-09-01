@@ -25,6 +25,11 @@ export interface Service {
   idealFor: string;
   process: { step: number; title: string; description: string }[];
   ctaLabel: string;
+  // Path under public/, e.g. '/videos/posters/real-boda-01-full.webp'. Not
+  // every service has a matching asset yet — absent means "no image", not a
+  // stock placeholder to fill the gap. See content/services.ts for which
+  // services have a real vs. placeholder image and why.
+  previewImage?: string;
 }
 
 export type ProjectCategory = ServiceSlug;

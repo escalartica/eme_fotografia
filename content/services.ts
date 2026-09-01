@@ -7,6 +7,10 @@ export const services: Service[] = [
     tagline: 'Cada boda, contada como una historia editorial.',
     includes: ['Cobertura completa del día', 'Preboda opcional', 'Álbum editorial impreso', 'Galería digital privada'],
     idealFor: 'Parejas que quieren fotografías con dirección artística, no solo un reportaje.',
+    // Known placeholder — Unsplash stock, already shown as-is on /trabajos
+    // and the Home SelectedWork grid. Reused here to avoid introducing new
+    // stock imagery; not implied to be a real client photo.
+    previewImage: '/images/trabajos/clara-y-manuel/placeholder-cover.webp',
     process: [
       { step: 1, title: 'Primera conversación', description: 'Conocemos la pareja, el lugar y el estilo que buscan.' },
       { step: 2, title: 'Planificación', description: 'Diseñamos la cobertura del día junto a la pareja y el resto de proveedores.' },
@@ -21,6 +25,9 @@ export const services: Service[] = [
     tagline: 'Cine de bodas y eventos, no un simple resumen.',
     includes: ['Vídeo resumen cinematográfico', 'Audio ambiente y votos', 'Teaser para redes sociales', 'Entrega en 4K'],
     idealFor: 'Quienes quieren revivir el día en movimiento, con ritmo y banda sonora propia.',
+    // Genuinely real client asset — the same boda-real-01 poster frame used
+    // in Hero (Task 1) and the masked-wordmark moment (Task 9).
+    previewImage: '/videos/posters/real-boda-01-full.webp',
     process: [
       { step: 1, title: 'Guion emocional', description: 'Definimos qué momentos deben protagonizar el vídeo.' },
       { step: 2, title: 'Rodaje', description: 'Cámara en mano y fija, sonido ambiente capturado en directo.' },
