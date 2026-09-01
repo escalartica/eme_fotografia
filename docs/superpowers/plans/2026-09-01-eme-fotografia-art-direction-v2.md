@@ -214,6 +214,7 @@ Rework `SobreEmePreview.tsx` (currently the worst-offending broken layout — an
 - [ ] **Step 2: Fix the image containment bug first.** Wrap the `<Image>` in a proper `.imageWrap` (matching the established `position: relative; aspect-ratio: X; overflow: hidden` + `fill` + `object-fit: cover` pattern already used in `SelectedWork.module.css`/`TrabajosFilter.module.css`) instead of the current raw `width={800} height={1200}` with no container — this alone fixes the "half-viewport image with empty space" bug.
 - [ ] **Step 3: Layout.** Two-column on wider viewports (image one side, text the other — your call which side, consider echoing the Hero's asymmetric left-alignment for a repeated visual motif per the brief's "identidad propia" request), stacked on narrow viewports.
 - [ ] **Step 4: Copy.** Write ONE new short statement line (not a wall of text) in the same register as `Manifiesto.tsx`'s existing copy. It must not introduce any new business fact — it's a tone/identity statement, not a claims section (the actual "who we are, confirmed founder, pending team" copy stays exactly as-is on `/sobre-nosotros` itself, already correctly honest per the base plan — this Home preview just needs a punchier teaser line, same content register as what's already there, just tighter).
+- [ ] **Step 4b (optional refinement, found via reference-site research — apply if time/scope allows, skip without blocking the rest of this task if not):** reveal the new statement line via a subtle `filter: blur(6px) → blur(0)` + `opacity: 0 → 1` transition as it scrolls into view (a technique observed on `hollywoodexhibit2026.com`'s intro copy), layered on top of the existing `ScrollReveal` component's translate+fade rather than replacing it — extend `ScrollReveal` with an optional prop (e.g. `blur?: boolean`) rather than forking a new component, so the base `ScrollReveal` behavior used everywhere else in the site is untouched. `filter` is not literally `transform`/`opacity`, so gate it doubly carefully behind `useReducedMotion()` (already true of `ScrollReveal` itself) and confirm it doesn't trigger a layout-affecting repaint (a blurred `filter` is compositor-friendly in modern browsers, same performance class as `opacity`, but verify this doesn't regress Lighthouse Performance if you add it — Task 11 re-checks this).
 - [ ] **Step 5: Verify** `npm test && npm run build`; visually confirm the image is properly contained (no more half-viewport-with-empty-space bug) at desktop and mobile.
 - [ ] **Step 6: Commit**
 
@@ -245,22 +246,63 @@ git commit -m "feat: style CTA section and add small-label type token for metada
 
 ---
 
-### Task 9: One curated advanced scroll moment
+### Task 9: One curated advanced scroll moment — masked-photo wordmark reveal
 
-Per the brief's own "10 excellent > 50 mediocre" instruction, this plan implements exactly ONE additional advanced scroll technique beyond what's already shipped (Hero parallax, ScrollReveal, staggered/mixed grid, filter re-flow animation) — not the brief's entire list (pinned sections, horizontal galleries, clip-path reveals, image displacement, masking, velocity effects). Pick the single highest-impact one: a **pinned horizontal-scroll moment inside the Home's `SelectedWork` section**, where 3–4 featured project images scroll horizontally while the page scrolls vertically past that section (a well-established, tasteful technique — GSAP's `ScrollTrigger` with `pin: true` and a horizontal `xPercent` tween is the standard implementation, no new dependency needed).
+**Correction (2026-09-01, ruling recorded in this plan's ledger before Task 9 was dispatched):** this task originally specced a pinned horizontal-scroll moment inside `SelectedWork`. Superseded by a stronger, more distinctive idea found via a real audit of 6 reference sites the client shared (see ledger for the full research) — `hollywoodexhibit2026.com` uses a technique where a huge wordmark's letterforms are filled with an actual photograph (`background-clip: text`) rather than solid color, as a signature visual moment. This reads as more "identidad propia" (the client's own explicit ask, section 24 of their brief) than a generic horizontal-scroll gallery, since it reuses and reinforces the EME wordmark already established as the site's dominant graphic element in the Hero (Task 1) — and it's pure CSS/GSAP, no new dependency, easier to make genuinely accessible (a solid-color fallback is trivial) than a pinned horizontal-scroll section. Per the client's own "10 excellent > 50 mediocre" instruction, this replaces rather than adds to the horizontal-scroll idea — still exactly one curated technique.
+
+The moment: `Manifiesto.tsx`'s existing large heading ("No contamos bodas. Contamos historias con fecha.") gets a scroll-triggered crossfade from its current solid `--color-ink` text to a version with the SAME real photograph used as the Hero's poster (`public/videos/posters/real-boda-01-full.webp` — a real frame from the client's actual wedding footage, not stock) masked into its letterforms — reinforcing the same real asset as a recurring motif between the Hero and this moment, exactly the kind of repeated visual idea the client's brief asked for under "crea una identidad propia."
 
 **Files:**
-- Modify: `components/sections/SelectedWork.tsx`, `components/sections/SelectedWork.module.css`
+- Modify: `components/sections/Manifiesto.tsx`, `components/sections/Manifiesto.module.css`
+- Test: `components/sections/Manifiesto.test.tsx` (existing — extend)
 
-- [ ] **Step 1:** Read GSAP ScrollTrigger's pinning documentation pattern (`node_modules/gsap/...` or its known API — `pin: true`, `scrub: true`) and this project's existing `Hero.tsx` Task-21 ScrollTrigger usage for the established mock/test pattern (`vi.mock('gsap', ...)`, `vi.mock('gsap/ScrollTrigger', ...)`).
-- [ ] **Step 2:** Implement the pin+horizontal-scroll effect for the featured-work grid specifically (not the whole page), scoped behind `useReducedMotion()` — with reduced motion, the section must render as a normal (non-pinned, vertically-stacked or simple grid) fallback, fully navigable and complete, not a broken half-implemented pinned state.
-- [ ] **Step 3 (TDD):** extend `SelectedWork.test.tsx` to assert the `gsap.to`/`ScrollTrigger` setup is called with `pin: true` when motion is not reduced, and is NOT set up when it is reduced (mirroring Task 21's exact test pattern).
-- [ ] **Step 4: Verify.** `npm test && npm run build`. This is the task most likely to affect Lighthouse Performance — re-run Lighthouse locally (or note in your report that you couldn't and why) and confirm no material regression from the incremental plan's retained ~0.95 score. Manually verify: the pin/horizontal-scroll feels smooth (not janky) on both a fast scroll and a slow scroll; reduced-motion fallback is fully functional; mobile either gets a lighter version or the same reduced-motion-style fallback (pinned horizontal scroll is a poor mobile UX regardless of motion preference — your call, document it, but do not ship a broken/awkward mobile experience for this).
-- [ ] **Step 5: Commit**
+**Accessibility-first design (read before implementing):** the solid-`--color-ink` heading is the ALWAYS-PRESENT base layer — it never disappears, guaranteeing full-contrast readable text regardless of motion preference, image load failure, or browser support for `background-clip: text`. The masked-photo version is a second, absolutely-positioned copy of the identical heading text, layered exactly on top, that fades in via `opacity` (GSAP `ScrollTrigger`, `scrub: true`, animating `opacity` only — NOT `clip-path`, to stay within this project's transform/opacity-only animation constraint) as the section scrolls into view. With `prefers-reduced-motion: reduce`, the masked layer is simply never rendered (or rendered at a fixed `opacity: 0`) — the plain solid-ink heading is the entire experience, which is a complete, correct, accessible fallback, not a degraded one.
+
+- [ ] **Step 1: Write the failing test**
+
+Extend `Manifiesto.test.tsx`: assert the section renders TWO copies of the heading text (the base layer + the masked layer — use a query that can distinguish them, e.g. by a `data-testid` on the masked layer), and assert the masked layer's element has `aria-hidden="true"` (it's a pure visual duplicate of the same text — screen readers must only encounter the heading once, via the base layer, to avoid the text being announced twice).
+
+- [ ] **Step 2: Run it to verify it fails**
+
+Run: `npm test -- components/sections/Manifiesto.test.tsx`
+Expected: FAIL — the masked layer doesn't exist yet.
+
+- [ ] **Step 3: Implement**
+
+`Manifiesto.module.css` additions (illustrative — adjust exact values to what reads well against the real image, this is genuinely visual/design work):
+```css
+.headingWrap { position: relative; }
+.headingBase { /* existing h2 styling stays exactly as-is */ }
+.headingMasked {
+  position: absolute;
+  inset: 0;
+  margin: 0; /* match .headingBase's own margin reset if any */
+  background: url('/videos/posters/real-boda-01-full.webp') center / cover;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  opacity: 0; /* GSAP drives this to 1 on scroll; stays 0 (never rendered) under reduced motion */
+  pointer-events: none;
+}
+```
+In `Manifiesto.tsx`, wrap the heading in `.headingWrap`, keep the real `<h2>` as `.headingBase` (unchanged text, unchanged semantics — this is what screen readers and SEO see), and add a second `aria-hidden="true"` element (a `<span>` or duplicate non-semantic element, NOT a second `<h2>` — only one real heading per section) with the identical text and `.headingMasked` class. In a `useEffect` (client component — this file will need `'use client'` added, check whether that breaks anything about how `Manifiesto` is currently used, e.g. its existing `ScrollReveal` wrapper is already a client component, so this is a client-in-client nesting Next.js supports fine), set up a `gsap.to(maskedRef.current, { opacity: 1, scrollTrigger: { trigger: sectionRef.current, start: 'top 70%', end: 'top 20%', scrub: true } })`, gated behind `useReducedMotion()` exactly like `Hero.tsx`'s Task-21 parallax pattern (read that code again for the exact `gsap.context`/cleanup shape to reuse).
+
+- [ ] **Step 4: Run it to verify it passes**
+
+Run: `npm test -- components/sections/Manifiesto.test.tsx`
+Expected: PASS.
+
+- [ ] **Step 5: Run the full suite and build**
+
+Run: `npm test && npm run build`
+Expected: all pass.
+
+- [ ] **Step 6: Verify.** Start the app, scroll to the Manifiesto section on `/`, confirm the heading crossfades from solid ink to the masked photo as it scrolls into view, and crossfades back out smoothly (or stays, your call on whether it reverses on scroll-up — `scrub: true` will do this naturally, which is probably the right default, just confirm it looks good both directions). Emulate `prefers-reduced-motion: reduce` and confirm the heading is the plain solid-ink version the whole time, fully readable, with no failed-image-load artifact or empty gap (since the masked layer never renders in this case). Check mobile width — confirm the mask still reads correctly on a narrower heading box (the photo might need `background-size`/`background-position` adjustment at a narrower `aspect-ratio` if the multi-line heading's box shape changes meaningfully at mobile widths).
+- [ ] **Step 7: Commit**
 
 ```bash
-git add components/sections/SelectedWork.tsx components/sections/SelectedWork.module.css components/sections/SelectedWork.test.tsx
-git commit -m "feat: add one curated pinned horizontal-scroll moment to featured work"
+git add components/sections/Manifiesto.tsx components/sections/Manifiesto.module.css components/sections/Manifiesto.test.tsx
+git commit -m "feat: add masked-photo wordmark reveal to Manifiesto as the plan's one curated scroll moment"
 ```
 
 ---
