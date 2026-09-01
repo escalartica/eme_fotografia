@@ -25,12 +25,22 @@
 .overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    20deg,
-    rgba(17, 20, 24, 0.72) 0%,
-    rgba(17, 20, 24, 0.32) 32%,
-    rgba(17, 20, 24, 0) 60%
-  );
+  /* Two independent gradients: the diagonal one protects the bottom-left
+     wordmark/eyebrow; by 60% it's fully transparent, so it never reaches
+     the top-right nav (logo + menu toggle, fixed there at every breakpoint
+     since the nav rebuild). mix-blend-mode:difference on the nav elements
+     helps but isn't reliable alone over a moving video background -- a
+     bright/light-toned frame can wash the toggle out. This second, flat
+     top-down gradient gives the nav a constant floor of protection
+     regardless of what's playing underneath. */
+  background:
+    linear-gradient(180deg, rgba(17, 20, 24, 0.45) 0%, rgba(17, 20, 24, 0) 180px),
+    linear-gradient(
+      20deg,
+      rgba(17, 20, 24, 0.72) 0%,
+      rgba(17, 20, 24, 0.32) 32%,
+      rgba(17, 20, 24, 0) 60%
+    );
   pointer-events: none;
 }
 
