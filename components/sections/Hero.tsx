@@ -5,6 +5,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { site } from '@/content/site';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
+import { motion } from '@/lib/motion-tokens';
 import styles from './Hero.module.css';
 
 if (typeof window !== 'undefined') {
@@ -20,14 +21,28 @@ export function Hero() {
   // for lost LCP priority accidentally prioritized the wrong asset).
   preload('/videos/posters/real-boda-01-full.webp', { as: 'image', fetchPriority: 'high' });
   const [showIntro, setShowIntro] = useState(false);
+  // Tracks whether the intro-timer effect below has *finished deciding* the
+  // intro's fate (skipped outright on a repeat visit, skipped under reduced
+  // motion, or played and timed out) — distinct from `showIntro` itself,
+  // which starts `false` on the very first render for every visitor
+  // (including first-time ones, before this effect has had a chance to flip
+  // it to `true`). The wordmark-reveal effect further down needs to tell
+  // "no intro is coming" apart from "intro hasn't been decided yet", since
+  // both look identical as `showIntro === false` on that first render — this
+  // flag is what makes that distinction possible.
+  const [introResolved, setIntroResolved] = useState(false);
   const reducedMotion = useReducedMotion();
   const heroRef = useRef<HTMLElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const wordmarkRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     const alreadyShown = sessionStorage.getItem(INTRO_KEY) === 'true';
-    if (alreadyShown) return;
+    if (alreadyShown) {
+      setIntroResolved(true);
+      return;
+    }
     if (reducedMotion) {
       // No flash-screen under reduced motion — mark it shown and skip straight to content.
       // Also clear any intro state a prior stale run of this effect may have set: on
@@ -37,14 +52,87 @@ export function Hero() {
       // Without this, showIntro would stay stuck `true` with no timer left to clear it.
       setShowIntro(false);
       sessionStorage.setItem(INTRO_KEY, 'true');
+      setIntroResolved(true);
       return;
     }
     setShowIntro(true);
     const timer = setTimeout(() => {
       setShowIntro(false);
       sessionStorage.setItem(INTRO_KEY, 'true');
+      setIntroResolved(true);
     }, 1400);
     return () => clearTimeout(timer);
+  }, [reducedMotion]);
+
+  // Progressive wordmark reveal: once the intro overlay is fully resolved
+  // (either it never showed, or it just finished), stagger the two wordmark
+  // lines in with a GSAP timeline (transform/opacity only). Gating on
+  // `introResolved` (not just mount) means first-time visitors never see the
+  // reveal wasted behind the opaque intro overlay, and `showIntro` in the
+  // dependency array means it re-checks the moment the overlay actually
+  // unmounts. Gated behind `!reducedMotion` like every other motion effect
+  // in this file — under reduced motion the lines simply render in their
+  // final, fully visible state (no `gsap.set` "from" state is ever applied).
+  useEffect(() => {
+    if (reducedMotion || !introResolved || showIntro || !wordmarkRef.current) return;
+    const lines = Array.from(wordmarkRef.current.children) as HTMLElement[];
+    const ctx = gsap.context(() => {
+      gsap.timeline().fromTo(
+        lines,
+        { y: 28, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: motion.duration.base,
+          stagger: 0.12,
+          ease: motion.ease.standard,
+        }
+      );
+    }, wordmarkRef);
+    return () => ctx.revert();
+  }, [reducedMotion, introResolved, showIntro]);
+
+  // Cursor-reactive depth (desktop only, very contained): nudge the video
+  // layer a few px opposite the pointer as it moves within the Hero, on top
+  // of (not instead of) the scroll-driven `yPercent` parallax above — GSAP
+  // composes `x`/`y` and `yPercent` on the same element into one transform,
+  // so both can drive the same node simultaneously without fighting.
+  // `gsap.quickTo` is used instead of `gsap.to` per pointermove because it's
+  // a cheap, pre-built interpolator (no new tween object allocated per
+  // event) and it never touches React state, so there's no re-render cost.
+  // Gated behind `!reducedMotion` AND a real `matchMedia('(hover: hover) and
+  // (pointer: fine)')` check, not just `!reducedMotion` alone: `pointermove`
+  // does fire on touch devices during a drag/scroll gesture, so the hover +
+  // fine-pointer check is what actually excludes touch-only visitors, sparing
+  // them a listener they'd never meaningfully trigger.
+  useEffect(() => {
+    if (reducedMotion || !heroRef.current || !imageRef.current) return;
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+    const hero = heroRef.current;
+    const image = imageRef.current;
+    // Peak-to-peak travel is capped at DEPTH_RANGE px total (i.e. +/- half
+    // that on each axis) — "parallax muy contenido", a few pixels, never a
+    // distracting swim.
+    const DEPTH_RANGE = 12;
+    const xTo = gsap.quickTo(image, 'x', { duration: 0.6, ease: motion.ease.standard });
+    const yTo = gsap.quickTo(image, 'y', { duration: 0.6, ease: motion.ease.standard });
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const rect = hero.getBoundingClientRect();
+      // -0.5..0.5 across each axis, inverted so the video drifts opposite
+      // the cursor (a subtle "looking past the frame" depth cue).
+      const relX = (event.clientX - rect.left) / rect.width - 0.5;
+      const relY = (event.clientY - rect.top) / rect.height - 0.5;
+      xTo(relX * -DEPTH_RANGE);
+      yTo(relY * -DEPTH_RANGE);
+    };
+
+    hero.addEventListener('pointermove', handlePointerMove);
+    return () => {
+      hero.removeEventListener('pointermove', handlePointerMove);
+      gsap.set(image, { x: 0, y: 0 });
+    };
   }, [reducedMotion]);
 
   // Contained parallax on the hero background video: a very subtle
@@ -115,7 +203,7 @@ export function Hero() {
         <p className={styles.eyebrow}>
           Fotografía y vídeo de bodas y eventos en {site.legalCity}, con la mirada de un editorial de moda.
         </p>
-        <h1 className={styles.wordmark}>
+        <h1 ref={wordmarkRef} className={styles.wordmark}>
           <span className={styles.wordmarkLine}>EME</span>{' '}
           <span className={styles.wordmarkLine}>Fotografía {site.legalCity}</span>
         </h1>
