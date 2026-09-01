@@ -18,8 +18,8 @@ describe('Confianza', () => {
     render(<Confianza />);
     act(() => { intersectCallback!([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver); });
     act(() => { vi.advanceTimersByTime(2000); });
-    expect(screen.getByText('2320')).toBeInTheDocument();
-    expect(screen.getByText('1622')).toBeInTheDocument();
+    expect(screen.getByText('2.320')).toBeInTheDocument();
+    expect(screen.getByText('1.622')).toBeInTheDocument();
     vi.useRealTimers();
   });
 
@@ -47,8 +47,8 @@ describe('Confianza', () => {
 
     try {
       render(<Confianza />);
-      expect(screen.getByText('2320')).toBeInTheDocument();
-      expect(screen.getByText('1622')).toBeInTheDocument();
+      expect(screen.getByText('2.320')).toBeInTheDocument();
+      expect(screen.getByText('1.622')).toBeInTheDocument();
     } finally {
       window.matchMedia = originalMatchMedia;
       vi.useRealTimers();
@@ -71,11 +71,11 @@ describe('Confianza — scroll-triggered', () => {
     vi.useFakeTimers();
     render(<Confianza />);
     act(() => { vi.advanceTimersByTime(2000); });
-    expect(screen.queryByText('2320')).not.toBeInTheDocument();
+    expect(screen.queryByText('2.320')).not.toBeInTheDocument();
 
     act(() => { intersectCallback!([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver); });
     act(() => { vi.advanceTimersByTime(2000); });
-    expect(screen.getByText('2320')).toBeInTheDocument();
+    expect(screen.getByText('2.320')).toBeInTheDocument();
     vi.useRealTimers();
   });
 });

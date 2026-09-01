@@ -4,6 +4,14 @@ import { site } from '@/content/site';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import styles from './Confianza.module.css';
 
+// Intl.NumberFormat/toLocaleString depend on the runtime's ICU data, which
+// isn't guaranteed present (Node built without full-icu silently returns
+// the unformatted number instead of throwing) -- a fixed '.' thousands
+// separator matches es-ES and needs no locale data.
+function formatCount(n: number) {
+  return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
 function useCountUp(target: number, active: boolean, reducedMotion: boolean, durationMs = 1500) {
   const [value, setValue] = useState(0);
   useEffect(() => {
@@ -48,11 +56,11 @@ export function Confianza() {
   return (
     <section ref={sectionRef} className={styles.section} aria-label="Confianza de la comunidad">
       <div>
-        <span className={styles.number}>{fb}</span>
+        <span className={styles.number}>{formatCount(fb)}</span>
         <span>me gusta en Facebook</span>
       </div>
       <div>
-        <span className={styles.number}>{ig}</span>
+        <span className={styles.number}>{formatCount(ig)}</span>
         <span>seguidores en Instagram</span>
       </div>
     </section>
