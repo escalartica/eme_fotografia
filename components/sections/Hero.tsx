@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { preload } from 'react-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { site } from '@/content/site';
@@ -13,6 +14,11 @@ if (typeof window !== 'undefined') {
 const INTRO_KEY = 'eme-intro-shown';
 
 export function Hero() {
+  // The video (5.5MB) is not the LCP element -- the poster image is, since
+  // it's what actually paints first. fetchPriority="high" belongs here, not
+  // on the <video>, which was the reviewer-caught inversion (a prior fix
+  // for lost LCP priority accidentally prioritized the wrong asset).
+  preload('/videos/posters/real-boda-01-full.webp', { as: 'image', fetchPriority: 'high' });
   const [showIntro, setShowIntro] = useState(false);
   const reducedMotion = useReducedMotion();
   const heroRef = useRef<HTMLElement>(null);
@@ -97,10 +103,10 @@ export function Hero() {
           muted
           loop
           playsInline
-          preload="auto"
-          // @ts-expect-error -- fetchPriority is valid on <video> in browsers but
-          // not yet in this project's React/DOM type definitions.
-          fetchPriority="high"
+          // Reduced-motion users never call .play() (see the effect above) --
+          // don't make them download 5.5MB of video they'll never see play.
+          // 'metadata' still lets .play() work instantly for everyone else.
+          preload={reducedMotion ? 'none' : 'metadata'}
           aria-label="Vídeo de la boda de Eva y Rafa: preparativos, salida y ceremonia"
         />
       </div>

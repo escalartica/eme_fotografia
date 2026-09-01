@@ -102,9 +102,9 @@ export function TrabajosFilter({ projects }: { projects: Project[] }) {
         ))}
       </div>
       {renderedProjects.length === 0 ? (
-        <p className={styles.empty}>Todavía no hay trabajos en esta categoría — vuelve pronto.</p>
+        <p className={styles.empty} aria-live="polite">Todavía no hay trabajos en esta categoría — vuelve pronto.</p>
       ) : (
-        <ul className={styles.grid} ref={gridRef}>
+        <ul className={styles.grid} ref={gridRef} aria-live="polite">
           {renderedProjects.map((project) => (
             <li key={project.slug} className={styles.card} data-project-card>
               <Link

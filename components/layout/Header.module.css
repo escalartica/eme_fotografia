@@ -33,12 +33,18 @@
   letter-spacing: 0.14em;
   transition: opacity var(--duration-fast) var(--ease-standard);
 }
-.desktopNav a:hover,
-.desktopNav a:focus-visible {
+.desktopNav a:hover {
   opacity: 0.65;
 }
+/* Dimming opacity on :focus-visible (as :hover does) would make the keyboard
+   focus indicator less visible -- the opposite of the point, left as
+   full-opacity instead. currentColor (not the global rule's fixed accent-red)
+   because this nav sits under mix-blend-mode:difference: a fixed color would
+   composite unpredictably against arbitrary backgrounds, same reason the text
+   itself uses currentColor via `color: inherit`. Width matches the global
+   rule's 2px for visual consistency. */
 .desktopNav a:focus-visible {
-  outline: 1px solid currentColor;
+  outline: 2px solid currentColor;
   outline-offset: 4px;
 }
 .menuButton {
@@ -56,7 +62,7 @@
   color: var(--color-paper);
 }
 .menuButton:focus-visible {
-  outline: 1px solid currentColor;
+  outline: 2px solid currentColor;
   outline-offset: 4px;
 }
 

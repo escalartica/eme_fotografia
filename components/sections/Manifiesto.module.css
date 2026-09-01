@@ -17,8 +17,13 @@
      .headingMasked is a plain <span> (not a heading) with no such default —
      without matching it explicitly here, the two overlaid copies render at
      different weights, which shifts glyph widths enough to change where
-     each line wraps and produces visible ghosting between the two layers. */
+     each line wraps and produces visible ghosting between the two layers.
+     Same reasoning for text-wrap: the global `h1,h2,h3 { text-wrap: balance }`
+     rule (styles/reset.css) applies to .headingBase (a real <h2>) but not to
+     .headingMasked (a <span>) unless repeated here explicitly -- without it
+     the two layers balance their line breaks differently and ghost apart. */
   font-weight: 700;
+  text-wrap: balance;
   line-height: 0.98;
   max-width: 20ch;
   margin-inline: auto;
