@@ -3,8 +3,8 @@ import { projects } from './projects';
 import { services } from './services';
 
 describe('projects content', () => {
-  it('has exactly 4 seed projects with unique slugs', () => {
-    expect(projects).toHaveLength(4);
+  it('has exactly 8 seed projects with unique slugs', () => {
+    expect(projects).toHaveLength(8);
     const slugs = projects.map((p) => p.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
   });
@@ -14,7 +14,7 @@ describe('projects content', () => {
     // genuine client photos/footage (provided 2026-08-31 and 2026-09-01,
     // organized by the client into per-couple folders) — every other seed
     // project is still stock/placeholder content.
-    const realSlugs = ['boda-real-01', 'raquel-y-fran', 'andrea-y-jesus'];
+    const realSlugs = ['boda-real-01', 'raquel-y-fran', 'andrea-y-jesus', 'andrea-y-enrique', 'marta-y-alvaro', 'maria-y-francisco-manuel', 'rocio-y-juanje'];
     for (const project of projects) {
       const expectPlaceholder = !realSlugs.includes(project.slug);
       expect(project.cover.isPlaceholderMedia).toBe(expectPlaceholder);

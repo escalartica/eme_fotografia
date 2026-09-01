@@ -11,9 +11,9 @@ vi.mock('next/navigation', () => ({
 }));
 
 describe('/trabajos page', () => {
-  it('lists all 4 seed projects by default', () => {
+  it('lists all 8 seed projects by default', () => {
     render(<Page />);
-    expect(screen.getAllByRole('link', { name: /ver proyecto/i })).toHaveLength(4);
+    expect(screen.getAllByRole('link', { name: /ver proyecto/i })).toHaveLength(8);
   });
 
   it('filters by category on tab click', async () => {

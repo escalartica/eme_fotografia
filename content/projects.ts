@@ -3,6 +3,114 @@ import type { Project } from './types';
 export const projects: Project[] = [
   {
     // Real photos from an actual EME Fotografía wedding shoot (provided by
+    // the client, organized by the client into a folder named "andrea y
+    // enrique"). EXIF capture timestamps consistent across selected files
+    // (2026-03-16). SPELLING NOTE, same class of gap as boda-real-01's
+    // provisional-name comment: the client's own explicitly-confirmed name
+    // list (given earlier for a different set of couples) spells this groom
+    // "Andre y Enrique" (no final "a"); this folder is spelled "andrea y
+    // enrique" (with it). Used the folder's own spelling here rather than
+    // silently picking the other — unconfirmed, flag and correct if the
+    // client clarifies.
+    slug: 'andrea-y-enrique',
+    title: 'Andrea y Enrique',
+    category: 'boda',
+    year: 2026,
+    client: 'Boda privada',
+    location: 'Sevilla',
+    description: 'Una ceremonia bajo arcos andaluces y una fiesta con mucha energía: de la risa nerviosa de los preparativos al abrazo compartido delante de todos.',
+    cover: {
+      type: 'image',
+      src: '/images/trabajos/andrea-y-enrique/cover.webp',
+      alt: 'Los novios riendo juntos bajo un arco de piedra durante la ceremonia',
+      isPlaceholderMedia: false,
+    },
+    gallery: [
+      { type: 'image', src: '/images/trabajos/andrea-y-enrique/preparativos-novio.webp', alt: 'El novio riendo junto a un amigo mientras se viste', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/andrea-y-enrique/preparativos-novia.webp', alt: 'La novia con su ramo bajo una lámpara de araña durante los preparativos', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/andrea-y-enrique/fiesta.webp', alt: 'Invitados celebrando y agitando servilletas en la fiesta', isPlaceholderMedia: false },
+    ],
+  },
+  {
+    // Real photos from an actual EME Fotografía wedding shoot (provided by
+    // the client, organized into a folder named "marta y alvaro" — matches
+    // exactly one of the couple names the client explicitly confirmed
+    // earlier). EXIF capture timestamp 2026-06-22; the bouquet ribbon in
+    // one selected photo is embroidered with the date "20.06.2026" and the
+    // initials "M&A", independently corroborating both the couple and the
+    // wedding date.
+    slug: 'marta-y-alvaro',
+    title: 'Marta y Álvaro',
+    category: 'boda',
+    year: 2026,
+    client: 'Boda privada',
+    location: 'Sevilla',
+    description: 'Preparativos frente al espejo, una ceremonia al aire libre con los más pequeños de la familia como protagonistas, y un ramo con el día bordado en la cinta.',
+    cover: {
+      type: 'image',
+      src: '/images/trabajos/marta-y-alvaro/cover.webp',
+      alt: 'La novia sonriendo con su ramo de claveles y una cinta bordada con la fecha de la boda',
+      isPlaceholderMedia: false,
+    },
+    gallery: [
+      { type: 'image', src: '/images/trabajos/marta-y-alvaro/preparativos-novio.webp', alt: 'El novio arreglándose frente al espejo antes de la ceremonia', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/marta-y-alvaro/ceremonia.webp', alt: 'Los novios y los pajes durante la ceremonia al aire libre', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/marta-y-alvaro/detalle.webp', alt: 'Detalle de la corbata y los gemelos del novio', isPlaceholderMedia: false },
+    ],
+  },
+  {
+    // Real photos from an actual EME Fotografía wedding shoot (provided by
+    // the client, organized into a folder named "maria y francisco
+    // manuel" — a couple not previously named/confirmed elsewhere in this
+    // project's records, no discrepancy to flag). EXIF capture timestamp
+    // 2026-07-27.
+    slug: 'maria-y-francisco-manuel',
+    title: 'María y Francisco Manuel',
+    category: 'boda',
+    year: 2026,
+    client: 'Boda privada',
+    location: 'Sevilla',
+    description: 'Una novia con diadema de estrellas, un coche clásico rojo a la puerta y un abrazo con la cola del vestido extendida sobre el suelo.',
+    cover: {
+      type: 'image',
+      src: '/images/trabajos/maria-y-francisco-manuel/cover.webp',
+      alt: 'Retrato de la novia con diadema y ramo de rosas blancas y eucalipto',
+      isPlaceholderMedia: false,
+    },
+    gallery: [
+      { type: 'image', src: '/images/trabajos/maria-y-francisco-manuel/llegada.webp', alt: 'La novia llegando en un coche clásico rojo junto a su padre', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/maria-y-francisco-manuel/pareja.webp', alt: 'Los novios abrazados con la cola del vestido extendida sobre el suelo', isPlaceholderMedia: false },
+    ],
+  },
+  {
+    // Real photos from an actual EME Fotografía wedding shoot (provided by
+    // the client, organized into a folder named "rocío y juanje" — matches
+    // exactly one of the couple names the client explicitly confirmed
+    // earlier). EXIF capture timestamps mostly 2026-05-05, one selected
+    // file (the rings detail) dated 2026-06-02 -- only the year is stated
+    // in this project's data model, so this day-level discrepancy doesn't
+    // affect anything recorded here.
+    slug: 'rocio-y-juanje',
+    title: 'Rocío y Juanje',
+    category: 'boda',
+    year: 2026,
+    client: 'Boda privada',
+    location: 'Sevilla',
+    description: 'De un anillo con guiño personal a la novia esperando junto a un coche clásico, hasta el novio levantado en volandas por sus amigos en la fiesta.',
+    cover: {
+      type: 'image',
+      src: '/images/trabajos/rocio-y-juanje/cover.webp',
+      alt: 'Retrato de la novia con tiara y ramo de rosas blancas sobre suelo de damero',
+      isPlaceholderMedia: false,
+    },
+    gallery: [
+      { type: 'image', src: '/images/trabajos/rocio-y-juanje/detalle.webp', alt: 'El novio mostrando un anillo con un guiño personal', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/rocio-y-juanje/llegada.webp', alt: 'El novio esperando junto a un coche clásico mientras llega la novia', isPlaceholderMedia: false },
+      { type: 'image', src: '/images/trabajos/rocio-y-juanje/fiesta.webp', alt: 'El novio levantado en volandas por sus amigos durante la fiesta', isPlaceholderMedia: false },
+    ],
+  },
+  {
+    // Real photos from an actual EME Fotografía wedding shoot (provided by
     // the client 2026-09-01, organized by the client into a folder named
     // "raquel y fran"). EXIF capture timestamps on the source files are
     // consistent across all of them (2026-06-16, same morning) — a real,
