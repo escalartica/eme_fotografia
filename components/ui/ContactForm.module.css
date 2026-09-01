@@ -1,4 +1,69 @@
-.form { display: flex; flex-direction: column; gap: var(--space-2); max-width: 40rem; }
+.form { display: flex; flex-direction: column; gap: var(--space-3); max-width: 40rem; }
+
+.progress {
+  height: 2px;
+  background: var(--color-muted);
+  opacity: 0.3;
+}
+.progressBar {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width var(--duration-base) var(--ease-standard);
+}
+@media (prefers-reduced-motion: reduce) {
+  .progressBar { transition: none; }
+}
+
+.step {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+/* [hidden] and .step both have class-level specificity (0-1-0), so without
+   this, source order alone decides the winner -- and this stylesheet's own
+   .step{display:flex} rule, loaded after the UA stylesheet, would beat the
+   native [hidden]{display:none} default, showing every step at once. Found
+   live in a real browser (jsdom's test-time CSS cascade didn't reproduce
+   this — a reminder that visibility bugs like this need a real render, not
+   just a passing test). .step[hidden] has higher specificity (0-2-0) than
+   either rule alone, so it wins regardless of source order. */
+.step[hidden] {
+  display: none;
+}
+.question {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  padding: 0;
+  margin-block-end: var(--space-1);
+}
+.fieldLabel {
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-muted);
+}
+
+.controls {
+  display: flex;
+  gap: var(--space-2);
+}
+/* Specificity: .form button below is a compound selector (0-2-0), higher
+   than .backButton alone (0-1-0) -- .form .backButton matches it so this
+   genuinely overrides rather than losing to source order (same class of
+   bug as .step[hidden] above, found the same way: a real browser check,
+   not the passing test suite, caught the solid-red "Atrás" button). */
+.form .backButton {
+  background: none;
+  color: var(--color-ink);
+  border: 1px solid var(--color-muted);
+}
+.form .backButton:hover, .form .backButton:focus-visible {
+  opacity: 0.65;
+}
+
 .form input, .form select, .form textarea {
   border: 1px solid var(--color-muted);
   background: var(--color-paper);
