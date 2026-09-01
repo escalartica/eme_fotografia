@@ -4,12 +4,59 @@
   padding: var(--space-5) var(--space-3);
   text-align: center;
 }
-.section h2 {
+
+.headingWrap {
+  position: relative;
+}
+
+.headingBase,
+.headingMasked {
   font-family: var(--font-serif);
   font-size: var(--type-h2);
+  /* Explicit: h2 gets `bold` from the browser's UA stylesheet, but
+     .headingMasked is a plain <span> (not a heading) with no such default —
+     without matching it explicitly here, the two overlaid copies render at
+     different weights, which shifts glyph widths enough to change where
+     each line wraps and produces visible ghosting between the two layers. */
+  font-weight: 700;
   line-height: 0.98;
-  margin-block-end: var(--space-3);
   max-width: 20ch;
   margin-inline: auto;
 }
+
+.headingBase {
+  margin-block-end: var(--space-3);
+}
+
+/* The masked-photo duplicate: identical text, positioned exactly over the
+   base heading, with the same real wedding-footage poster used in the Hero
+   filled into its letterforms via `background-clip: text`. Only `opacity`
+   is animated (GSAP, scrub: true, on scroll) — background-clip/position/size
+   are static so the mask itself never moves, just fades in over the base
+   layer. Under prefers-reduced-motion, no ScrollTrigger is created, so this
+   stays at its default opacity: 0 (never visible) and the solid-ink
+   .headingBase is the entire, fully-readable experience. */
+.headingMasked {
+  position: absolute;
+  inset: 0;
+  margin-block-end: 0;
+  background: url('/videos/posters/real-boda-01-full.webp') center 35% / cover;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
 .section p { color: var(--color-muted); }
+
+@media (max-width: 40rem) {
+  .headingMasked {
+    /* The heading wraps to more lines at narrow widths, changing the box's
+       aspect ratio — recenter and zoom the poster so a recognizable part of
+       the frame (not just sky/background) still lands inside the letterforms. */
+    background-position: center 30%;
+    background-size: 160% auto;
+  }
+}
