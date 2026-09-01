@@ -181,6 +181,9 @@ export const projects: Project[] = [
       poster: '/videos/posters/real-boda-01.webp',
       alt: 'Vista previa del vídeo de boda de Eva y Rafa: preparativos y salida de la novia',
       isPlaceholderMedia: false,
+      // Verified via `ffprobe -select_streams v:0 -show_entries stream=width,height`.
+      width: 1280,
+      height: 720,
     },
     gallery: [
       {
@@ -189,6 +192,8 @@ export const projects: Project[] = [
         poster: '/videos/posters/real-boda-01-full.webp',
         alt: 'Vídeo de la boda de Eva y Rafa: preparativos, salida y ceremonia',
         isPlaceholderMedia: false,
+        width: 1280,
+        height: 720,
       },
       {
         type: 'video',
@@ -196,6 +201,8 @@ export const projects: Project[] = [
         poster: '/videos/posters/real-boda-01-aerial.webp',
         alt: 'Vista aérea de la boda de Eva y Rafa: llegada y ceremonia en la hacienda',
         isPlaceholderMedia: false,
+        width: 1280,
+        height: 720,
       },
       { type: 'image', src: '/images/trabajos/boda-real-01/real-boda-01-maquillaje.webp', alt: 'Maquillaje de la novia antes de la ceremonia', isPlaceholderMedia: false },
       { type: 'image', src: '/images/trabajos/boda-real-01/real-boda-01-anillos.webp', alt: 'Intercambio de anillos durante la ceremonia', isPlaceholderMedia: false },

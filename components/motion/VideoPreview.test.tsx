@@ -20,8 +20,23 @@ beforeEach(() => {
 });
 
 const media = { type: 'video' as const, src: '/videos/previews/x.mp4', poster: '/videos/posters/x.webp', alt: 'Vista previa', isPlaceholderMedia: true };
+const mediaWithDimensions = { ...media, width: 1280, height: 720 };
 
 describe('VideoPreview', () => {
+  it('reserves the real aspect ratio via --ar when the media has real dimensions (C3, no layout shift)', () => {
+    (useReducedMotion as any).mockReturnValue(false);
+    const { container } = render(<VideoPreview media={mediaWithDimensions} onOpenFull={() => {}} />);
+    const wrapper = container.firstElementChild as HTMLElement;
+    expect(wrapper.style.getPropertyValue('--ar')).toBe('1280 / 720');
+  });
+
+  it('falls back to no inline --ar (CSS default takes over) when the media has no measured dimensions', () => {
+    (useReducedMotion as any).mockReturnValue(false);
+    const { container } = render(<VideoPreview media={media} onOpenFull={() => {}} />);
+    const wrapper = container.firstElementChild as HTMLElement;
+    expect(wrapper.style.getPropertyValue('--ar')).toBe('');
+  });
+
   it('plays when it enters the viewport', () => {
     (useReducedMotion as any).mockReturnValue(false);
     render(<VideoPreview media={media} onOpenFull={() => {}} />);

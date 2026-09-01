@@ -41,6 +41,18 @@ export interface ProjectMedia {
   alt: string;
   isPlaceholderMedia: boolean;
   sourceCredit?: string;
+  /**
+   * Real intrinsic dimensions in px, from the source file — never guessed.
+   * Optional: `next/image`'s own `width`/`height` props already reserve
+   * correct space for images (see how callers already pass those from
+   * this same `src`), so this pair matters specifically for `<video>`
+   * elements, which have no equivalent built-in CLS protection — a video
+   * rendered without a reserved box shifts layout once its own metadata
+   * loads. Absent means "not yet measured", not "no aspect ratio" —
+   * callers fall back to a fixed ratio rather than assuming square/16:9.
+   */
+  width?: number;
+  height?: number;
 }
 
 export interface Project {
