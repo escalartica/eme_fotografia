@@ -15,20 +15,34 @@ beforeEach(() => {
 });
 
 describe('Header', () => {
-  it('renders the brand name and primary nav links', () => {
+  it('renders the brand and the single menu toggle — no persistent nav-link row, at any width', () => {
     render(<Header />);
     expect(screen.getByRole('img', { name: 'EME Fotografía Sevilla' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Trabajos' })).toHaveAttribute('href', '/trabajos');
-    expect(screen.getByRole('link', { name: 'Contacto' })).toHaveAttribute('href', '/contacto');
+    expect(screen.getByRole('button', { name: 'Abrir menú' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Trabajos' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Contacto' })).not.toBeInTheDocument();
   });
 });
 
-describe('Header — active route', () => {
-  it('marks the current route with aria-current', () => {
+describe('Header — current-section label', () => {
+  it('shows the label for the current route', () => {
     (usePathname as any).mockReturnValue('/servicios');
     render(<Header />);
-    expect(screen.getByRole('link', { name: 'Servicios' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: 'Trabajos' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByText('Servicios')).toBeInTheDocument();
+  });
+
+  it('shows the section label on nested routes below a section (e.g. a project detail page)', () => {
+    (usePathname as any).mockReturnValue('/trabajos/boda-real-01');
+    render(<Header />);
+    expect(screen.getByText('Trabajos')).toBeInTheDocument();
+  });
+
+  it('omits the label on the home route', () => {
+    render(<Header />);
+    expect(screen.queryByText('Trabajos')).not.toBeInTheDocument();
+    expect(screen.queryByText('Servicios')).not.toBeInTheDocument();
+    expect(screen.queryByText('Sobre nosotros')).not.toBeInTheDocument();
+    expect(screen.queryByText('Contacto')).not.toBeInTheDocument();
   });
 });
 

@@ -26,6 +26,16 @@ export function Header() {
   const pathname = usePathname();
   const reducedMotion = useReducedMotion();
 
+  // Current-section indicator: a single label, not a link list — matches on
+  // the route itself or any nested path beneath it (e.g. a project detail
+  // page at /trabajos/boda-real-01 still reads "Trabajos"). Home has no
+  // entry in LINKS, so it correctly resolves to no label. usePathname() can
+  // return null outside a router context (e.g. RootLayout's own test, which
+  // renders without mocking next/navigation) — guard against that.
+  const sectionLabel = pathname
+    ? LINKS.find((link) => pathname === link.href || pathname.startsWith(`${link.href}/`))?.label
+    : undefined;
+
   useEffect(() => {
     // Never hide the header while the mobile menu is open — resetting here
     // and not attaching a scroll listener below covers both "already open"
@@ -80,25 +90,17 @@ export function Header() {
       <Link href="/" className={styles.brand}>
         <Image src="/images/logo/eme-logo.png" alt={site.brandName} width={168} height={79} priority className={styles.logo} />
       </Link>
-      <nav className={styles.desktopNav} aria-label="Navegación principal">
-        {LINKS.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            aria-current={pathname === link.href ? 'page' : undefined}
-          >
-            {link.label}
-          </Link>
-        ))}
-      </nav>
-      <button
-        className={styles.menuButton}
-        aria-expanded={menuOpen}
-        aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
-        onClick={() => setMenuOpen((v) => !v)}
-      >
-        {menuOpen ? 'Cerrar' : 'Menú'}
-      </button>
+      <div className={styles.controls}>
+        {sectionLabel && <span className={styles.sectionLabel}>{sectionLabel}</span>}
+        <button
+          className={styles.menuButton}
+          aria-expanded={menuOpen}
+          aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          {menuOpen ? 'Cerrar' : 'Menú'}
+        </button>
+      </div>
       <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
     </header>
   );

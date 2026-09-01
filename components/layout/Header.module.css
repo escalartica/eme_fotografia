@@ -17,35 +17,21 @@
 }
 .brand { display: inline-flex; }
 .logo { height: 2.25rem; width: auto; }
-.desktopNav {
-  display: none;
+.controls {
+  display: flex;
   align-items: center;
   gap: var(--space-3);
-  mix-blend-mode: difference;
-  color: var(--color-paper);
 }
-.desktopNav a {
-  text-decoration: none;
-  color: inherit;
+/* Current-section indicator: replaces the old persistent link row with a
+   single "you are here" label. Same mix-blend-mode treatment as .menuButton
+   since both sit over arbitrary hero/photo content at every breakpoint. */
+.sectionLabel {
   font-family: var(--font-sans);
-  font-size: clamp(0.6875rem, 0.65rem + 0.15vw, 0.8125rem);
+  font-size: var(--type-label);
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  transition: opacity var(--duration-fast) var(--ease-standard);
-}
-.desktopNav a:hover {
-  opacity: 0.65;
-}
-/* Dimming opacity on :focus-visible (as :hover does) would make the keyboard
-   focus indicator less visible -- the opposite of the point, left as
-   full-opacity instead. currentColor (not the global rule's fixed accent-red)
-   because this nav sits under mix-blend-mode:difference: a fixed color would
-   composite unpredictably against arbitrary backgrounds, same reason the text
-   itself uses currentColor via `color: inherit`. Width matches the global
-   rule's 2px for visual consistency. */
-.desktopNav a:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 4px;
+  mix-blend-mode: difference;
+  color: var(--color-paper);
 }
 .menuButton {
   position: relative;
@@ -64,15 +50,4 @@
 .menuButton:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 4px;
-}
-
-@media (min-width: 768px) {
-  .desktopNav { display: flex; }
-  .menuButton { display: none; }
-}
-
-.desktopNav a[aria-current="page"] {
-  text-decoration: underline;
-  text-decoration-color: var(--color-accent);
-  text-underline-offset: 0.3em;
 }
