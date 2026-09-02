@@ -18,6 +18,12 @@ describe('Testimonios', () => {
     expect(screen.getByRole('heading', { name: /lo que dicen de nosotros/i })).toBeInTheDocument();
   });
 
+  it('shows the real Bodas.net Wedding Awards 2025 trust badge', () => {
+    render(<Testimonios />);
+    const badge = screen.getByAltText(/bodas\.net wedding awards 2025/i);
+    expect(badge).toHaveAttribute('src', expect.stringContaining(encodeURIComponent('/images/trust/bodas-net-wedding-awards-2025.webp')));
+  });
+
   it('keeps all 4 real testimonials reachable in the DOM, not silently dropped to 1', () => {
     render(<Testimonios />);
     for (const t of testimonials) {

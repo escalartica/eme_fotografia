@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { testimonials } from '@/content/testimonials';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import styles from './Testimonios.module.css';
@@ -91,6 +92,21 @@ export function Testimonios() {
           </button>
         )}
       </div>
+      {/* Real trust badge: a genuine Bodas.net Wedding Awards 2025
+          certificate (5 stars), frame-extracted from a video the client
+          supplied and cropped to remove pillarboxing -- not a mockup or a
+          generic stock "verified" graphic. Small, real intrinsic
+          dimensions (no next/image `fill`, this isn't a full-bleed
+          moment), sitting quietly under the quote controls rather than
+          competing with them for attention. */}
+      <Image
+        src="/images/trust/bodas-net-wedding-awards-2025.webp"
+        alt="Distintivo Bodas.net Wedding Awards 2025: EME Fotografía Sevilla, 5 estrellas"
+        width={900}
+        height={696}
+        sizes="(max-width: 700px) 60vw, 220px"
+        className={styles.trustBadge}
+      />
     </section>
   );
 }

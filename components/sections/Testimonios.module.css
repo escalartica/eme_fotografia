@@ -1,4 +1,14 @@
 .section { padding: var(--space-5) var(--space-3); max-width: 48rem; margin-inline: auto; }
+
+/* Deliberately NOT given --photo-grade -- that token exists for real
+   photography, and this is an official third-party certificate graphic;
+   it should render exactly as issued, not stylized. */
+.trustBadge {
+  display: block;
+  width: 140px;
+  height: auto;
+  margin-block-start: var(--space-4);
+}
 .section h2 { font-family: var(--font-serif); font-size: var(--type-h3); margin-block-end: var(--space-4); }
 
 .stage { position: relative; }
