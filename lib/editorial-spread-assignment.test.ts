@@ -51,6 +51,11 @@ describe('buildProjectSpreads', () => {
     expect(videoSpread!.images[0].src).toBe('/videos/previews/real-boda-01-preview.mp4');
   });
 
+  it('assigns panoramic to at least one real photo, not only the video cover (final review, finding I1)', () => {
+    const panoramicPhotoSpreads = spreads.filter((s) => s.variant === 'panoramic' && s.images[0].type === 'image');
+    expect(panoramicPhotoSpreads.length).toBeGreaterThan(0);
+  });
+
   it('picks a secondary image from the gallery, with different src from the primary, for two-image variants', () => {
     for (const s of spreads) {
       if (s.images.length === 2) {

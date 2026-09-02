@@ -22,8 +22,15 @@ export interface ProjectSpread {
  *   - ratio <= 0.85 (portrait, tall)   -> best fit is `full-bleed`, whose
  *     hero image is sized by height, not stretched -- a strong vertical
  *     portrait reads best filling that tall frame.
- *   - ratio >= 1.6  (wide landscape)   -> best fit is `panoramic`, the one
- *     variant with a deliberate letterbox crop for an already-wide source.
+ *   - ratio >= 1.5  (wide landscape, 3:2 or wider) -> best fit is
+ *     `panoramic`, the one variant with a deliberate letterbox crop for an
+ *     already-wide source. 1.5 (not a stricter widescreen-only cutoff) is
+ *     deliberate: this project's real photo set tops out at exactly 3:2
+ *     (1600x1066) — a stricter threshold would make `panoramic` reachable
+ *     only by the one video cover in the whole catalog (final whole-branch
+ *     review, finding I1: verified live that the stricter 1.6 cutoff left
+ *     `ScrollParallax`, panoramic's own scroll effect, rendering nowhere on
+ *     the real site).
  *   - otherwise (a "normal" landscape/near-square cover) -> neither a tall
  *     hero nor a wide panorama reads right; shown as a pair instead
  *     (`overlap-pair` preferred for the more dramatic offset composition,
@@ -81,7 +88,7 @@ function candidateVariants(project: Project): EditorialSpreadVariant[] {
   if (ratio <= 0.85) {
     return dedupe(['full-bleed', ...twoImage, 'panoramic']);
   }
-  if (ratio >= 1.6) {
+  if (ratio >= 1.5) {
     return dedupe(['panoramic', ...twoImage, 'full-bleed']);
   }
   return dedupe([...twoImage, 'full-bleed', 'panoramic']);
