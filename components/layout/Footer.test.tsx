@@ -43,4 +43,26 @@ describe('Footer', () => {
     const emailLink = screen.getByRole('link', { name: /info@emefotografiasevilla.es/i });
     expect(emailLink).not.toHaveAttribute('data-cursor');
   });
+
+  it('renders the real Facebook and Instagram community numbers, thousands-separator formatted, migrated from the retired Confianza component', () => {
+    // Real numbers from content/site.ts (facebookLikes: 2320, instagramFollowers: 1622),
+    // formatted with the same '.' thousands-separator approach Confianza used
+    // (not Intl.NumberFormat/toLocaleString, which silently no-ops on ICU-less runtimes).
+    process.env.NEXT_PUBLIC_SHOW_PLACEHOLDER_NOTICE = 'false';
+    render(<Footer />);
+    expect(screen.getByText(/2\.320/)).toBeInTheDocument();
+    expect(screen.getByText(/me gusta en Facebook/i)).toBeInTheDocument();
+    expect(screen.getByText(/1\.622/)).toBeInTheDocument();
+    expect(screen.getByText(/seguidores en Instagram/i)).toBeInTheDocument();
+  });
+
+  it('renders the migrated numbers as a secondary detail line, not a headline stat', () => {
+    // Guards against a regression that promotes these numbers back into
+    // prominent styling (e.g. the retired Confianza's --type-h2 treatment)
+    // — the brief is explicit these must read as small/secondary in the Footer.
+    process.env.NEXT_PUBLIC_SHOW_PLACEHOLDER_NOTICE = 'false';
+    render(<Footer />);
+    const stats = screen.getByText(/2\.320 me gusta en Facebook/i);
+    expect(stats.className).toMatch(/stats/i);
+  });
 });
