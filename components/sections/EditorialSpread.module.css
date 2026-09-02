@@ -72,14 +72,25 @@
    binding constraint in the normal case. */
 .fullBleedImagePortrait {
   display: block;
-  width: min(52vw, 640px);
-  max-width: 100%;
+  /* Both axes `auto`, both bounded by `max-` (not a fixed `width`) --
+     real distortion bug found live (user report: faces rendering
+     stretched/wide after a resize): an explicit `width` pinned the
+     rendered width even when `max-height` clamped below what that width's
+     real aspect ratio implied, squashing the image vertically instead of
+     shrinking proportionally. With both dimensions `auto` + `max-`, the
+     browser picks whichever bound is more restrictive and scales both
+     axes together from the image's own real ratio -- this is the exact
+     "scale to fit within two constraints, never distort" recipe
+     `.fullBleedImage` (the landscape sibling) already uses correctly one
+     axis at a time; this is the same idea with both axes bounded. */
+  width: auto;
   height: auto;
+  max-width: min(52vw, 640px);
   max-height: 92vh;
 }
 @media (max-width: 700px) {
   .fullBleedImagePortrait {
-    width: min(78vw, 480px);
+    max-width: min(78vw, 480px);
   }
 }
 /* flex-grow was 1 (unbounded) -- on a very wide viewport (confirmed live
