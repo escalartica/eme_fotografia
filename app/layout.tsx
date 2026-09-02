@@ -14,6 +14,12 @@ const fraunces = Fraunces({
   subsets: ['latin'],
   variable: '--font-serif-loaded',
   display: 'swap',
+  // Real italic cut, not the browser's synthesized oblique-slant fallback
+  // -- Fraunces' actual italic has genuinely different letterforms (see
+  // bellephoto.com.au research: mixed-style headlines, one word in italic
+  // for emphasis, are a real distinctive editorial device worth adopting
+  // as a generic technique, not that site's brand identity).
+  style: ['normal', 'italic'],
 });
 
 const generalSans = localFont({

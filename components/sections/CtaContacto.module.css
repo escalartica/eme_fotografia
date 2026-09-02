@@ -31,6 +31,13 @@
   margin: 0;
   max-width: 14ch;
 }
+/* <em>'s own UA-default italic is enough on its own (real italic cut,
+   see app/layout.tsx's font config, not a synthesized slant) -- this
+   class exists so the intent is explicit in the markup/styles rather
+   than relying on the browser default silently doing the right thing. */
+.emphasis {
+  font-style: italic;
+}
 
 .section p {
   color: var(--color-muted);
