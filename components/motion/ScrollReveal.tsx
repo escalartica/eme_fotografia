@@ -14,6 +14,7 @@ export function ScrollReveal({
   className,
   blur,
   delay = 0,
+  clipReveal,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -39,6 +40,20 @@ export function ScrollReveal({
    * staggered). Defaults to 0 — no behavior change for existing callers.
    */
   delay?: number;
+  /**
+   * "Image reveal" / clip-path wipe (audit finding: explicitly requested,
+   * missing site-wide) — a curtain-style reveal from a closed
+   * `clip-path: inset(0 0 100% 0)` (fully hidden, clipped from the bottom
+   * edge up) to fully open, in place of the base reveal's `y: 40 -> 0`
+   * translate. Mutually exclusive with the base translate (using both
+   * reads as the image sliding AND being wiped at once, fighting each
+   * other) — opacity and the optional `blur` still apply the same as the
+   * base reveal. `clip-path` is a third narrow exception to this
+   * codebase's "animate only transform/opacity" rule, alongside `blur`'s
+   * existing one: both are GPU-composited, non-layout-affecting
+   * properties, not arbitrary reflow-triggering ones.
+   */
+  clipReveal?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
@@ -46,10 +61,14 @@ export function ScrollReveal({
   useEffect(() => {
     if (reducedMotion || !ref.current) return;
     const ctx = gsap.context(() => {
-      gsap.set(ref.current, { opacity: 0, y: 40, ...(blur ? { filter: 'blur(6px)' } : {}) });
+      gsap.set(ref.current, {
+        opacity: 0,
+        ...(clipReveal ? { clipPath: 'inset(0 0 100% 0)' } : { y: 40 }),
+        ...(blur ? { filter: 'blur(6px)' } : {}),
+      });
       gsap.to(ref.current, {
         opacity: 1,
-        y: 0,
+        ...(clipReveal ? { clipPath: 'inset(0 0 0% 0)' } : { y: 0 }),
         ...(blur ? { filter: 'blur(0px)' } : {}),
         duration: motion.duration.slow,
         delay,
@@ -58,7 +77,7 @@ export function ScrollReveal({
       });
     }, ref);
     return () => ctx.revert();
-  }, [reducedMotion, blur, delay]);
+  }, [reducedMotion, blur, delay, clipReveal]);
 
   return <div ref={ref} className={className}>{children}</div>;
 }

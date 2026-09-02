@@ -64,4 +64,20 @@ describe('ScrollReveal', () => {
     expect(gsapSet).not.toHaveBeenCalled();
     expect(gsapTo).not.toHaveBeenCalled();
   });
+
+  it('uses a clip-path wipe instead of the base y-translate when clipReveal is true', () => {
+    (useReducedMotion as any).mockReturnValue(false);
+    render(<ScrollReveal clipReveal><p>Contenido</p></ScrollReveal>);
+    expect(gsapSet.mock.calls[0][1]).toMatchObject({ opacity: 0, clipPath: 'inset(0 0 100% 0)' });
+    expect(gsapSet.mock.calls[0][1]).not.toHaveProperty('y');
+    expect(gsapTo.mock.calls[0][1]).toMatchObject({ opacity: 1, clipPath: 'inset(0 0 0% 0)' });
+    expect(gsapTo.mock.calls[0][1]).not.toHaveProperty('y');
+  });
+
+  it('uses the base y-translate, not clip-path, when clipReveal is not set', () => {
+    (useReducedMotion as any).mockReturnValue(false);
+    render(<ScrollReveal><p>Contenido</p></ScrollReveal>);
+    expect(gsapSet.mock.calls[0][1]).toMatchObject({ opacity: 0, y: 40 });
+    expect(gsapSet.mock.calls[0][1]).not.toHaveProperty('clipPath');
+  });
 });

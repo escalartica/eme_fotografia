@@ -108,7 +108,7 @@ export function EditorialSpread({
   }
 
   return (
-    <ScrollReveal className={className} delay={delay}>
+    <ScrollReveal className={className} delay={delay} clipReveal>
       {link}
     </ScrollReveal>
   );
