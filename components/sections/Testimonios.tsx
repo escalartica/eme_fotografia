@@ -24,15 +24,23 @@ const AUTO_ADVANCE_MS = 6000;
 // single testimonial losing the other 3 to interaction.
 export function Testimonios() {
   const [activeIndex, setActiveIndex] = useState(0);
+  // WCAG 2.2.2 (Pause, Stop, Hide, Level A) requires a mechanism to pause
+  // auto-updating content that starts automatically and lasts more than 5s
+  // -- reduced-motion is a real, valuable accommodation but is a different
+  // criterion for a different user population, not a substitute for this
+  // one (final whole-branch review, finding I3). The prev/next buttons
+  // don't satisfy it either: they only move `activeIndex`, which restarts
+  // the timer via this effect's own dependency rather than stopping it.
+  const [isPaused, setIsPaused] = useState(false);
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    if (reducedMotion) return;
+    if (reducedMotion || isPaused) return;
     const id = setTimeout(() => {
       setActiveIndex((i) => (i + 1) % testimonials.length);
     }, AUTO_ADVANCE_MS);
     return () => clearTimeout(id);
-  }, [reducedMotion, activeIndex]);
+  }, [reducedMotion, isPaused, activeIndex]);
 
   function goPrev() {
     setActiveIndex((i) => (i - 1 + testimonials.length) % testimonials.length);
@@ -69,6 +77,19 @@ export function Testimonios() {
         <button type="button" onClick={goNext} aria-label="Testimonio siguiente">
           Siguiente
         </button>
+        {/* Only rendered when auto-advance can actually run -- under
+            reduced motion there is nothing to pause, and the manual
+            controls above are already the entire experience. */}
+        {!reducedMotion && (
+          <button
+            type="button"
+            onClick={() => setIsPaused((p) => !p)}
+            aria-label={isPaused ? 'Reanudar testimonios' : 'Pausar testimonios'}
+            aria-pressed={isPaused}
+          >
+            {isPaused ? 'Reanudar' : 'Pausar'}
+          </button>
+        )}
       </div>
     </section>
   );

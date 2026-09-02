@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Testimonios } from './Testimonios';
 import { testimonials } from '@/content/testimonials';
@@ -91,5 +91,31 @@ describe('Testimonios', () => {
     const next = screen.getByRole('button', { name: /siguiente/i });
     await user.click(next);
     expect(screen.getByText(testimonials[1].quote).closest('blockquote')).toHaveAttribute('aria-current', 'true');
+  });
+
+  it('stops auto-advancing once paused (WCAG 2.2.2) and resumes on a second click', () => {
+    vi.useFakeTimers();
+    render(<Testimonios />);
+    fireEvent.click(screen.getByRole('button', { name: /pausar testimonios/i }));
+    const resumeButton = screen.getByRole('button', { name: /reanudar testimonios/i });
+    expect(resumeButton).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(30000);
+    });
+    // Still on the first testimonial after 30s paused -- prev/next merely
+    // restarting the timer would not catch a regression here.
+    expect(screen.getByText(testimonials[0].quote).closest('blockquote')).toHaveAttribute('aria-current', 'true');
+
+    fireEvent.click(resumeButton);
+    act(() => {
+      vi.advanceTimersByTime(7000);
+    });
+    expect(screen.getByText(testimonials[1].quote).closest('blockquote')).toHaveAttribute('aria-current', 'true');
+  });
+
+  it('has no pause control under prefers-reduced-motion (nothing to pause)', () => {
+    vi.mocked(useReducedMotion).mockReturnValue(true);
+    render(<Testimonios />);
+    expect(screen.queryByRole('button', { name: /pausar testimonios/i })).not.toBeInTheDocument();
   });
 });
