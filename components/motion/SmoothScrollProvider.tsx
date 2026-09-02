@@ -1,9 +1,10 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Lenis from 'lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
+import LenisContext from './LenisContext';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -11,10 +12,12 @@ if (typeof window !== 'undefined') {
 
 export function SmoothScrollProvider({ children }: { children: React.ReactNode }) {
   const reducedMotion = useReducedMotion();
+  const [lenisInstance, setLenisInstance] = useState<Lenis | null>(null);
 
   useEffect(() => {
     if (reducedMotion) return;
     const lenis = new Lenis({ duration: 1.1, smoothWheel: true });
+    setLenisInstance(lenis);
     // Canonical Lenis+ScrollTrigger wiring: drive Lenis from GSAP's own
     // ticker (one rAF loop instead of a second, independent one) and tell
     // ScrollTrigger to recompute on every Lenis scroll tick, so scroll-linked
@@ -33,8 +36,9 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
     return () => {
       gsap.ticker.remove(tick);
       lenis.destroy();
+      setLenisInstance(null);
     };
   }, [reducedMotion]);
 
-  return <>{children}</>;
+  return <LenisContext.Provider value={lenisInstance}>{children}</LenisContext.Provider>;
 }
