@@ -355,8 +355,33 @@
   display: inline-block;
   animation: ken-burns 26s ease-in-out infinite alternate;
 }
+/* overlap-pair/diptych's own images are `width: 100%; height: auto`
+   (stretched to their frame's own width, unlike full-bleed's
+   height-capped/width:auto sizing) -- `display: block` on this layer
+   naturally resolves to 100% of its containing block by default, which
+   is exactly what these two variants' images already assume, so nothing
+   about their existing sizing changes. `.overlapSecondary` itself keeps
+   its own static `transform: translateY(10%)` (its positioning math)
+   completely untouched -- this new layer is a child of it, one level
+   deeper, so the two transforms are on different elements and never
+   compete for the same `transform` property. */
+.pairKenBurns {
+  display: block;
+  animation: ken-burns 26s ease-in-out infinite alternate;
+}
+/* A different duration (not just a delay) for the secondary image in a
+   pair -- with `alternate`, a shared duration plus a delay still
+   re-synchronizes the two images' direction changes over time (their
+   phase difference stays constant, so they periodically move in lockstep
+   again); a different period means the two never fall back into sync,
+   reading as two independently "breathing" photos rather than one
+   mirrored pair. */
+.pairKenBurnsSecondary {
+  animation-duration: 32s;
+}
 @media (prefers-reduced-motion: reduce) {
-  .fullBleedKenBurns {
+  .fullBleedKenBurns,
+  .pairKenBurns {
     animation: none;
   }
 }

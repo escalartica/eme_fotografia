@@ -271,10 +271,14 @@ function OverlapPair({
     <div className={styles.overlapOuter}>
       <div className={styles.overlapStage}>
         <div className={styles.overlapPrimary}>
-          <MediaFrame media={primary} sizes="(max-width: 700px) 80vw, 55vw" className={styles.overlapPrimaryImage} />
+          <div className={styles.pairKenBurns}>
+            <MediaFrame media={primary} sizes="(max-width: 700px) 80vw, 55vw" className={styles.overlapPrimaryImage} />
+          </div>
         </div>
         <div className={styles.overlapSecondary}>
-          <MediaFrame media={secondary} sizes="(max-width: 700px) 55vw, 32vw" className={styles.overlapSecondaryImage} />
+          <div className={`${styles.pairKenBurns} ${styles.pairKenBurnsSecondary}`}>
+            <MediaFrame media={secondary} sizes="(max-width: 700px) 55vw, 32vw" className={styles.overlapSecondaryImage} />
+          </div>
         </div>
       </div>
       <div className={styles.overlapMeta}>
@@ -301,10 +305,14 @@ function Diptych({
   return (
     <div className={styles.diptychOuter}>
       <div className={styles.diptychMain}>
-        <MediaFrame media={primary} sizes="(max-width: 700px) 60vw, 58vw" className={styles.diptychImage} />
+        <div className={styles.pairKenBurns}>
+          <MediaFrame media={primary} sizes="(max-width: 700px) 60vw, 58vw" className={styles.diptychImage} />
+        </div>
       </div>
       <div className={styles.diptychSecondary}>
-        <MediaFrame media={secondary} sizes="(max-width: 700px) 40vw, 36vw" className={styles.diptychImage} />
+        <div className={`${styles.pairKenBurns} ${styles.pairKenBurnsSecondary}`}>
+          <MediaFrame media={secondary} sizes="(max-width: 700px) 40vw, 36vw" className={styles.diptychImage} />
+        </div>
       </div>
       <div className={styles.diptychMeta}>
         <span className={styles.chapterNumber} aria-hidden="true">
