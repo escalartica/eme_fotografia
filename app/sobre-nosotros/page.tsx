@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { site } from '@/content/site';
 import { buildMetadata } from '@/lib/seo';
+import { ShowreelClip } from '@/components/sections/ShowreelClip';
 import styles from './page.module.css';
 
 export const metadata = buildMetadata({
@@ -51,8 +52,19 @@ export default function Page() {
         <p>De la primera llamada a la entrega final, mantenemos una comunicación cercana y plazos claros.</p>
       </section>
 
-      <section aria-labelledby="equipo-heading" className={styles.section}>
+      <section aria-labelledby="trabajo-heading" className={styles.section}>
         <span className={styles.chapterNumber} aria-hidden="true">03</span>
+        <h2 id="trabajo-heading">Nuestro trabajo</h2>
+        <p>Un vistazo real a bodas que ya hemos contado.</p>
+        <ShowreelClip
+          src="/videos/previews/showreel.mp4"
+          poster="/videos/posters/showreel.webp"
+          alt="Montaje de fotografías reales de varias bodas recientes"
+        />
+      </section>
+
+      <section aria-labelledby="equipo-heading" className={styles.section}>
+        <span className={styles.chapterNumber} aria-hidden="true">04</span>
         <h2 id="equipo-heading">Equipo</h2>
         <Image
           src="/images/sobre-nosotros/placeholder-team.webp"
