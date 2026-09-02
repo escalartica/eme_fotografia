@@ -9,11 +9,19 @@
   padding-block-end: var(--space-5);
 }
 
-.pageHeading {
-  font-family: var(--font-serif);
-  font-size: var(--type-h2);
-  line-height: 1;
-  padding: var(--space-4) var(--space-3) 0;
+/* Folded into the FIRST service's own .copy column (see page.tsx) instead
+   of a full-width serif banner section above the list -- this is the whole
+   point of this task for /servicios: no separate generic page-header
+   partial, distinct from /trabajos's full-bleed-photo opener treatment. A
+   small sans-serif label, not the old h2-scale serif heading. */
+.kicker {
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-muted);
+  margin: 0 0 var(--space-2);
 }
 
 .revealWrap {

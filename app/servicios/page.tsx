@@ -14,7 +14,14 @@ export const metadata = buildMetadata({
 export default function Page() {
   return (
     <div className={styles.page}>
-      <h1 className={styles.pageHeading}>Servicios</h1>
+      {/* No standalone page-header partial here (retiring the block this
+          page used to share, pixel-identical, with /trabajos) -- Task 8
+          already restructured this page into per-service scroll moments,
+          so the first service's own moment below IS the opener. The single
+          concession to page-level identity is `.kicker`: a small "Servicios"
+          label folded into the FIRST service's own copy column (not a
+          separate full-width banner section), keeping one <h1> on the page
+          for a11y/SEO without resurrecting a generic banner. */}
       {services.map((service, index) => {
         const chapterNumber = String(index + 1).padStart(2, '0');
         return (
@@ -34,6 +41,7 @@ export default function Page() {
             >
               <div className={`${styles.serviceInner} ${service.previewImage ? '' : styles.noImage}`}>
                 <div className={styles.copy}>
+                  {index === 0 && <h1 className={styles.kicker}>Servicios</h1>}
                   <span className={styles.chapterNumber} aria-hidden="true">
                     {chapterNumber}
                   </span>

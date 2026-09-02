@@ -1,6 +1,7 @@
 'use client';
 import { useLayoutEffect, useRef, useState, type MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { gsap } from 'gsap';
 import type { Project } from '@/content/types';
 import { CATEGORY_LABELS } from '@/lib/category-labels';
@@ -12,6 +13,16 @@ import { EditorialSpread } from '@/components/sections/EditorialSpread';
 import { buildProjectSpreads } from '@/lib/editorial-spread-assignment';
 import styles from './TrabajosFilter.module.css';
 
+// Featured opener image: the most recently onboarded real wedding with a
+// landscape (breakout-friendly) cover -- 'raquel-y-fran' and
+// 'andrea-y-jesus' both landed in the same commit (a182947), so there's no
+// real "most recent" tiebreaker between them; picked for its wide 1600x1066
+// cover (suits a full-bleed letterbox opener better than a portrait crop)
+// and its striking, motion-filled frame (couple celebrating in a classic
+// convertible). Falls back to the first project defensively, though every
+// real project already has a genuine (non-placeholder) cover.
+const FEATURED_SLUG = 'raquel-y-fran';
+
 const CATEGORIES: Array<{ value: 'todos' | 'boda' | 'video' | 'fotomaton' | '360'; label: string }> = [
   { value: 'todos', label: 'Todos' },
   { value: 'boda', label: CATEGORY_LABELS.boda },
@@ -21,6 +32,7 @@ const CATEGORIES: Array<{ value: 'todos' | 'boda' | 'video' | 'fotomaton' | '360
 ];
 
 export function TrabajosFilter({ projects }: { projects: Project[] }) {
+  const featured = projects.find((p) => p.slug === FEATURED_SLUG) ?? projects[0];
   const { category, setCategory, filtered } = useProjectFilter(projects);
   const router = useRouter();
   const reducedMotion = useReducedMotion();
@@ -93,7 +105,37 @@ export function TrabajosFilter({ projects }: { projects: Project[] }) {
 
   return (
     <div className={styles.page}>
-      <h1>Trabajos</h1>
+      {/* Bespoke opener: a full-bleed real photo from the portfolio itself
+          (not a generic text banner) -- retires the pixel-identical
+          serif-h1 partial this page used to share with /servicios. Not an
+          EditorialSpread instance (those are clickable project cards; this
+          is the page's own header, not a link), but the visual grammar
+          deliberately echoes it: .breakout width, a chapterNumber ghost
+          numeral, and a scrim-protected title anchored to a photo corner --
+          see EditorialSpread.module.css's .panoramic variant, the closest
+          existing relative. */}
+      {featured && (
+        <div className={styles.opener}>
+          <Image
+            src={featured.cover.src}
+            alt={featured.cover.alt}
+            fill
+            sizes="100vw"
+            className={styles.openerImage}
+            priority
+          />
+          <div className={styles.openerScrim} aria-hidden="true" />
+          <div className={styles.openerContent}>
+            <span className={styles.openerChapter} aria-hidden="true">00</span>
+            <div>
+              <h1 className={styles.openerTitle}>Trabajos</h1>
+              <span className={styles.openerCredit}>
+                {featured.title} — {CATEGORY_LABELS[featured.category]}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
       <div role="tablist" aria-label="Filtrar trabajos por categoría" className={styles.tablist}>
         {CATEGORIES.map((c) => (
           <button key={c.value} role="tab" aria-selected={category === c.value} onClick={() => setCategory(c.value)} className={styles.tab}>
