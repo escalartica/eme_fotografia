@@ -132,8 +132,8 @@ describe('Hero', () => {
     render(<Hero />);
     const video = document.querySelector('video');
     expect(video).toBeInTheDocument();
-    expect(video?.getAttribute('src')).toContain('real-boda-01-full.mp4');
-    expect(video?.getAttribute('poster')).toContain('real-boda-01-full.webp');
+    expect(video?.getAttribute('src')).toContain('real-boda-01-hero-drone.mp4');
+    expect(video?.getAttribute('poster')).toContain('real-boda-01-hero-drone.webp');
     expect((video as HTMLVideoElement).muted).toBe(true);
     expect(video).toHaveAttribute('loop');
     expect(video).toHaveAttribute('playsinline');

@@ -18,9 +18,9 @@ export function Manifiesto() {
 
   // The plan's one curated advanced scroll moment: as the section scrolls
   // into view, a masked-photo duplicate of the heading crossfades in over
-  // the always-present solid-ink heading, reusing the same real wedding
-  // footage poster as the Hero (`real-boda-01-full.webp`) as a recurring
-  // visual motif. Animates `opacity` only (background-clip: text is a
+  // the always-present solid-ink heading, reusing the same real drone
+  // footage poster as the Hero (`real-boda-01-hero-drone.webp`) as a
+  // recurring visual motif. Animates `opacity` only (background-clip: text is a
   // static CSS property on the element, not an animated one). Gated behind
   // reduced motion exactly like Hero.tsx's parallax effect: no ScrollTrigger
   // is ever created when reducedMotion is true, so the masked layer simply

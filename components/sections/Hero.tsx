@@ -15,11 +15,11 @@ if (typeof window !== 'undefined') {
 const INTRO_KEY = 'eme-intro-shown';
 
 export function Hero() {
-  // The video (5.5MB) is not the LCP element -- the poster image is, since
+  // The video (7MB) is not the LCP element -- the poster image is, since
   // it's what actually paints first. fetchPriority="high" belongs here, not
   // on the <video>, which was the reviewer-caught inversion (a prior fix
   // for lost LCP priority accidentally prioritized the wrong asset).
-  preload('/videos/posters/real-boda-01-full.webp', { as: 'image', fetchPriority: 'high' });
+  preload('/videos/posters/real-boda-01-hero-drone.webp', { as: 'image', fetchPriority: 'high' });
   const [showIntro, setShowIntro] = useState(false);
   // Tracks whether the intro-timer effect below has *finished deciding* the
   // intro's fate (skipped outright on a repeat visit, skipped under reduced
@@ -193,16 +193,16 @@ export function Hero() {
         <video
           ref={videoRef}
           className={styles.video}
-          src="/videos/previews/real-boda-01-full.mp4"
-          poster="/videos/posters/real-boda-01-full.webp"
+          src="/videos/previews/real-boda-01-hero-drone.mp4"
+          poster="/videos/posters/real-boda-01-hero-drone.webp"
           muted
           loop
           playsInline
           // Reduced-motion users never call .play() (see the effect above) --
-          // don't make them download 5.5MB of video they'll never see play.
+          // don't make them download 7MB of video they'll never see play.
           // 'metadata' still lets .play() work instantly for everyone else.
           preload={reducedMotion ? 'none' : 'metadata'}
-          aria-label="Vídeo de la boda de Eva y Rafa: preparativos, salida y ceremonia"
+          aria-label="Vista aérea de los novios de Eva y Rafa a la salida de la hacienda, con el velo ondeando al viento"
         />
       </div>
       <div className={styles.overlay} aria-hidden="true" />
