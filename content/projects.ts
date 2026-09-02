@@ -222,6 +222,20 @@ export const projects: Project[] = [
         width: 1280,
         height: 720,
       },
+      {
+        // Cut from a real DJI drone clip (18s-33s of the raw file), color
+        // graded (contrast/saturation lift + sharpen, matching the aerial
+        // clip's own treatment), compressed to 720p H.264/faststart, no
+        // audio track (matches this project's grid-preview convention).
+        type: 'video',
+        src: '/videos/previews/real-boda-01-golden-hour.mp4',
+        poster: '/videos/posters/real-boda-01-golden-hour.webp',
+        alt: 'Vista aérea de los novios paseando por el jardín de la hacienda al atardecer',
+        isPlaceholderMedia: false,
+        // Verified via `ffprobe -select_streams v:0 -show_entries stream=width,height`.
+        width: 1280,
+        height: 720,
+      },
       { type: 'image', src: '/images/trabajos/boda-real-01/real-boda-01-maquillaje.webp', alt: 'Maquillaje de la novia antes de la ceremonia', isPlaceholderMedia: false },
       { type: 'image', src: '/images/trabajos/boda-real-01/real-boda-01-anillos.webp', alt: 'Intercambio de anillos durante la ceremonia', isPlaceholderMedia: false },
       { type: 'image', src: '/images/trabajos/boda-real-01/real-boda-01-familia.webp', alt: 'Los novios abrazados por sus sobrinos', isPlaceholderMedia: false },
