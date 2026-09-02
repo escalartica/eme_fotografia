@@ -55,11 +55,21 @@
     height: min(60vh, 560px);
   }
 }
+/* flex-grow was 1 (unbounded) -- on a very wide viewport (confirmed live
+   via a real user screenshot at ~2800px) that stretched this block across
+   well over 1000px of otherwise-empty row, with only a small left-aligned
+   chapter numeral/title/badge floating in it: a real, visually broken
+   dead zone, not the intentional full-bleed negative space this
+   composition is going for (that space belongs BESIDE the image, not
+   inside this meta column -- see .fullBleedOuter's own doc comment).
+   flex-basis unchanged (still wraps to its own line on narrow viewports);
+   just capped from growing past a normal content measure. */
 .fullBleedMeta {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  flex: 1 1 240px;
+  flex: 0 1 240px;
+  max-width: 28rem;
 }
 
 /* ---------- panoramic ---------- */

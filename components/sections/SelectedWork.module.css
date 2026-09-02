@@ -1,7 +1,18 @@
 .section {
   padding-block: var(--space-5);
 }
+/* Was previously unstyled beyond padding -- fell back to the browser's
+   default bold sans-serif <h2> UA style instead of this site's serif
+   typography (real bug, confirmed live via a user screenshot: this
+   heading rendered in a generic bold sans font next to otherwise
+   Fraunces-styled content). Matches Testimonios.module.css's own
+   `.section h2` recipe, the established pattern for a section-intro
+   heading. */
 .section h2 {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 1;
+  margin: 0 0 var(--space-3);
   padding-inline: var(--space-3);
 }
 /* No grid here on purpose: each child is an EditorialSpread instance,
