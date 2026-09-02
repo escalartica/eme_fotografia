@@ -35,6 +35,7 @@
 }
 .imageWrap img {
   object-fit: cover;
+  filter: var(--photo-grade);
 }
 
 /* Text block is deliberately left-aligned (the browser default here, kept

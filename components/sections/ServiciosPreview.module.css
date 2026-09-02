@@ -91,6 +91,7 @@
 
   .image {
     object-fit: cover;
+    filter: var(--photo-grade);
     opacity: 0;
     transition: opacity var(--duration-base) var(--ease-standard);
   }

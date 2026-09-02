@@ -186,4 +186,5 @@
 
 .image {
   object-fit: cover;
+  filter: var(--photo-grade);
 }

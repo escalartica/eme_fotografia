@@ -17,6 +17,7 @@
 }
 .openerImage {
   object-fit: cover;
+  filter: var(--photo-grade);
 }
 .openerScrim {
   position: absolute;
@@ -81,4 +82,5 @@
 .teamImage {
   height: auto;
   margin-block: var(--space-2);
+  filter: var(--photo-grade);
 }

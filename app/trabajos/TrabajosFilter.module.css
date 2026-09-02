@@ -27,6 +27,7 @@
 }
 .openerImage {
   object-fit: cover;
+  filter: var(--photo-grade);
 }
 /* Same rgb() triplet as EditorialSpread's .panoramicScrim (--color-ink's
    own #1F262E, spelled as rgb() since CSS gradients can't reference a hex

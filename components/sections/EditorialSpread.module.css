@@ -322,6 +322,7 @@
 .overlapPrimaryImage,
 .overlapSecondaryImage,
 .diptychImage {
+  filter: var(--photo-grade);
   transition: transform var(--duration-fast) var(--ease-standard);
 }
 .spread:hover .fullBleedImage,

@@ -48,7 +48,7 @@
   overflow: hidden;
   margin-block-end: var(--space-4);
 }
-.coverWrap img { object-fit: cover; }
+.coverWrap img { object-fit: cover; filter: var(--photo-grade); }
 @media (min-width: 700px) {
   .coverWrap { aspect-ratio: 2 / 1; }
 }
