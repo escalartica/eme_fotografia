@@ -1,7 +1,83 @@
-.section { padding: var(--space-5) var(--space-3); max-width: 44rem; margin-inline: auto; }
-.section h2 { font-family: var(--font-serif); font-size: var(--type-h3); margin-block-end: var(--space-3); }
-.item { padding-block: var(--space-3); border-top: 1px solid var(--color-muted); }
-.item:first-of-type { border-top: none; }
-.photoWrap { position: relative; width: 4rem; height: 4rem; border-radius: 50%; overflow: hidden; margin-block-end: var(--space-1); }
-.photoWrap img { object-fit: cover; }
-.quote cite { display: block; margin-block-start: var(--space-1); color: var(--color-muted); font-style: normal; }
+.section { padding: var(--space-5) var(--space-3); max-width: 48rem; margin-inline: auto; }
+.section h2 { font-family: var(--font-serif); font-size: var(--type-h3); margin-block-end: var(--space-4); }
+
+.stage { position: relative; }
+
+.quote {
+  position: relative;
+  padding-block: var(--space-2);
+  padding-inline: var(--space-2);
+  margin: 0;
+}
+
+/* Real typographic quote-mark glyphs, positioned as oversized graphic
+   composition elements -- not inline characters glued to the quote text
+   itself (see Testimonios.tsx). Decorative only, hence aria-hidden. */
+.glyphOpen,
+.glyphClose {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: clamp(3.5rem, 2.5rem + 5vw, 7rem);
+  line-height: 1;
+  color: var(--color-accent);
+  opacity: 0.3;
+  user-select: none;
+}
+.glyphOpen { margin-inline-start: -0.35rem; margin-block-end: -0.5rem; }
+.glyphClose { text-align: end; margin-inline-end: -0.35rem; margin-block-start: -1rem; }
+
+.quoteText {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 1.25;
+  margin: 0;
+}
+
+.cite {
+  display: block;
+  margin-block-start: var(--space-2);
+  font-style: normal;
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-muted);
+}
+
+/* Classic visually-hidden technique: removed from the visual layout and
+   clipped to 1px, but never `display:none`/`visibility:hidden`/
+   `aria-hidden`, so the 3 non-active testimonials stay in the accessible
+   DOM and reachable by assistive tech browsing the section linearly. */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.controls {
+  display: flex;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+  padding-inline: var(--space-2);
+}
+.controls button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-muted);
+}
+.controls button:hover,
+.controls button:focus-visible {
+  color: var(--color-ink);
+}
