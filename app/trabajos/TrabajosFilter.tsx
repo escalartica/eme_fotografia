@@ -13,14 +13,15 @@ import { EditorialSpread } from '@/components/sections/EditorialSpread';
 import { buildProjectSpreads } from '@/lib/editorial-spread-assignment';
 import styles from './TrabajosFilter.module.css';
 
-// Featured opener image: the most recently onboarded real wedding with a
-// landscape (breakout-friendly) cover -- 'raquel-y-fran' and
-// 'andrea-y-jesus' both landed in the same commit (a182947), so there's no
-// real "most recent" tiebreaker between them; picked for its wide 1600x1066
-// cover (suits a full-bleed letterbox opener better than a portrait crop)
-// and its striking, motion-filled frame (couple celebrating in a classic
-// convertible). Falls back to the first project defensively, though every
-// real project already has a genuine (non-placeholder) cover.
+// Featured opener image: 'raquel-y-fran' and 'andrea-y-jesus' both landed
+// in the same commit (a182947) with the same 1600x1066 landscape cover
+// ratio, so there's no "most recent" or "aspect ratio" tiebreaker between
+// them (Task 12 review: an earlier version of this comment cited an
+// aspect-ratio difference that doesn't actually exist -- corrected). Picked
+// on its own merit: a striking, motion-filled frame (couple celebrating in
+// a classic convertible) that reads well full-bleed. Falls back to the
+// first project defensively, though every real project already has a
+// genuine (non-placeholder) cover.
 const FEATURED_SLUG = 'raquel-y-fran';
 
 const CATEGORIES: Array<{ value: 'todos' | 'boda' | 'video' | 'fotomaton' | '360'; label: string }> = [

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { projects } from '@/content/projects';
 import { TrabajosFilter } from './TrabajosFilter';
 
@@ -22,6 +22,33 @@ afterEach(() => {
 const VARIANT_CLASS_SUBSTRINGS = ['fullBleed', 'panoramic', 'overlapPair', 'diptych'];
 
 describe('TrabajosFilter', () => {
+  it('opens with a real (non-placeholder) project cover as its full-bleed hero, not a placeholder or a guessed path', () => {
+    render(<TrabajosFilter projects={projects} />);
+    const featured = projects.find((p) => p.slug === 'raquel-y-fran')!;
+    // The featured project's cover legitimately appears twice on this page
+    // (once as the opener, once again as its own EditorialSpread card
+    // further down the grid) -- scope to the opener specifically via its
+    // "00" chapter numeral, the one marker that's unique to it (grid cards
+    // number "01" upward).
+    const openerChapter = screen.getByText('00');
+    const opener = within(openerChapter.closest('div')!.parentElement!);
+    const openerImage = opener.getByAltText(featured.cover.alt);
+    expect(openerImage).toHaveAttribute('src', expect.stringContaining(encodeURIComponent(featured.cover.src)));
+    expect(featured.cover.isPlaceholderMedia).toBe(false);
+  });
+
+  it('renders the credit line with the featured project\'s real title and category label', () => {
+    render(<TrabajosFilter projects={projects} />);
+    const featured = projects.find((p) => p.slug === 'raquel-y-fran')!;
+    expect(screen.getByText(new RegExp(`${featured.title}.*${featured.category === 'boda' ? 'Boda' : ''}`))).toBeInTheDocument();
+  });
+
+  it('renders exactly one <h1>, on the opener, not duplicated or lost elsewhere on the page', () => {
+    render(<TrabajosFilter projects={projects} />);
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Trabajos');
+  });
+
   it('renders an image for each image-cover project via EditorialSpread', () => {
     render(<TrabajosFilter projects={projects} />);
     const imageCoverCount = projects.filter((p) => p.cover.type === 'image').length;
