@@ -86,11 +86,26 @@
   width: auto;
   height: auto;
   max-width: min(52vw, 640px);
-  max-height: 92vh;
+  /* A flat px value, deliberately NOT vh-based (tried first, still wrong
+     -- see below) -- found live: on a real but shorter browser window
+     (613-669px tall), even `min(140vh, 1100px)` still let the vh term
+     win (140vh = 858px at 613px tall, under the 960px a 640px-wide 2:3
+     photo needs), giving only ~400px of width instead of the intended
+     640px. A `vh`-anchored cap can never fully decouple from viewport
+     height, which is the one thing this variant exists to not be bound
+     by. 1100px comfortably clears what this real project's actual
+     photo ratios (roughly 2:3, ~0.667) need at the 640px width cap
+     above (640 / 0.667 ≈ 960px) with real margin for a somewhat taller
+     ratio too, so width is the binding constraint in the normal case
+     regardless of the viewer's window height. The image extending below
+     the fold on a short window is the accepted trade-off (this section
+     is scrolled past anyway, never meant to fit one viewport). */
+  max-height: 1100px;
 }
 @media (max-width: 700px) {
   .fullBleedImagePortrait {
     max-width: min(78vw, 480px);
+    max-height: min(90vh, 700px);
   }
 }
 /* flex-grow was 1 (unbounded) -- on a very wide viewport (confirmed live
