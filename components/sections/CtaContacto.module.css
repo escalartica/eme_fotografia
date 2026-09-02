@@ -1,23 +1,41 @@
+/* Bespoke to this section (final whole-branch review, finding I2): the
+   previous version of this file was the exact `.section { max-width;
+   margin-inline: auto; padding-block; text-align: center }` idiom the plan's
+   first locked decision forbids everywhere else -- on the one section the
+   plan's own rationale names by name as the textbook "hero genérico con
+   CTA relocated to the page bottom" offender. Full-bleed width via
+   `.breakout` (the sitewide technique for exactly this), heading/paragraph
+   left-aligned in a wider column, badge in a narrower column bottom-aligned
+   to the right at desktop -- an asymmetric two-column composition, not a
+   centered stack. */
 .section {
-  max-width: 44rem;
-  margin-inline: auto;
-  padding-block: var(--space-5) var(--space-3);
+  composes: breakout from global;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: var(--space-3);
+  padding-block: var(--space-5) var(--space-4);
   padding-inline: var(--space-3);
-  text-align: center;
+}
+@media (min-width: 700px) {
+  .section {
+    grid-template-columns: 2fr 1fr;
+    align-items: end;
+  }
 }
 
 .section h2 {
   font-family: var(--font-serif);
-  font-size: var(--type-h2);
-  line-height: 0.98;
-  margin-block-end: var(--space-3);
-  max-width: 20ch;
-  margin-inline: auto;
+  font-size: var(--type-h1);
+  line-height: 0.95;
+  margin: 0;
+  max-width: 14ch;
 }
 
 .section p {
   color: var(--color-muted);
-  margin-block-end: var(--space-2);
+  margin: var(--space-2) 0 0;
+  max-width: 30ch;
 }
 
 .badge {
@@ -27,10 +45,15 @@
   justify-content: center;
   width: clamp(7rem, 6rem + 4vw, 9rem);
   height: clamp(7rem, 6rem + 4vw, 9rem);
-  margin-block-start: var(--space-2);
+  justify-self: start;
   text-decoration: none;
   cursor: pointer;
   transition: opacity var(--duration-fast) var(--ease-standard);
+}
+@media (min-width: 700px) {
+  .badge {
+    justify-self: end;
+  }
 }
 .badge:hover,
 .badge:focus-visible {
