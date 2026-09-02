@@ -323,6 +323,44 @@
   color: var(--color-paper);
 }
 
+/* ---------- Ken Burns (slow continuous scale, at rest) ---------- */
+/* A dedicated inner layer, NOT the <img> itself and NOT .fullBleedImageWrap
+   -- two real constraints ruled both of those out:
+   - Putting the animation on .fullBleedImage (the img) would fight the
+     hover-zoom transition below: a running CSS `animation` on `transform`
+     takes priority over a `:hover`-triggered `transition` on that same
+     property, so the hover-zoom would simply go dead while this animation
+     runs.
+   - Putting it on .fullBleedImageWrap (the existing overflow:hidden frame)
+     scales the frame itself -- `transform` doesn't affect layout, so the
+     frame's painted box grows past its own clip boundary (which grows
+     WITH it) and visibly overflows into the page instead of ever cropping
+     anything.
+   This layer sits between them: `display: inline-block` so it shrink-wraps
+   to exactly the image's own rendered size (matching .fullBleedImage's own
+   height-capped/width:auto sizing, not stretched) — the parent
+   .fullBleedImageWrap's overflow:hidden is what actually clips the
+   animated overscan, same box, one level up. Scoped to `full-bleed` only
+   for now (not the other three variants) -- verify this one first before
+   extending the same pattern elsewhere. */
+@keyframes ken-burns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+.fullBleedKenBurns {
+  display: inline-block;
+  animation: ken-burns 26s ease-in-out infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fullBleedKenBurns {
+    animation: none;
+  }
+}
+
 /* ---------- hover/focus zoom ---------- */
 /* Extends the existing zoom-on-hover-or-focus pattern from
    SelectedWork.module.css (:hover + :focus-within parity) to every

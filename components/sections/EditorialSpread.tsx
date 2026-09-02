@@ -189,7 +189,9 @@ function FullBleed({
   return (
     <div className={styles.fullBleedOuter}>
       <div className={styles.fullBleedImageWrap}>
-        <MediaFrame media={image} sizes="(max-width: 700px) 90vw, 50vw" className={styles.fullBleedImage} />
+        <div className={styles.fullBleedKenBurns}>
+          <MediaFrame media={image} sizes="(max-width: 700px) 90vw, 50vw" className={styles.fullBleedImage} />
+        </div>
       </div>
       <div className={styles.fullBleedMeta}>
         <span className={styles.chapterNumber} aria-hidden="true">
