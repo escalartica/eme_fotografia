@@ -186,11 +186,24 @@ function FullBleed({
   title: string;
   chapterNumber: string;
 }) {
+  // A height-only cap leaves a narrow implied width for a portrait photo
+  // (real bug, found live: measured 335px wide on a 1440px row) -- a
+  // width-driven sizing class is used instead for portrait covers, see
+  // .fullBleedImagePortrait's own doc comment. Real measured dimensions
+  // only, never guessed (EditorialSpreadMedia.width/height come from the
+  // same sips/ffprobe-verified pipeline as every other real dimension in
+  // this codebase).
+  const isPortrait = image.height > image.width;
+
   return (
     <div className={styles.fullBleedOuter}>
       <div className={styles.fullBleedImageWrap}>
         <div className={styles.fullBleedKenBurns}>
-          <MediaFrame media={image} sizes="(max-width: 700px) 90vw, 50vw" className={styles.fullBleedImage} />
+          <MediaFrame
+            media={image}
+            sizes="(max-width: 700px) 90vw, 50vw"
+            className={isPortrait ? styles.fullBleedImagePortrait : styles.fullBleedImage}
+          />
         </div>
       </div>
       <div className={styles.fullBleedMeta}>

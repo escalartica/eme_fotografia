@@ -55,6 +55,33 @@
     height: min(60vh, 560px);
   }
 }
+/* Real bug live user screenshots exposed: a height-only cap gives a
+   PORTRAIT photo (common in this real project set -- roughly half the
+   real covers are ~2:3) a narrow implied width -- measured live: 335px
+   on a 1440px-wide row, leaving ~60% of the row as dead empty space, not
+   the intentional full-bleed negative space this variant is going for.
+   Simply ALSO capping max-width doesn't fix it: for a portrait ratio the
+   height cap alone already implies a width well under any reasonable
+   max-width, so a second cap never binds -- the two constraints don't
+   trade off against each other the way they do for landscape. This
+   variant is applied instead of `.fullBleedImage`, chosen in
+   EditorialSpread.tsx from the real image's own measured width/height
+   (never guessed) -- width-driven instead of height-driven, so a
+   portrait photo actually claims real width on the row. max-height here
+   is a generous safety net for unusually extreme ratios, not the
+   binding constraint in the normal case. */
+.fullBleedImagePortrait {
+  display: block;
+  width: min(52vw, 640px);
+  max-width: 100%;
+  height: auto;
+  max-height: 92vh;
+}
+@media (max-width: 700px) {
+  .fullBleedImagePortrait {
+    width: min(78vw, 480px);
+  }
+}
 /* flex-grow was 1 (unbounded) -- on a very wide viewport (confirmed live
    via a real user screenshot at ~2800px) that stretched this block across
    well over 1000px of otherwise-empty row, with only a small left-aligned
