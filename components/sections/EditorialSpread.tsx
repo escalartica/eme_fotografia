@@ -2,6 +2,7 @@ import type { MouseEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
+import { ScrollParallax } from '@/components/motion/ScrollParallax';
 import styles from './EditorialSpread.module.css';
 
 export interface EditorialSpreadMedia {
@@ -219,8 +220,24 @@ function Panoramic({
             once. This is a single, intentional per-variant choice driven by
             an already-wide source image, not the uniform aspect-ratio: 3/2
             forced on every card that the design audit flagged — the other
-            three variants never crop. */}
-        <MediaFrame media={image} sizes="100vw" className={styles.panoramicImage} />
+            three variants never crop. Since it already crops, it's also the
+            only variant that gets the new scroll parallax (B4,
+            docs/PATRONES-AWWWARDS.md): adding an oversized, scroll-scrubbed
+            inner layer to the other three would force them to start
+            cropping too, undoing the guarantee above. Skipped for video
+            media specifically — ScrollParallax's inner layer is a
+            positioned ancestor, and MediaFrame's video-case `.playLabel`
+            positions itself absolutely against its nearest positioned
+            ancestor; nesting it inside the parallax layer would drag the
+            "Reproducir" label along with the background motion instead of
+            keeping it fixed. */}
+        {image.type === 'video' ? (
+          <MediaFrame media={image} sizes="100vw" className={styles.panoramicImage} />
+        ) : (
+          <ScrollParallax>
+            <MediaFrame media={image} sizes="100vw" className={styles.panoramicImage} />
+          </ScrollParallax>
+        )}
         {/* Explicit scrim element (rather than a ::after pseudo-element on
             panoramicImageWrap) so it paints between the image and the meta
             text in DOM/paint order — a pseudo-element on the wrap would
