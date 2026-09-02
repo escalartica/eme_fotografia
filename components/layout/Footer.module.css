@@ -43,4 +43,8 @@
   font-size: var(--type-label);
   font-variant-numeric: tabular-nums;
 }
-.notice { color: var(--color-muted); font-size: 0.85rem; }
+/* --type-label (not a hardcoded rem value, final review finding M10) --
+   used here for its size alone, not its usual uppercase+letter-spacing
+   pairing (see .stats's own comment on that established convention; a
+   plain sentence-case disclosure line reads wrong shouted in caps). */
+.notice { color: var(--color-muted); font-size: var(--type-label); }
