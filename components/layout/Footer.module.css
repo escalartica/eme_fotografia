@@ -32,7 +32,12 @@
 /* Confianza's real numbers, migrated here as a small, clearly-secondary
    detail line -- --type-label (the smallest type-scale step) and muted
    color keep it well below the brand/contact/social hierarchy above,
-   unlike Confianza's own --type-h2 headline-stat treatment. */
+   unlike Confianza's own --type-h2 headline-stat treatment. Deliberately
+   without the uppercase/letter-spacing this token is normally paired with
+   (see its own doc comment in styles/tokens.css) -- that treatment reads
+   fine on short tracked labels elsewhere, but uppercasing a natural-
+   language sentence like "me gusta en Facebook" looks like shouting, not
+   editorial restraint. */
 .stats {
   color: var(--color-muted);
   font-size: var(--type-label);
