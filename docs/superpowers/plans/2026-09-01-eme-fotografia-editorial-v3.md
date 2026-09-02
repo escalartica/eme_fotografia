@@ -319,29 +319,30 @@ git commit -m "feat: rebuild Testimonios as editorial pull-quotes, remove Confia
 
 ---
 
-### Task 11: Final CTA + Footer rebuild
+### Task 11: Footer rebuild + Confianza retirement
+
+**Correction (recorded before dispatch):** this task's original CTA-rebuild scope is already done — `CtaContacto` was rebuilt directly as a controller fix (commit `01fd68d`) using a circular rotating-text badge (SVG `textPath`, transform-only rotation, reduced-motion gated) instead of the full-bleed-photo idea originally sketched here, informed by real reference-site research (danieleandmarilia.com) the client shared mid-session. That work already satisfies this task's "no filled buttons" goal via a different, better-informed concrete design. Task 11 is now scoped down to just the Footer + Confianza work below — do not re-touch `CtaContacto.tsx`/`.module.css`.
 
 **Files:**
-- Modify: `components/sections/CtaContacto.tsx`/`.module.css`, `components/layout/Footer.tsx`/`.module.css`, associated tests
+- Modify: `components/layout/Footer.tsx`/`.module.css`, associated tests
 - Modify/Delete: `components/sections/Confianza.tsx` and its test (migrate its 2 real numbers into `Footer.tsx`, then delete the now-unused standalone component and test file)
 
 **Decisions:**
-- `CtaContacto`: replace the centered-heading-paragraph-button block entirely with a full-bleed real photograph (select one of the studio's genuinely striking real photos not already used as a "hero" moment elsewhere on the site — check what's available across all now-integrated projects, including Task 6's new ones, to avoid re-using the exact same image twice in one page-scroll) with the existing CTA copy ("¿Celebras algo importante? Cuéntanos tu fecha...") overlaid asymmetrically (not centered), and "Empezar un proyecto" rendered as an understated animated-underline text link (per this plan's global no-filled-buttons decision), not the current solid maroon rectangle.
-- `Footer`: restyle beyond plain text rows — still minimalist per the brief (footers aren't the place for heavy art direction), but bring it in line with the new type/spacing system (Task 1's tokens) rather than leaving it as the one remaining completely unstyled section. Add Confianza's 2 real numbers (2.320 Facebook / 1.622 Instagram, already thousands-separator-formatted from this session's earlier fix) as a small detail line — e.g. "2.320 me gusta en Facebook · 1.622 seguidores en Instagram" in small type, clearly secondary to the studio name/contact/social links, not a headline stat.
-- After migrating, delete `Confianza.tsx`, `Confianza.module.css`, `Confianza.test.tsx` (confirm nothing else imports `Confianza` before deleting — grep first).
+- `Footer`: restyle beyond plain text rows — still minimalist per the brief (footers aren't the place for heavy art direction), but bring it in line with the new type/spacing system (Task 1's tokens) rather than leaving it as the one remaining completely unstyled section. Add Confianza's 2 real numbers (2.320 Facebook / 1.622 Instagram, already thousands-separator-formatted from an earlier session fix) as a small detail line — e.g. "2.320 me gusta en Facebook · 1.622 seguidores en Instagram" in small type, clearly secondary to the studio name/contact/social links, not a headline stat.
+- After migrating, delete `Confianza.tsx`, `Confianza.module.css`, `Confianza.test.tsx` (confirm nothing else imports `Confianza` before deleting — grep first; `app/page.tsx` already stopped rendering it in Task 10, but the files themselves are still on disk).
 
 **Step-by-step:**
 
-- [ ] **Step 1:** Read `CtaContacto.tsx`/`.module.css`, `Footer.tsx`/`.module.css`, and `Confianza.tsx`/`.test.tsx` in full. Grep the repo for `Confianza` to confirm `app/page.tsx` (already edited in Task 10) is the only importer before planning the deletion.
-- [ ] **Step 2:** Extend/write tests: `CtaContacto.test.tsx` asserts the CTA renders as a text link (not a `<button>`-styled `<a>` — check via computed role/absence of button-chrome classes, or simply assert the specific new class names exist) and the underlying `href`/copy are unchanged (still real, still `mailto:`/`tel:`/route as appropriate — verify what it currently points to). `Footer.test.tsx` asserts the 2 real numbers render with correct formatting.
-- [ ] **Step 3:** Implement both rebuilds. Delete `Confianza.tsx`/`.module.css`/`.test.tsx`.
-- [ ] **Step 4: Verify** `npm test && npm run build`. Real browser check: CTA reads as a genuine full-bleed editorial closing moment (not a landing-page CTA block), Footer looks intentional rather than default-browser-text, no dead import errors from the Confianza deletion.
+- [ ] **Step 1:** Read `Footer.tsx`/`.module.css`, and `Confianza.tsx`/`.test.tsx` in full. Grep the repo for `Confianza` to confirm nothing still imports it before planning the deletion.
+- [ ] **Step 2:** Extend/write tests: `Footer.test.tsx` asserts the 2 real numbers render with correct thousands-separator formatting.
+- [ ] **Step 3:** Implement the Footer rebuild. Delete `Confianza.tsx`/`.module.css`/`.test.tsx`.
+- [ ] **Step 4: Verify** `npm test && npm run build`. Real browser check: Footer looks intentional rather than default-browser-text, no dead import errors from the Confianza deletion.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add components/sections/CtaContacto.tsx components/sections/CtaContacto.module.css components/layout/Footer.tsx components/layout/Footer.module.css
+git add components/layout/Footer.tsx components/layout/Footer.module.css
 git rm components/sections/Confianza.tsx components/sections/Confianza.module.css components/sections/Confianza.test.tsx
-git commit -m "feat: rebuild final CTA as a full-bleed photo moment, restyle Footer, retire Confianza stat-bar"
+git commit -m "feat: restyle Footer with Confianza's real numbers folded in, retire the standalone stat-bar"
 ```
 
 ---
