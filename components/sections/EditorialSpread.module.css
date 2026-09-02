@@ -197,10 +197,24 @@
   width: 62%;
   z-index: 1;
 }
+/* max-height added (final review, finding M6 -- deferred earlier this
+   session for lack of verification time, now fixed): a width-only
+   sizing model (width:100% of a fixed-62%-of-stage frame) let a
+   portrait cover render 1250px tall on a real 1440px viewport (measured
+   live) -- 70% taller than full-bleed's own hero-scale cap, inverting
+   the intended "full-bleed is the dominant/tallest treatment" hierarchy.
+   `width:auto` + dual `max-` (not a fixed width) is the same
+   scale-to-fit-both-constraints recipe used to fix full-bleed's own
+   portrait sizing earlier -- never distorts, and for an especially tall
+   ratio simply renders narrower than the frame's own 62% rather than
+   overflowing it (a real, accepted trade-off: some asymmetric space
+   inside the frame is a smaller cost than a 2x-viewport-tall image). */
 .overlapPrimaryImage {
   display: block;
-  width: 100%;
+  width: auto;
   height: auto;
+  max-width: 100%;
+  max-height: 720px;
 }
 .overlapSecondary {
   position: absolute;
