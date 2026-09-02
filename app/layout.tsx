@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/Footer';
 import { SmoothScrollProvider } from '@/components/motion/SmoothScrollProvider';
 import { Cursor } from '@/components/motion/Cursor';
 import { localBusinessSchema } from '@/lib/schema';
+import { DEFAULT_OG_IMAGE } from '@/lib/seo';
 import '../styles/globals.css';
 
 const fraunces = Fraunces({
@@ -22,10 +23,24 @@ const generalSans = localFont({
   display: 'swap',
 });
 
+const DESCRIPTION = 'Fotografía y vídeo de bodas y eventos en Sevilla. Fotomatón y experiencia 360°.';
+
 export const metadata: Metadata = {
   title: { default: site.brandName, template: `%s — ${site.brandName}` },
-  description: 'Fotografía y vídeo de bodas y eventos en Sevilla. Fotomatón y experiencia 360°.',
+  description: DESCRIPTION,
   metadataBase: new URL('https://www.emefotografiasevilla.es'),
+  // Home has no per-page buildMetadata() call (see lib/seo.ts) -- its own
+  // openGraph/twitter fields, matching that function's shape, so sharing
+  // the homepage shows the same branded card every other page falls back
+  // to instead of no preview image at all.
+  openGraph: {
+    title: site.brandName,
+    description: DESCRIPTION,
+    url: 'https://www.emefotografiasevilla.es',
+    images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630 }],
+    locale: 'es_ES',
+  },
+  twitter: { card: 'summary_large_image', title: site.brandName, description: DESCRIPTION },
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
