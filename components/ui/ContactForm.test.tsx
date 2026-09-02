@@ -166,10 +166,18 @@ describe('ContactForm (multi-step)', () => {
     await screen.findByText(/gracias/i);
   });
 
-  it('autofocuses the active step\'s field', async () => {
+  it('does not steal focus on initial page load (final review, finding M7)', () => {
+    render(<ContactForm />);
+    // Nothing in the form should have focus the instant /contacto renders --
+    // keyboard and screen-reader users should reach the page heading and
+    // any intro copy first, not get dropped straight into a form field.
+    expect(screen.getByLabelText('Nombre')).not.toHaveFocus();
+    expect(document.body).toHaveFocus();
+  });
+
+  it('autofocuses the newly active step\'s field on a real step change', async () => {
     const user = userEvent.setup();
     render(<ContactForm />);
-    expect(screen.getByLabelText('Nombre')).toHaveFocus();
     await user.type(screen.getByLabelText('Nombre'), 'Ana');
     await user.click(screen.getByRole('button', { name: /siguiente/i }));
     expect(screen.getByLabelText('Correo electrónico')).toHaveFocus();

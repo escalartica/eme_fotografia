@@ -20,17 +20,31 @@ export function ContactForm() {
   const [step, setStep] = useState(0);
   const reducedMotion = useReducedMotion();
   const stepRefs = useRef<Array<HTMLFieldSetElement | null>>([]);
+  // Skips the very first run of the effect below (mirrors
+  // TrabajosFilter.tsx's own isFirstRenderRef) -- see that effect's own
+  // comment for why.
+  const isFirstRenderRef = useRef(true);
 
   // Autofocus the newly active step's first field, and animate its entrance
   // (transform/opacity only, gated on reduced motion like every other
   // effect in this codebase). Fieldsets stay mounted the whole time (only
   // the `hidden` attribute toggles) so this effect re-runs on every step
-  // change, not just on first mount.
+  // change, not just on first mount. Autofocus is skipped on that first
+  // mount specifically (final whole-branch review, finding M7): stealing
+  // focus onto #nombre the instant /contacto renders drops keyboard and
+  // screen-reader users straight into the form, past the page heading and
+  // any intro copy, with no announcement of what they skipped. On a real
+  // step CHANGE (the user just interacted with the form), moving focus to
+  // the new step is exactly right and stays as-is.
   useEffect(() => {
     const el = stepRefs.current[step];
     if (!el) return;
-    const firstField = el.querySelector<HTMLElement>('input, select, textarea');
-    firstField?.focus();
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+    } else {
+      const firstField = el.querySelector<HTMLElement>('input, select, textarea');
+      firstField?.focus();
+    }
     if (reducedMotion) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(el, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: motion.duration.fast, ease: motion.ease.enter });
