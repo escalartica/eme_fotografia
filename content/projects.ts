@@ -236,6 +236,24 @@ export const projects: Project[] = [
         width: 1280,
         height: 720,
       },
+      {
+        // Cut from a third, previously-unused real DJI drone clip (26s-44s
+        // of the raw file), same golden-hour grade as the aerial/
+        // golden-hour clips above. The raw clip's first ~25s had a parked
+        // guest shuttle bus in frame (visible in the wider establishing
+        // pass); this window is entirely after the drone descends past it,
+        // and a further top-15%-of-frame crop removes the last trace of it
+        // from the horizon line -- verified by re-extracting and viewing a
+        // frame after the crop, not assumed.
+        type: 'video',
+        src: '/videos/previews/real-boda-01-recepcion.mp4',
+        poster: '/videos/posters/real-boda-01-recepcion.webp',
+        alt: 'Vista aérea del banquete preparado en el patio de la hacienda al atardecer',
+        isPlaceholderMedia: false,
+        // Verified via `ffprobe -select_streams v:0 -show_entries stream=width,height`.
+        width: 1280,
+        height: 720,
+      },
       { type: 'image', src: '/images/trabajos/boda-real-01/real-boda-01-maquillaje.webp', alt: 'Maquillaje de la novia antes de la ceremonia', isPlaceholderMedia: false },
       { type: 'image', src: '/images/trabajos/boda-real-01/real-boda-01-anillos.webp', alt: 'Intercambio de anillos durante la ceremonia', isPlaceholderMedia: false },
       { type: 'image', src: '/images/trabajos/boda-real-01/real-boda-01-familia.webp', alt: 'Los novios abrazados por sus sobrinos', isPlaceholderMedia: false },
