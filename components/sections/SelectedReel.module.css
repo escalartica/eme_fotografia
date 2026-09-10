@@ -1,0 +1,221 @@
+/* Three columns: pinned text | the reel | pinned notes. On narrow screens
+   the side columns collapse above and below the reel. */
+.section {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--gutter);
+}
+@media (min-width: 900px) {
+  .section {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: var(--space-4);
+    padding-block: var(--space-5);
+  }
+}
+
+.side {
+  position: relative;
+}
+.sideInner {
+  position: sticky;
+  top: 0;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+  padding-block: var(--space-4);
+}
+@media (max-width: 899px) {
+  .sideInner {
+    position: static;
+    min-height: 0;
+    padding-block: 0;
+  }
+  .sideRight {
+    display: none;
+  }
+}
+
+.eyebrow {
+  composes: eyebrow from global;
+}
+
+.statement {
+  font-family: var(--font-serif);
+  font-size: var(--type-h2-sm);
+  line-height: 1.05;
+  margin: 0;
+  max-width: 14ch;
+  font-variation-settings: 'wght' 400;
+}
+.statement em {
+  font-style: italic;
+  color: var(--color-muted);
+}
+
+.arrow {
+  composes: arrowLink from global;
+  color: var(--color-accent);
+  align-self: flex-start;
+  margin-block-start: var(--space-1);
+}
+
+.note {
+  composes: eyebrow from global;
+  max-width: 18ch;
+  align-self: flex-end;
+  text-align: right;
+  line-height: 1.5;
+}
+.noteBottom {
+  margin-block-start: auto;
+}
+
+/* ---------- the reel ---------- */
+.reel {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(2rem, 5vw, 5rem);
+}
+
+.frame {
+  position: relative;
+  width: 100%;
+  will-change: transform, opacity;
+}
+.portrait {
+  max-width: 24rem;
+  aspect-ratio: 3 / 4;
+}
+.landscape {
+  max-width: 32rem;
+  aspect-ratio: 4 / 3;
+}
+.square {
+  max-width: 24rem;
+  aspect-ratio: 1;
+}
+@media (min-width: 900px) {
+  /* Landscape frames overhang the column slightly, like the reference's
+     wider "Vertical" items. */
+  .landscape {
+    width: 120%;
+    max-width: none;
+    margin-inline: -10%;
+  }
+}
+
+.link {
+  position: absolute;
+  inset: 0;
+  display: block;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.link:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 4px;
+}
+
+.clip {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  background: var(--color-hairline);
+}
+/* Taller than its clip so the scroll drift never shows an edge. Kept to 3%
+   (and the drift to 2.5%) because this overhang is dead space: whatever the
+   media hides at the top of a landscape frame is a band the viewer never
+   sees, and at 6% + 5% of drift it was reaching 11% of the photograph --
+   enough to cut the top of a head. */
+.media {
+  position: absolute;
+  inset: -3% 0;
+  display: block;
+  will-change: transform;
+}
+.image {
+  object-fit: cover;
+  filter: var(--photo-grade);
+  transform: scale(1.01);
+  transition: transform var(--duration-slow) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .link:hover .image {
+    transform: scale(1.06);
+  }
+}
+
+/* Caption below the frame: index, title, meta -- appears on hover/focus,
+   always present for keyboard and assistive tech. */
+.caption {
+  composes: eyebrow from global;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  padding-top: var(--space-1);
+  white-space: nowrap;
+  /* El apagado en reposo se hace con color, no con `opacity`. `opacity`
+     multiplica también a .meta, que ya parte de --color-muted: medido,
+     muted al 55 % daba 2,16:1 en claro y 2,86:1 en oscuro, muy por debajo
+     del 4,5:1 de WCAG 1.4.3 -- y fallaba en los DOS temas, no solo en
+     oscuro. Con color el pie se apaga igual de visiblemente (ink al 65 %:
+     6,09:1 en claro, 7,35:1 en oscuro) y .meta conserva intacto su propio
+     contraste (4,92:1 y 6,67:1). La jerarquía no cambia: en reposo el
+     título sigue pesando más que el pie. */
+  color: color-mix(in srgb, var(--color-ink) 65%, transparent);
+  transition: color var(--duration-fast) var(--ease-standard);
+  line-height: 1.5;
+}
+.link:hover .caption,
+.link:focus-visible .caption {
+  color: var(--color-ink);
+}
+/* No hover on touch: the caption is always fully visible and wraps
+   instead of running off the 375px frame. */
+@media (max-width: 899px) {
+  .reel {
+    gap: var(--space-4);
+  }
+  .caption {
+    right: 0;
+    flex-wrap: wrap;
+    gap: var(--space-0) var(--space-1);
+    white-space: normal;
+    color: var(--color-ink);
+  }
+}
+.index {
+  font-family: var(--font-serif);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.meta {
+  color: var(--color-muted);
+  text-transform: none;
+  letter-spacing: 0.04em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame,
+  .media {
+    will-change: auto;
+  }
+  .image {
+    transition: none;
+  }
+  .link:hover .image {
+    transform: none;
+  }
+}

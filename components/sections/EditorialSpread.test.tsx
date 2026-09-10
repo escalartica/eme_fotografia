@@ -118,7 +118,7 @@ describe('EditorialSpread', () => {
   describe('reveal={false} (caller-driven entrance/exit, e.g. TrabajosFilter)', () => {
     it('still renders the link and image, without crashing when the internal ScrollReveal is opted out', () => {
       render(<EditorialSpread variant="full-bleed" images={[portrait]} reveal={false} {...base} />);
-      expect(screen.getByRole('link', { name: `Ver proyecto ${base.title}` })).toHaveAttribute('href', base.href);
+      expect(screen.getByRole('link', { name: `Ver reportaje ${base.title}` })).toHaveAttribute('href', base.href);
       expect(screen.getAllByRole('img')).toHaveLength(1);
     });
   });
@@ -127,7 +127,7 @@ describe('EditorialSpread', () => {
     it('forwards an onClick handler to the outer Link, for a caller that intercepts navigation', () => {
       const onClick = vi.fn();
       render(<EditorialSpread variant="full-bleed" images={[portrait]} onClick={onClick} {...base} />);
-      fireEvent.click(screen.getByRole('link', { name: `Ver proyecto ${base.title}` }));
+      fireEvent.click(screen.getByRole('link', { name: `Ver reportaje ${base.title}` }));
       expect(onClick).toHaveBeenCalledTimes(1);
     });
   });

@@ -1,0 +1,104 @@
+/* Three covers in a row under the reportaje. Each frame takes its own
+   photograph's shape (--frame-ar, set inline) rather than a shared 3:4
+   crop: six of the covers are landscape, and forcing those into a portrait
+   box threw away half the picture. Different heights, aligned at the top,
+   read as three prints laid out on a table -- which is the intent. */
+.section {
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--color-hairline);
+  margin-block-start: var(--space-4);
+}
+
+.heading {
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--color-muted);
+  font-weight: 500;
+  margin: 0 0 var(--space-3);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  /* Top-aligned: with mixed frame heights, stretching would put the
+     captions on three different lines for no reason. */
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Tres columnas se mantenían a cualquier ancho. A 375 px eso deja tarjetas
+   de ~101 px: el título en versalitas Didone a --type-body parte en tres o
+   cuatro líneas, y el pie ("SEVILLA, 2024" a --type-label con 0,16em de
+   tracking) mide ya unos 97 px, así que se rompe en todas. Dos columnas por
+   debajo de 700 px -- el mismo corte que usa ProjectGallery en esta misma
+   página -- devuelven ~160 px por tarjeta y el pie vuelve a caber en una
+   línea. La tercera ficha queda sola en la segunda fila, que es preferible
+   a tres pies partidos. */
+@media (max-width: 699px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* El hueco entre las dos líneas del pie es --space-0; el aire extra bajo la
+   foto lo pone el margen de .frame. Antes el gap era 0.35rem -- uno de los
+   seis valores sueltos que --space-0 vino a sustituir -- y se sumaba al
+   margen del marco, así que foto->nombre medía 0.85rem y nombre->meta 0.35:
+   dos huecos distintos para el mismo pie de tres piezas. */
+.link {
+  display: grid;
+  gap: var(--space-0);
+  text-decoration: none;
+  color: inherit;
+}
+
+.frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--frame-ar, 3 / 4);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--color-ink) 7%, var(--color-paper));
+  margin-bottom: var(--space-1);
+}
+
+.image {
+  object-fit: cover;
+  filter: var(--photo-grade);
+  transition: transform var(--duration-slow) var(--ease-standard);
+}
+
+.link:hover .image,
+.link:focus-visible .image {
+  transform: scale(1.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image { transition: none; }
+  .link:hover .image,
+  .link:focus-visible .image { transform: none; }
+}
+
+.name {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  /* --type-body en vez de clamp(0.95rem, 1.5vw, 1.25rem): mismo problema de
+     vw puro que en GuiaBodasSevilla, y el peldaño coincide casi al píxel
+     (1rem -> 1.1875rem). */
+  font-size: var(--type-body);
+  line-height: 1.1;
+}
+
+.meta {
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--color-muted);
+}

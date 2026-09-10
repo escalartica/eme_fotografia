@@ -1,124 +1,96 @@
 .section {
-  padding: var(--space-5) var(--space-3);
+  padding: var(--space-5) var(--gutter);
 }
 
-/* Two-column editorial layout: stacked (image above text) on narrow
-   viewports, side-by-side on wider ones. Uses named grid-template-areas
-   rather than DOM order so the visual order can differ from source order
-   without a11y tab-order surprises — the heading/copy/link stay in a
-   natural reading order in the DOM either way. */
 .layout {
   display: grid;
-  gap: var(--space-3);
-  grid-template-areas:
-    'image'
-    'text';
-  max-width: 75rem;
+  gap: var(--space-4);
+  align-items: center;
+  max-width: 84rem;
   margin-inline: auto;
 }
 
-/* Fixes the original bug: the image previously rendered with raw
-   width={800} height={1200} and no container at all, so it occupied
-   whatever intrinsic box the browser gave it — roughly half the viewport,
-   with empty space beside it. This establishes the same
-   `position: relative; aspect-ratio; overflow: hidden` + `fill` +
-   `object-fit: cover` containment pattern already used in
-   SelectedWork.module.css / TrabajosFilter.module.css's `.imageWrap`.
-   2 / 3 matches the real asset's native 800×1200 ratio, so `cover` never
-   needs to crop it on a same-ratio container. */
+/* Contained, not full-bleed: on the dark ground the margin around the
+   photograph is what gives it the feeling of a print on a wall. */
 .imageWrap {
-  grid-area: image;
   position: relative;
-  width: 100%;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 4 / 5;
+  /* clip, NOT hidden. `overflow: hidden` makes this element a scroll
+     container, so the `animation-timeline: view()` on the image inside it
+     resolved against THIS box instead of the viewport -- and since the image
+     is `fill` (absolute, inset 0) it exactly fills that scrollport, making the
+     entry/cover range degenerate. The settle animation below never ran. `clip`
+     crops identically without creating a scroll container. The `hidden` line
+     stays first as the fallback for anything that predates `clip`. */
   overflow: hidden;
+  overflow: clip;
 }
-.imageWrap img {
+.image {
   object-fit: cover;
-  filter: var(--photo-grade);
+}
+/* Scroll-driven "liquid settle" -- same native animation-timeline
+   mechanism used across the site's other photo moments (see
+   app/sobre-nosotros/page.module.css's .openerImage). Lands on the
+   Image itself, a different element than .imageWrap (which is the div
+   ScrollReveal itself renders and animates via opacity+translateY), so
+   the two transforms never collide on one element. This was the one
+   photograph on the homepage with an entrance fade but no motion of its
+   own once revealed. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .image {
+      animation: sobreEmeSettle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 55%;
+    }
+  }
+}
+@keyframes sobreEmeSettle {
+  from { transform: scale(1.1); }
+  to { transform: scale(1); }
 }
 
-/* Text block is deliberately left-aligned (the browser default here, kept
-   explicit via `align-items: flex-start`) rather than centered like
-   Manifiesto's statement column — an echo of Hero.module.css's
-   left-anchored `.content` column, repeated as a visual motif across the
-   Home page's identity-carrying sections. */
 .text {
-  grid-area: text;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  display: grid;
   gap: var(--space-2);
+  align-content: center;
 }
 
-/* Chapter numeral: the same site-wide `.chapterNumber` ghost-numeral
-   utility used by EditorialSpread/servicios (styles/layout.css), applied
-   here as a quiet section-level marker rather than a per-item one. "02"
-   pairs it thematically with Manifiesto's "01" — the manifesto states the
-   philosophy, this section elaborates on it — not a literal count of the
-   Home page's full section sequence (which would be brittle to reorder).
-   No margin-block-end needed: `.text` is already a flex column with its
-   own `gap`, which spaces this from the eyebrow below it. */
-.chapterNumber {
-  composes: chapterNumber from global;
-}
-
-/* Small uppercase label above the statement — echoes Hero.module.css's
-   `.eyebrow` treatment for the same repeated-motif reason as `.text`
-   above. */
-.eyebrow {
-  font-family: var(--font-sans);
-  font-size: clamp(0.6875rem, 0.65rem + 0.15vw, 0.8125rem);
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--color-muted);
-  margin: 0;
-}
-
-/* Pushed from the more conservative --type-h2 to --type-h1 (the same token
-   Hero's wordmark uses) — with the desktop column now narrower than the
-   image column (see `.layout`'s asymmetric split below), this statement
-   wraps onto several lines at a genuinely large size instead of sitting
-   safely on one or two, verified live to still read cleanly at both narrow
-   and wide viewports. line-height tightened to suit the larger size
-   without going as tight as Hero's wordmark (0.86) — this is a body
-   statement, not the site's single largest graphic element. */
 .heading {
-  font-family: var(--font-serif);
-  font-size: var(--type-h1);
-  line-height: 0.95;
-  margin: 0;
-  max-width: 18ch;
+  composes: display from global;
+  font-size: var(--type-h2-sm);
+  text-transform: none;
+  letter-spacing: -0.01em;
+  max-width: 22ch;
+  margin-bottom: var(--space-1);
+}
+
+.emphasis {
+  composes: displayEm from global;
 }
 
 .body {
-  color: var(--color-muted);
   margin: 0;
-  max-width: 45ch;
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  color: color-mix(in srgb, var(--color-night-text) 72%, transparent);
+  max-width: 46ch;
+  text-wrap: pretty;
 }
 
 .link {
-  font-family: var(--font-sans);
-  font-size: clamp(0.75rem, 0.7rem + 0.2vw, 0.9375rem);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  text-decoration: underline;
-  text-decoration-color: var(--color-accent);
-  text-underline-offset: 0.3em;
-  color: var(--color-ink);
+  composes: arrowLink from global;
+  margin-top: var(--space-2);
+  justify-self: start;
 }
 
-@media (min-width: 700px) {
+@media (min-width: 900px) {
   .layout {
-    /* Intentionally uneven split (2fr/3fr), not a clean 50/50 — replaces
-       the old symmetric two-up grid flagged by Task 1's old-idiom audit.
-       The narrower text column (vs. the wider image) is what makes the
-       now-much-larger `.heading` (--type-h1) wrap onto several dramatic
-       short lines instead of stretching thin across a full half-width
-       column. */
-    grid-template-columns: 2fr 3fr;
-    grid-template-areas: 'text image';
-    align-items: center;
-    gap: var(--space-4);
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: var(--space-5);
+  }
+  .imageWrap {
+    aspect-ratio: 4 / 5;
   }
 }

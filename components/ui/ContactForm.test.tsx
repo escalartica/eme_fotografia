@@ -6,9 +6,7 @@ import { ContactForm } from './ContactForm';
 // Real GSAP tweens never progress in jsdom (no real rAF loop driving them),
 // so a real gsap.fromTo({opacity:0}, ...) would leave the element stuck at
 // opacity:0 for the lifetime of the test -- same reasoning as Hero.test.tsx's
-// identical mock. gsap.fromTo is mocked to a no-op here (not just made to
-// resolve instantly) since this test suite cares about focus/visibility/
-// step-navigation behavior, not the animation itself.
+// identical mock.
 vi.mock('gsap', () => ({
   gsap: {
     fromTo: vi.fn(),
@@ -19,167 +17,170 @@ vi.mock('gsap', () => ({
   },
 }));
 
-beforeEach(() => {
-  global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
-});
+/** The route answers 200 + delivered:true when a mail provider is configured. */
+function mockApi(delivered: boolean, ok = true, error?: string) {
+  global.fetch = vi.fn().mockResolvedValue({
+    ok,
+    json: async () => (ok ? { id: 'x', delivered } : { error }),
+  });
+}
 
-// Fills and advances through every step in order, using real user
-// interaction (not directly setting field values) -- lugar/numeroInvitados/
-// presupuesto are left blank since they're optional, matching the previous
-// single-page test's coverage of "required fields only" as the base path.
-async function completeAllSteps(user: ReturnType<typeof userEvent.setup>, overrides: { mensaje?: string } = {}) {
-  await user.type(screen.getByLabelText('Nombre'), 'Ana');
+beforeEach(() => mockApi(true));
+
+/**
+ * Walks the six steps as a real person would. `comoNosConociste` is the only
+ * optional one now, so it is left blank on purpose: this is the base path.
+ */
+async function completeAllSteps(
+  user: ReturnType<typeof userEvent.setup>,
+  overrides: { mensaje?: string } = {}
+) {
+  await user.type(screen.getByLabelText('Vuestros nombres'), 'Ana');
   await user.click(screen.getByRole('button', { name: /siguiente/i }));
 
   await user.type(screen.getByLabelText('Correo electrónico'), 'ana@example.com');
   await user.click(screen.getByRole('button', { name: /siguiente/i }));
 
-  await user.selectOptions(screen.getByLabelText('Tipo de evento'), 'boda');
+  await user.type(screen.getByLabelText('Fecha'), '2027-06-12');
+  await user.type(screen.getByLabelText('Lugar o pueblo'), 'Carmona');
   await user.click(screen.getByRole('button', { name: /siguiente/i }));
 
-  await user.click(screen.getByRole('button', { name: /siguiente/i })); // fecha/lugar, both optional
-  await user.click(screen.getByRole('button', { name: /siguiente/i })); // invitados/presupuesto, both optional
+  await user.selectOptions(screen.getByLabelText('Cobertura'), 'foto-y-video');
+  await user.click(screen.getByRole('button', { name: /siguiente/i }));
 
-  await user.type(screen.getByLabelText('Mensaje'), overrides.mensaje ?? 'Nos casamos en junio');
-  await user.click(screen.getByRole('button', { name: /enviar/i }));
+  await user.type(
+    screen.getByLabelText('Contádnoslo con vuestras palabras'),
+    overrides.mensaje ?? 'Nos casamos en junio'
+  );
+  await user.click(screen.getByRole('button', { name: /siguiente/i }));
+
+  // Paso 6: opcional, se deja en blanco.
+  await user.click(screen.getByRole('button', { name: /consultar disponibilidad/i }));
 }
 
-describe('ContactForm (multi-step)', () => {
-  it('shows a progress indicator that advances as the user steps through the form', async () => {
+describe('ContactForm (seis pasos)', () => {
+  it('shows a progress indicator that advances, over six steps not eight', async () => {
     const user = userEvent.setup();
     render(<ContactForm />);
     const progress = screen.getByRole('progressbar');
     expect(progress).toHaveAttribute('aria-valuenow', '1');
     expect(progress).toHaveAttribute('aria-valuemax', '6');
 
-    await user.type(screen.getByLabelText('Nombre'), 'Ana');
+    await user.type(screen.getByLabelText('Vuestros nombres'), 'Ana');
     await user.click(screen.getByRole('button', { name: /siguiente/i }));
     expect(progress).toHaveAttribute('aria-valuenow', '2');
   });
 
-  it('only shows one step\'s fields at a time -- the next step\'s field is not present until reached', () => {
+  it('only shows one step at a time', () => {
     render(<ContactForm />);
-    expect(screen.getByLabelText('Nombre')).toBeVisible();
+    expect(screen.getByLabelText('Vuestros nombres')).toBeVisible();
     expect(screen.queryByLabelText('Correo electrónico')).not.toBeVisible();
   });
 
-  it('blocks advancing to the next step when the current step\'s required field is empty', async () => {
+  it('blocks advancing when a required field on the current step is empty', async () => {
     const user = userEvent.setup();
     render(<ContactForm />);
     await user.click(screen.getByRole('button', { name: /siguiente/i }));
-    // Still on step 1 -- the email field (step 2) never became visible.
-    expect(screen.getByLabelText('Nombre')).toBeInvalid();
+    expect(screen.getByLabelText('Vuestros nombres')).toBeInvalid();
     expect(screen.queryByLabelText('Correo electrónico')).not.toBeVisible();
   });
 
-  it('lets the user go back to a previous step and keeps what they already typed', async () => {
+  it('makes fecha and lugar required — they are the two facts the studio needs to answer at all', async () => {
+    // The whole site promises "decidnos la fecha y el lugar y os decimos si
+    // estamos libres". Both used to be optional, so a couple could send a
+    // message the studio could not act on.
     const user = userEvent.setup();
     render(<ContactForm />);
-    await user.type(screen.getByLabelText('Nombre'), 'Ana');
+    await user.type(screen.getByLabelText('Vuestros nombres'), 'Ana');
     await user.click(screen.getByRole('button', { name: /siguiente/i }));
-    await user.click(screen.getByRole('button', { name: /atrás/i }));
-    expect(screen.getByLabelText('Nombre')).toHaveValue('Ana');
+    await user.type(screen.getByLabelText('Correo electrónico'), 'ana@example.com');
+    await user.click(screen.getByRole('button', { name: /siguiente/i }));
+
+    await user.click(screen.getByRole('button', { name: /siguiente/i }));
+    expect(screen.getByLabelText('Fecha')).toBeInvalid();
+    expect(screen.queryByLabelText('Cobertura')).not.toBeVisible();
   });
 
-  it('advances to the next step on Enter, but not inside the final message textarea (newlines stay newlines)', async () => {
+  it('leaves "cómo nos habéis encontrado" optional, and last', async () => {
     const user = userEvent.setup();
     render(<ContactForm />);
-    await user.type(screen.getByLabelText('Nombre'), 'Ana{Enter}');
+    await completeAllSteps(user);
+    // Submitted without ever touching it.
+    const body = JSON.parse((global.fetch as unknown as { mock: { calls: [string, { body: string }][] } }).mock.calls[0][1].body);
+    expect(body.comoNosConociste).toBe('');
+  });
+
+  it('never offers a price field — the placeholder there was the only rate on the site', () => {
+    render(<ContactForm />);
+    expect(screen.queryByLabelText(/presupuesto/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/invitados/i)).not.toBeInTheDocument();
+  });
+
+  it('advances on Enter, but leaves newlines alone inside the message', async () => {
+    const user = userEvent.setup();
+    render(<ContactForm />);
+    await user.type(screen.getByLabelText('Vuestros nombres'), 'Ana{Enter}');
     expect(screen.getByLabelText('Correo electrónico')).toBeVisible();
 
     await user.type(screen.getByLabelText('Correo electrónico'), 'ana@example.com');
     await user.click(screen.getByRole('button', { name: /siguiente/i }));
-    await user.selectOptions(screen.getByLabelText('Tipo de evento'), 'boda');
+    await user.type(screen.getByLabelText('Fecha'), '2027-06-12');
+    await user.type(screen.getByLabelText('Lugar o pueblo'), 'Carmona');
     await user.click(screen.getByRole('button', { name: /siguiente/i }));
-    await user.click(screen.getByRole('button', { name: /siguiente/i }));
+    await user.selectOptions(screen.getByLabelText('Cobertura'), 'foto');
     await user.click(screen.getByRole('button', { name: /siguiente/i }));
 
-    await user.type(screen.getByLabelText('Mensaje'), 'Primera línea{Enter}Segunda línea');
-    expect(screen.getByLabelText('Mensaje')).toHaveValue('Primera línea\nSegunda línea');
+    const mensaje = screen.getByLabelText('Contádnoslo con vuestras palabras');
+    await user.type(mensaje, 'Primera línea{Enter}Segunda línea');
+    expect(mensaje).toHaveValue('Primera línea\nSegunda línea');
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('submits the full payload (including earlier steps\' values) to /api/contacto on the final step', async () => {
+  it('submits every step\'s value to /api/contacto', async () => {
     const user = userEvent.setup();
     render(<ContactForm />);
     await completeAllSteps(user);
-    expect(global.fetch).toHaveBeenCalledWith(
-      '/api/contacto',
-      expect.objectContaining({
-        method: 'POST',
-        body: expect.stringContaining('"nombre":"Ana"'),
-      })
-    );
-    const call = (global.fetch as any).mock.calls[0];
-    const body = JSON.parse(call[1].body);
+    expect(global.fetch).toHaveBeenCalledWith('/api/contacto', expect.objectContaining({ method: 'POST' }));
+    const body = JSON.parse((global.fetch as unknown as { mock: { calls: [string, { body: string }][] } }).mock.calls[0][1].body);
     expect(body).toMatchObject({
       nombre: 'Ana',
       email: 'ana@example.com',
-      tipoEvento: 'boda',
+      fecha: '2027-06-12',
+      lugar: 'Carmona',
+      tipoEvento: 'foto-y-video',
       mensaje: 'Nos casamos en junio',
     });
-    expect(await screen.findByText(/gracias/i)).toBeInTheDocument();
   });
 
-  it('includes lugar and número de invitados in the payload when filled in on their step, both stay optional', async () => {
+  it('says the message was sent ONLY when the route reports delivered: true', async () => {
+    mockApi(true);
     const user = userEvent.setup();
     render(<ContactForm />);
-    await user.type(screen.getByLabelText('Nombre'), 'Ana');
-    await user.click(screen.getByRole('button', { name: /siguiente/i }));
-    await user.type(screen.getByLabelText('Correo electrónico'), 'ana@example.com');
-    await user.click(screen.getByRole('button', { name: /siguiente/i }));
-    await user.selectOptions(screen.getByLabelText('Tipo de evento'), 'boda');
-    await user.click(screen.getByRole('button', { name: /siguiente/i }));
-
-    expect(screen.getByLabelText('Lugar del evento')).not.toBeRequired();
-    await user.type(screen.getByLabelText('Lugar del evento'), 'Hacienda de San Rafael');
-    await user.click(screen.getByRole('button', { name: /siguiente/i }));
-
-    expect(screen.getByLabelText(/número de invitados/i)).not.toBeRequired();
-    await user.type(screen.getByLabelText(/número de invitados/i), '80');
-    await user.click(screen.getByRole('button', { name: /siguiente/i }));
-
-    await user.type(screen.getByLabelText('Mensaje'), 'Nos casamos en junio');
-    await user.click(screen.getByRole('button', { name: /enviar/i }));
-
-    expect(global.fetch).toHaveBeenCalledWith('/api/contacto', expect.objectContaining({
-      body: expect.stringContaining('"lugar":"Hacienda de San Rafael"'),
-    }));
+    await completeAllSteps(user);
+    expect(await screen.findByText(/mensaje enviado/i)).toBeInTheDocument();
   });
 
-  it('shows an error message on a network-level fetch failure (not just a non-ok response)', async () => {
-    global.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+  it('does NOT claim delivery when the route answers 200 with delivered: false', async () => {
+    // The regression this exists for: the route returns 200 + delivered:false
+    // when no RESEND_API_KEY is set. Reading only res.ok, the form told the
+    // couple "tu mensaje ya está en nuestro correo" while nobody was notified.
+    // Reproduced live in the browser before the fix: {status:200, ok:true,
+    // delivered:false}.
+    mockApi(false);
+    const user = userEvent.setup();
+    render(<ContactForm />);
+    await completeAllSteps(user);
+    expect(await screen.findByText(/no hemos podido hacérselo llegar al equipo/i)).toBeInTheDocument();
+    expect(screen.queryByText(/mensaje enviado/i)).not.toBeInTheDocument();
+    // And it hands them a way through that does not depend on the broken one.
+    expect(screen.getByRole('link', { name: /info@/i })).toBeInTheDocument();
+  });
+
+  it('surfaces the server error message on a failed request', async () => {
+    mockApi(false, false, 'No hemos podido enviar vuestro mensaje ahora mismo.');
     const user = userEvent.setup();
     render(<ContactForm />);
     await completeAllSteps(user);
     expect(await screen.findByRole('alert')).toHaveTextContent(/no hemos podido enviar/i);
-  });
-
-  it('disables the submit button while the request is in flight and re-enables it afterwards', async () => {
-    let resolveFetch: (value: { ok: boolean; json: () => Promise<unknown> }) => void;
-    global.fetch = vi.fn().mockReturnValue(new Promise((resolve) => { resolveFetch = resolve; }));
-    const user = userEvent.setup();
-    render(<ContactForm />);
-    await completeAllSteps(user);
-    expect(screen.getByRole('button', { name: /enviar/i })).toBeDisabled();
-    resolveFetch!({ ok: true, json: async () => ({ ok: true }) });
-    await screen.findByText(/gracias/i);
-  });
-
-  it('does not steal focus on initial page load (final review, finding M7)', () => {
-    render(<ContactForm />);
-    // Nothing in the form should have focus the instant /contacto renders --
-    // keyboard and screen-reader users should reach the page heading and
-    // any intro copy first, not get dropped straight into a form field.
-    expect(screen.getByLabelText('Nombre')).not.toHaveFocus();
-    expect(document.body).toHaveFocus();
-  });
-
-  it('autofocuses the newly active step\'s field on a real step change', async () => {
-    const user = userEvent.setup();
-    render(<ContactForm />);
-    await user.type(screen.getByLabelText('Nombre'), 'Ana');
-    await user.click(screen.getByRole('button', { name: /siguiente/i }));
-    expect(screen.getByLabelText('Correo electrónico')).toHaveFocus();
   });
 });

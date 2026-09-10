@@ -1,0 +1,50 @@
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 999px;
+}
+
+/* 24x24 CSS px minimum target size (WCAG 2.2 SC 2.5.8) -- the visible
+   icon is 17px, the button's own box is the 2.75rem/44px hit area declared
+   above (el comentario decía 2.25rem/36px, que es lo que medía antes). */
+.toggle:hover {
+  background: rgba(var(--color-ink-rgb), 0.06);
+}
+.toggle:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.iconStack {
+  position: relative;
+  display: inline-flex;
+  width: 17px;
+  height: 17px;
+}
+
+.sun,
+.moon {
+  position: absolute;
+  inset: 0;
+  transition: opacity var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+/* Light state (default): sun visible, moon hidden a quarter-turn back. */
+.iconStack[data-dark='false'] .sun { opacity: 1; transform: rotate(0deg) scale(1); }
+.iconStack[data-dark='false'] .moon { opacity: 0; transform: rotate(-45deg) scale(0.7); }
+
+.iconStack[data-dark='true'] .sun { opacity: 0; transform: rotate(45deg) scale(0.7); }
+.iconStack[data-dark='true'] .moon { opacity: 1; transform: rotate(0deg) scale(1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sun, .moon { transition: opacity var(--duration-fast) linear; transform: none !important; }
+}

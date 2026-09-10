@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import Link from 'next/link';
 import { Cursor } from './Cursor';
 
 vi.mock('@/lib/hooks/useReducedMotion', () => ({ useReducedMotion: () => false }));
@@ -52,7 +53,9 @@ describe('Cursor', () => {
     render(
       <>
         <Cursor />
-        <a href="/siguiente" data-cursor="explorar">Siguiente proyecto</a>
+        {/* Enlace interno con next/link, como en el sitio real: un <a> a una
+            ruta propia se saltaría el router del App Router. */}
+        <Link href="/siguiente" data-cursor="explorar">Siguiente proyecto</Link>
       </>
     );
     fireEvent.mouseOver(screen.getByText('Siguiente proyecto'));

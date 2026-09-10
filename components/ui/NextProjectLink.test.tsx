@@ -10,21 +10,25 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push }),
 }));
 
+// `delete document.startViewTransition` no compila: lib.dom la declara
+// obligatoria aunque jsdom no la traiga; Reflect hace lo mismo en runtime.
 afterEach(() => {
-  delete (document as any).startViewTransition;
+  Reflect.deleteProperty(document, 'startViewTransition');
   push.mockClear();
 });
 
 describe('NextProjectLink', () => {
   it('navigates via router.push inside a view transition on click', () => {
-    (document as any).startViewTransition = vi.fn((cb: () => void) => {
+    // Doble parcial a propósito: nadie lee el ViewTransition devuelto, y
+    // rellenar la interfaz entera sólo añadiría ruido al test.
+    document.startViewTransition = vi.fn((cb: () => void) => {
       cb();
       return { finished: Promise.resolve() };
-    });
+    }) as unknown as typeof document.startViewTransition;
     render(<NextProjectLink href="/trabajos/lucia-y-jorge" label="Siguiente proyecto: Lucía y Jorge" />);
     const link = screen.getByRole('link', { name: /siguiente proyecto/i });
     fireEvent.click(link, { button: 0 });
-    expect((document as any).startViewTransition).toHaveBeenCalled();
+    expect(document.startViewTransition).toHaveBeenCalled();
     expect(push).toHaveBeenCalledWith('/trabajos/lucia-y-jorge');
   });
 

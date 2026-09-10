@@ -10,66 +10,121 @@
 }
 
 .heading {
-  font-family: var(--font-serif);
+  composes: display from global;
   font-size: var(--type-h2);
-  line-height: 1;
-  margin-block-end: var(--space-3);
-  padding-inline: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.emphasis {
+  composes: displayEm from global;
+  text-transform: none;
 }
 
 .layout {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-3);
-  padding-inline: var(--space-3);
+  padding-inline: var(--gutter);
+}
+
+.listWrap {
+  min-width: 0;
 }
 
 .list {
   list-style: none;
   padding: 0;
   margin: 0;
+  /* One hairline above the first row so the list reads as a table of
+     contents with a top rule, not as a stack of boxed rows. */
+  border-top: 1px solid var(--color-hairline);
 }
 
-.item + .item {
-  border-top: 1px solid var(--color-muted);
+.item {
+  border-bottom: 1px solid var(--color-hairline);
 }
 
 .link {
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
-  padding-block: var(--space-2);
+  padding-block: var(--space-3);
+  transition: padding-inline-start var(--duration-base) var(--ease-standard);
+}
+/* The row steps to the right under the cursor. It is the only motion in
+   this list, and it says "this row is the one you are pointing at" more
+   plainly than a colour change can in a monochrome palette. */
+.link:hover,
+.link:focus-visible {
+  padding-inline-start: var(--space-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .link { transition: none; }
+  .link:hover,
+  .link:focus-visible { padding-inline-start: 0; }
 }
 
 .number {
-  font-family: var(--font-serif);
-  font-size: var(--type-h3);
-  color: var(--color-accent);
-  line-height: 1;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--color-muted);
+  line-height: 1.6;
   flex-shrink: 0;
 }
 
 .textGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.25em;
+  gap: 0.35em;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .name {
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
+  font-weight: 500;
   font-size: var(--type-h3);
-  line-height: 1.1;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--color-ink);
 }
 
 .tagline {
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: 1.4;
   color: var(--color-muted);
+  text-wrap: pretty;
 }
 
-/* Image stage is a hover/focus-only enhancement — on narrow viewports there
-   is no hover, and every service's name + tagline is already always
-   visible in the list itself, so the list stays fully usable without it.
-   Hiding it (rather than always rendering a static image per row) keeps
-   the mobile list compact and matches the "table of contents" read. */
+.arrow {
+  flex-shrink: 0;
+  color: var(--color-muted);
+  opacity: 0;
+  transform: translate(-0.3em, 0.3em);
+  transition:
+    opacity var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+.link:hover .arrow,
+.link:focus-visible .arrow {
+  opacity: 1;
+  transform: translate(0, 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Image stage is a hover/focus-only enhancement. On narrow viewports there
+   is no hover, and every service's name and tagline is already visible in
+   the list itself, so the list stays fully usable without it. */
 .imageStage {
   display: none;
 }
@@ -78,20 +133,25 @@
   .layout {
     grid-template-columns: 3fr 2fr;
     align-items: start;
+    gap: var(--space-5);
   }
 
   .imageStage {
     display: block;
     position: sticky;
-    top: var(--space-4);
+    top: 18vh;
     aspect-ratio: 4 / 5;
     overflow: hidden;
-    background: var(--color-muted);
+    background: color-mix(in srgb, var(--color-ink) 7%, var(--color-paper));
+  }
+
+  .imageFrame {
+    position: absolute;
+    inset: 0;
   }
 
   .image {
     object-fit: cover;
-    filter: var(--photo-grade);
     opacity: 0;
     transition: opacity var(--duration-base) var(--ease-standard);
   }

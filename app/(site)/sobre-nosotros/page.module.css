@@ -1,0 +1,395 @@
+.page {
+  padding-block-end: 0;
+}
+
+/* ---------- hero: statement in two halves ---------- */
+.hero {
+  padding-inline: var(--gutter);
+  /* --space-4 arriba, como /trabajos, la ficha de boda, /contacto y los
+     legales: la distancia entre la cabecera fija y el primer titular es lo
+     primero que se compara al saltar de una página a otra, y esta era la
+     única que abría un escalón más apretada. */
+  padding-block: var(--space-4) 0;
+}
+.heroTitle {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--type-h1);
+  line-height: 0.98;
+  letter-spacing: -0.01em;
+  font-variation-settings: 'wght' 400;
+  max-width: 14ch;
+}
+.heroLine {
+  display: block;
+}
+.heroLede {
+  margin: var(--space-2) 0 var(--space-3);
+  max-width: 34rem;
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  color: var(--color-muted);
+}
+.heroFigure {
+  composes: breakout from global;
+  position: relative;
+  height: min(78vh, 820px);
+  /* clip, NOT hidden. `overflow: hidden` makes this element a scroll
+     container, so the `animation-timeline: view()` on the image inside it
+     resolved against THIS box instead of the viewport -- and since the image
+     is `fill` (absolute, inset 0) it exactly fills that scrollport, making the
+     entry/cover range degenerate. The settle animation below never ran. `clip`
+     crops identically without creating a scroll container. The `hidden` line
+     stays first as the fallback for anything that predates `clip`. */
+  overflow: hidden;
+  overflow: clip;
+  margin-block-end: var(--space-5);
+}
+@media (max-width: 700px) {
+  .heroFigure {
+    height: min(60vh, 520px);
+  }
+}
+.heroImage {
+  object-fit: cover;
+  filter: var(--photo-grade);
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .heroImage {
+      animation: heroSettle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 60%;
+    }
+  }
+}
+@keyframes heroSettle {
+  from {
+    transform: scale(1.12);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+.heroScrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 50%, color-mix(in srgb, var(--color-scrim) 60%, transparent) 100%);
+  pointer-events: none;
+}
+.heroSecond {
+  position: absolute;
+  right: var(--gutter);
+  bottom: var(--space-3);
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--type-h1);
+  line-height: 1;
+  color: var(--color-night-text);
+  text-align: right;
+}
+.heroSecond em {
+  font-style: italic;
+}
+
+.chapterNumber {
+  composes: chapterNumber from global;
+  margin-block-end: var(--space-2);
+}
+
+.heading {
+  font-family: var(--font-serif);
+  font-size: var(--type-h2);
+  line-height: 1;
+  margin: 0;
+  font-variation-settings: 'wght' 400;
+}
+
+.lede {
+  color: var(--color-muted);
+  margin: var(--space-2) 0 0;
+  max-width: 34rem;
+}
+
+.section {
+  padding-inline: var(--gutter);
+  margin-block-start: var(--space-5);
+}
+
+.sectionHeader {
+  margin-block-end: var(--space-4);
+}
+
+.arrow {
+  composes: arrowLink from global;
+  color: var(--color-accent);
+}
+
+/* ---------- 01 intro: statement + copy | team photo ---------- */
+/* ---------- 01 statement ---------- */
+.statementSection {
+  padding-inline: var(--gutter);
+  margin-block-end: var(--space-5);
+  max-width: 62rem;
+}
+.scrub {
+  font-family: var(--font-serif);
+  font-size: var(--type-h2-sm);
+  line-height: 1.22;
+  margin: var(--space-2) 0 var(--space-3);
+  font-variation-settings: 'wght' 400;
+  text-wrap: pretty;
+}
+.statementLinks,
+.teamLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* ---------- pair of portraits ---------- */
+.pair {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  padding-inline: var(--gutter);
+  margin-block-end: var(--space-5);
+}
+@media (min-width: 900px) {
+  .pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+  .pairItemOffset {
+    margin-top: var(--space-5);
+  }
+}
+.pairItem {
+  margin: 0;
+}
+.pairItem {
+  display: grid;
+  gap: var(--space-1);
+}
+.pairFrame {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--color-hairline);
+}
+.pairImage {
+  object-fit: cover;
+  filter: var(--photo-grade);
+}
+.pairCaption {
+  composes: eyebrow from global;
+  line-height: 1.5;
+}
+
+/* ---------- 02 principles + strip ---------- */
+.principles {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+}
+@media (min-width: 800px) {
+  .principles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+}
+
+.principle {
+  padding-block-start: var(--space-2);
+}
+
+.itemNumber {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 0.85;
+  color: var(--color-muted);
+  display: block;
+  margin-block-end: var(--space-2);
+}
+
+.principleTitle {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 1.05;
+  margin: 0 0 var(--space-1);
+  font-variation-settings: 'wght' 400;
+}
+
+.principleText {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+/* Film strip of real frames -- natural aspect ratios, one shared height,
+   horizontal scroll with snap on narrow viewports. Same device as
+   /servicios' strip, so the two pages read as one system. */
+.strip {
+  display: flex;
+  gap: var(--space-2);
+  height: clamp(14rem, 44svh, 32rem);
+  margin-block-start: var(--space-4);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.strip::-webkit-scrollbar { display: none; }
+
+.stripItem {
+  position: relative;
+  flex: 0 0 auto;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  scroll-snap-align: start;
+}
+@media (min-width: 900px) {
+  .stripItem:nth-child(even) {
+    transform: translateY(var(--space-2));
+  }
+}
+.stripImage {
+  object-fit: cover;
+  filter: var(--photo-grade);
+}
+
+/* ---------- 03 process ---------- */
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  border-top: 1px solid var(--color-hairline);
+}
+@media (min-width: 800px) {
+  .steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-4);
+  }
+}
+
+.step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2);
+  align-items: baseline;
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.stepNumber {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 0.85;
+  color: var(--color-muted);
+}
+
+.stepTitle {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 1.05;
+  margin: 0 0 var(--space-1);
+  font-variation-settings: 'wght' 400;
+}
+
+.stepText {
+  margin: 0;
+  color: var(--color-muted);
+  max-width: 30rem;
+}
+
+/* ---------- 05 team ---------- */
+.team {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  align-items: center;
+}
+@media (min-width: 900px) {
+  .team {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    gap: var(--space-5);
+    align-items: start;
+  }
+}
+
+.teamCopy p {
+  max-width: 32rem;
+  margin: 0 0 var(--space-2);
+}
+
+.teamName {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 1;
+  margin: var(--space-3) 0 var(--space-1) !important;
+}
+
+.teamRole {
+  composes: eyebrow from global;
+  margin-block-end: var(--space-3) !important;
+  line-height: 1.5;
+}
+
+.teamLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin-block-start: var(--space-2);
+}
+
+.teamFigure {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+}
+
+.teamImage {
+  object-fit: cover;
+  filter: var(--photo-grade);
+}
+.teamCaption {
+  composes: eyebrow from global;
+  position: absolute;
+  left: var(--space-2);
+  right: var(--space-2);
+  bottom: var(--space-2);
+  color: var(--color-night-text);
+  /* --color-scrim: este pie va sobre fotografía y ya usa la constante
+     --color-night-text (línea de arriba); la sombra que lo despega de la
+     foto tiene que ser igual de constante. Mismo valor, sin literal. */
+  text-shadow: 0 1px 10px color-mix(in srgb, var(--color-scrim) 60%, transparent);
+  line-height: 1.5;
+}
+
+/* Bloque "Próximamente", al pie del proceso. Se distingue del resto por un
+   filete superior y el fondo de papel, no por un recuadro: es una nota al pie
+   del capítulo, no una promoción. */
+.upcoming {
+  margin-block-start: var(--space-4);
+  padding-block-start: var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+  display: grid;
+  gap: var(--space-1);
+  max-width: 46rem;
+}
+.upcomingLabel {
+  composes: eyebrow from global;
+  margin: 0;
+}
+.upcomingText {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  color: var(--color-muted);
+  text-wrap: pretty;
+}

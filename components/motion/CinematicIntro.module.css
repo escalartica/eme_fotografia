@@ -1,0 +1,156 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  /* Constante, NO el token de tema. Toda la secuencia se pinta sobre
+     .stage, que es var(--color-scrim): un negro fijo en los dos temas. Con
+     var(--color-paper) el color heredado pasaba a #141412 en modo oscuro
+     sobre ese #0B0B0B -- 1,07:1, o sea invisible -- y lo heredaban .slates
+     y, sobre todo, .mark, el logotipo "eme", que no declara color propio:
+     la primera pantalla del sitio se quedaba en negro sobre negro. Con la
+     constante son 18,35:1 en los dos temas. Ver --color-night-text en
+     styles/tokens.css; este fichero ya la usaba en .slateIndex, .line,
+     .progress y el borde de .skip. */
+  color: var(--color-night-text);
+  pointer-events: none;
+}
+.stage {
+  position: absolute;
+  inset: 0;
+  background: var(--color-scrim);
+  overflow: hidden;
+  pointer-events: auto;
+}
+.frame {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.image {
+  object-fit: cover;
+  filter: var(--photo-grade) saturate(0.85) contrast(1.05);
+}
+.frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* El mismo degradado, pero desde --color-scrim en vez de rgba(0, 0, 0):
+     velar una fotografía es exactamente el trabajo para el que existe ese
+     token (ver su declaración en styles/tokens.css). Constante en los dos
+     temas, que es lo que un velo sobre foto tiene que ser. */
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-scrim) 35%, transparent),
+    color-mix(in srgb, var(--color-scrim) 10%, transparent) 40%,
+    color-mix(in srgb, var(--color-scrim) 45%, transparent)
+  );
+}
+
+/* Letterbox bars: a touch lighter than the stage so they read as bars,
+   not as more black. 12svh each -- 2.39:1 on a 16:9 screen. */
+.bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 12svh;
+  /* Deliberately a shade off the stage so the bars read as bars. Derived
+     from the scrim rather than hand-written (#050505) so the two stay
+     related if the scrim ever moves. */
+  background: color-mix(in srgb, var(--color-scrim) 45%, #000);
+  z-index: 2;
+}
+.barTop {
+  top: 0;
+}
+.barBottom {
+  bottom: 0;
+}
+
+.slates {
+  composes: eyebrow from global;
+  position: absolute;
+  left: var(--gutter);
+  bottom: calc(12svh + 1.5rem);
+  z-index: 1;
+  color: inherit;
+}
+.slate {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  white-space: nowrap;
+  opacity: 0;
+  display: inline-flex;
+  gap: 0.9em;
+}
+.slateIndex {
+  color: color-mix(in srgb, var(--color-night-text) 55%, transparent);
+}
+
+.center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  z-index: 1;
+  text-align: center;
+  padding-inline: var(--gutter);
+}
+.mark {
+  font-family: var(--font-display);
+  font-size: var(--type-display);
+  line-height: 0.9;
+  letter-spacing: var(--tracking-display);
+  opacity: 0;
+}
+.line {
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-night-text) 75%, transparent);
+  opacity: 0;
+}
+
+.progress {
+  position: absolute;
+  left: 0;
+  bottom: 12svh;
+  height: 1px;
+  width: 100%;
+  background: color-mix(in srgb, var(--color-night-text) 50%, transparent);
+  transform-origin: left center;
+  transform: scaleX(0);
+  z-index: 1;
+}
+
+.skip {
+  position: absolute;
+  right: var(--gutter);
+  bottom: calc(12svh + 1.25rem);
+  z-index: 3;
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--color-night-text) 35%, transparent);
+  border-radius: 999px;
+  /* Mismo fallo y mismo arreglo que en .root: este botón es la única
+     salida de una secuencia a pantalla completa que además se lleva el
+     foco, así que su rótulo desapareciendo en oscuro (1,07:1) no era solo
+     un problema estético. Se declara aquí aunque .root ya lo herede porque
+     .skip trae su propio :hover/:focus-visible justo debajo. */
+  color: var(--color-night-text);
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  padding: 0.6em 1.1em;
+  min-height: 2.75rem;
+  cursor: pointer;
+}
+.skip:hover,
+.skip:focus-visible {
+  border-color: var(--color-night-text);
+}

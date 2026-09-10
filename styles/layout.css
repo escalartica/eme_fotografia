@@ -47,6 +47,16 @@
    (image-crop/hover wrappers) -- check the DOM path before nesting
    `.breakout` inside one. */
 .breakout {
+  /* 100vw incluye el ancho de la barra de scroll, así que en un escritorio
+     con barra clásica esto es unos pocos píxeles MÁS ancho que el viewport
+     útil. Medido en el navegador: 5 px de desplazamiento horizontal en las
+     fichas de boda (.flow de ProjectGallery y el wrapper de VideoPreview
+     componen esta clase). El recorte va en `body` (styles/globals.css) con
+     `overflow-x: clip`, no aquí: `clip` recorta sin crear contenedor de
+     scroll, así que —a diferencia de `hidden`— no rompe el `position: sticky`
+     del que dependen StackedSections, las filas del manifiesto y la cabecera
+     fija. Cambiar esto a `width: 100%` NO vale: la clase existe justamente
+     para salirse del contenedor y llegar a los bordes. */
   width: 100vw;
   margin-inline: calc(50% - 50vw);
 }
@@ -58,9 +68,197 @@
    Callers needing a different weight/placement (e.g. over a photo, where
    `opacity` instead of `color` may read better) should override `color`/
    `opacity` locally rather than duplicating this whole rule. */
+/* Retired as a giant ghost numeral. At --type-chapter it occupied most of
+   a viewport on its own, in a pale grey that read as an unfinished image
+   rather than as page furniture, and it is the single most recognisable
+   template tell there is. Kept as a quiet index label so every existing
+   caller keeps working and the numbering still helps the reader place
+   themselves. */
 .chapterNumber {
-  font-family: var(--font-serif);
-  font-size: var(--type-chapter);
-  line-height: 0.85;
+  display: block;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  line-height: 1;
   color: var(--color-muted);
+}
+
+
+/* ===================================================================
+   EDITORIAL PRIMITIVES (Belle Photo language)
+   Global class names, consumable from any CSS Module with
+   `composes: x from global` or applied directly in JSX alongside a
+   module class. Same loading path as .breakout above.
+   =================================================================== */
+
+/* Display heading. Uppercase Didone, set tight, centred by default -
+   bellephoto.com.au states every section this way, and for a manifesto
+   or statement line the message IS the composition, so centring is the
+   right call rather than the usual anti-centre bias. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--type-h2);
+  line-height: 1.06;
+  letter-spacing: -0.012em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  text-wrap: balance;
+  margin: 0;
+}
+
+/* The one emphasis device this design language uses: a single word of the
+   SAME family set in its real italic cut. Belle Photo does exactly this
+   ("YOUR LOVE STORY CAPTURED *BEAUTIFULLY*."). Never a second font family
+   dropped into a headline - mixing families for emphasis is the amateur
+   version of this move.
+   The 1.12 line-height and the padding are descender clearance: at display
+   size an italic Didone's y, g, j and p reach well below the baseline, and
+   a tight line box clips them. */
+.displayEm {
+  font-style: italic;
+  line-height: 1.12;
+  padding-bottom: 0.06em;
+  display: inline-block;
+}
+
+/* Section label. Rationed deliberately: one per three sections at most,
+   because a small uppercase tag above every heading is the single most
+   recognisable template rhythm there is. */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  line-height: 1;
+  color: var(--color-muted);
+  margin: 0;
+}
+
+/* Every call to action on the site is this: uppercase sans, an arrow, and
+   a rule that draws itself on hover. No filled buttons anywhere - none of
+   the reference studios use one. */
+.arrowLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  position: relative;
+  padding-block: 0.4rem;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: inherit;
+  transition: transform var(--duration-press) var(--ease-standard);
+}
+.arrowLink::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.arrowLink:focus-visible::after {
+  transform: scaleX(1);
+}
+.arrowLink .arrow {
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+/* El hover, tras `(hover: hover) and (pointer: fine)`. En un movil iOS
+   sintetiza :hover en el toque y lo DEJA puesto hasta que se toca otra
+   cosa: la regla se dibujaba sola y la flecha se quedaba desplazada en
+   cada llamada a la accion que la pareja habia tocado. Es el enlace de
+   accion de todo el sitio (14 modulos lo componen), asi que el defecto
+   estaba en todas las paginas. */
+@media (hover: hover) and (pointer: fine) {
+  .arrowLink:hover::after {
+    transform: scaleX(1);
+  }
+  .arrowLink:hover .arrow {
+    transform: translate(0.2em, -0.2em);
+  }
+}
+/* ...y con el hover fuera del alcance del dedo, el toque necesitaba su
+   propia respuesta: sin esto, la unica llamada a la accion del sitio no
+   acusaba recibo de que la habian pulsado. 0.97 y --duration-press
+   (0.12s), los mismos que ya usa el boton del formulario. */
+.arrowLink:active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  .arrowLink,
+  .arrowLink::after,
+  .arrowLink .arrow { transition: none; }
+  .arrowLink:hover .arrow { transform: none; }
+  .arrowLink:active { transform: none; }
+}
+
+/* The two dark registers the page allows: the studio statement mid-page,
+   and the closing footer curtain every route ends on (Footer.tsx).
+   Belle Photo alternates cream and black freely; capped at these two,
+   both singular and both load-bearing (one mid-page statement, one
+   closing bookend), so the switch still reads as a deliberate change of
+   register rather than as the page losing track of its own theme. */
+.nightBlock {
+  background: var(--color-night);
+  color: var(--color-night-text);
+}
+.nightBlock .display,
+.nightBlock h2,
+.nightBlock h3 {
+  color: var(--color-night-text);
+}
+.nightBlock .eyebrow {
+  color: color-mix(in srgb, var(--color-night-text) 60%, transparent); /* constant, matches --color-night-text; not theme-dependent */
+}
+.nightBlock :focus-visible {
+  outline: 2px solid var(--color-night-text);
+  outline-offset: 4px;
+}
+
+/* Placeholder-media disclosure (audit finding: the previous sitewide
+   Footer notice -- "Contenido de muestra, pendiente de sustituir..." --
+   warned about ALL content on the site, when in fact only one project ever
+   used stock photography (since replaced with the studio's own 360°
+   material) and every project's media is now real, verified client work
+   (isPlaceholderMedia: false throughout). That blanket warning undersold
+   the studio's own real work to soften a gap in a single gallery. Scoped
+   here instead to the individual placeholder items themselves, credited
+   by source (ProjectMedia.sourceCredit) -- consumed from
+   components/sections/ProjectGallery.tsx and app/trabajos/[slug]/page.tsx,
+   wherever a cover or gallery item's own `isPlaceholderMedia` is true. */
+.sourceBadge {
+  position: absolute;
+  left: var(--space-1);
+  bottom: var(--space-1);
+  z-index: 1;
+  padding: 0.3em 0.7em;
+  background: color-mix(in srgb, var(--color-scrim) 62%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  /* Bug fix: was var(--color-paper), the theme-reactive token -- this
+     badge sits on top of a photo behind a fixed dark scrim (the
+     rgba(6, 6, 6, ...) above), the same "fixed dark register" as
+     nightBlock/openerScrim/CtaContacto's scrim text, so its own text needs
+     the constant that never inverts -- see --color-night-text in
+     styles/tokens.css. --color-paper would have flipped to a near-black in
+     dark mode and gone unreadable against this badge's own near-black
+     background. */
+  color: var(--color-night-text);
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  line-height: 1;
+  pointer-events: none;
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .sourceBadge {
+    background: color-mix(in srgb, var(--color-scrim) 82%, transparent);
+  }
 }

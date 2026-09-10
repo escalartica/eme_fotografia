@@ -1,0 +1,89 @@
+/* Shared by not-found.tsx and error.tsx: both are the same composition in
+   the site's closing-block register, one short italic line over an
+   oversized uppercase statement. */
+.section {
+  min-height: 70svh;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--gutter);
+}
+
+.lead {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--type-lead);
+  line-height: 1.2;
+  color: var(--color-muted);
+}
+
+.heading {
+  composes: display from global;
+  font-size: var(--type-h1);
+  line-height: 1.02;
+}
+
+.body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: 1.55;
+  color: var(--color-muted);
+  max-width: 42ch;
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.action {
+  composes: arrowLink from global;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Oversized, faint code behind the statement: a 2D flourish, not information. */
+.code {
+  margin: 0 0 calc(-1 * var(--space-2));
+  font-family: var(--font-display);
+  font-size: var(--type-display);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+  opacity: 0.06;
+  user-select: none;
+}
+
+/* The one filled button on the page: the way back. */
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.85em 1.8em;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  border: 1px solid var(--color-ink);
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+.primary:hover,
+.primary:focus-visible {
+  background: transparent;
+  color: var(--color-ink);
+}

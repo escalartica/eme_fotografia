@@ -1,0 +1,68 @@
+/* Scroll reveal, done in CSS.
+   ---------------------------------------------------------------------
+   The rule that governs this file: THE CONTENT IS VISIBLE AT REST. There
+   is no `opacity: 0` default anywhere below. The previous implementation
+   set opacity to 0 from JavaScript and waited for a GSAP ScrollTrigger to
+   put it back; any font timeout, a missed ScrollTrigger.refresh, or an
+   element already past its trigger on load left real copy invisible on a
+   photographer's portfolio. A reveal is a refinement, and a refinement is
+   never allowed to be the thing standing between a reader and the text.
+
+   So the animation is declared with `animation-timeline: view()`, which
+   the browser runs on the compositor with no JavaScript at all, and it is
+   gated twice: behind `prefers-reduced-motion: no-preference`, and behind
+   `@supports`. Where scroll-driven animations are not supported the
+   declaration is simply never parsed and the content sits there, visible.
+   That is the correct fallback, not a degraded one. */
+
+.reveal {
+  /* Deliberately empty at rest. Present so callers always get a stable
+     class to pass through and so the variants below have something to
+     hang on. */
+  --reveal-offset: 0%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: revealRise linear both;
+      animation-timeline: view();
+      /* Finished well before the element reaches the middle of the
+         screen. A reveal that is still resolving once the reader is
+         already looking at the text reads as a page that has not
+         finished loading. */
+      animation-range: entry calc(0% + var(--reveal-offset)) entry calc(72% + var(--reveal-offset));
+    }
+
+    .blur {
+      animation-name: revealRiseBlur;
+    }
+
+    /* Curtain wipe for photographs: the frame opens from the bottom
+       edge up. Never combined with a fade -- a photo that spends the
+       reveal half-transparent looks like a failed image load, which is
+       exactly the bug this replaces. */
+    .clip {
+      animation-name: revealWipe;
+    }
+
+    .slow {
+      animation-range: entry calc(0% + var(--reveal-offset)) cover calc(24% + var(--reveal-offset));
+    }
+  }
+}
+
+@keyframes revealRise {
+  from { opacity: 0; transform: translate3d(0, 24px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes revealRiseBlur {
+  from { opacity: 0; transform: translate3d(0, 24px, 0); filter: blur(6px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+
+@keyframes revealWipe {
+  from { clip-path: inset(0 0 100% 0); }
+  to   { clip-path: inset(0 0 0% 0); }
+}

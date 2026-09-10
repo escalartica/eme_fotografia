@@ -1,0 +1,66 @@
+.banner {
+  position: fixed;
+  inset-inline: var(--gutter);
+  bottom: var(--space-2);
+  z-index: 250;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+  /* --color-scrim en vez de rgba(0, 0, 0, ...): el mismo negro fijo en los
+     dos temas, que es lo que una sombra tiene que ser. En oscuro la sombra
+     no se ve, y lo que delimita el aviso es su filete --color-hairline
+     (1,55:1 en oscuro frente a 1,33:1 en claro: allí se ve algo más). */
+  box-shadow: 0 24px 60px -30px color-mix(in srgb, var(--color-scrim) 35%, transparent);
+  max-width: 44rem;
+  margin-inline: auto;
+}
+@media (min-width: 720px) {
+  .banner {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+}
+.text {
+  margin: 0;
+  font-size: var(--type-small);
+}
+.text a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.actions {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+.accept,
+.reject {
+  appearance: none;
+  border-radius: 999px;
+  min-height: 2.75rem;
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.accept {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  border: 1px solid var(--color-ink);
+}
+.reject {
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+}
+.accept:focus-visible,
+.reject:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}

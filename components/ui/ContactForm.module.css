@@ -1,5 +1,36 @@
 .form { display: flex; flex-direction: column; gap: var(--space-3); max-width: 40rem; }
 
+.stepCounter {
+  margin: calc(-1 * var(--space-2)) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.success {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 34rem;
+}
+.successTitle {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 1.05;
+  margin: 0;
+}
+.successLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin-block-start: var(--space-1);
+}
+.successLink {
+  composes: arrowLink from global;
+  color: var(--color-accent);
+}
+
 .progress {
   height: 2px;
   background: var(--color-muted);
@@ -40,10 +71,7 @@
   margin-block-end: var(--space-1);
 }
 .fieldLabel {
-  font-size: var(--type-label);
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--color-muted);
+  composes: eyebrow from global;
 }
 
 .controls {
@@ -65,24 +93,66 @@
 }
 
 .form input, .form select, .form textarea {
-  border: 1px solid var(--color-muted);
-  background: var(--color-paper);
-  padding: var(--space-1);
+  border: none;
+  border-bottom: 1px solid var(--color-muted);
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-ink);
+  padding: var(--space-1) 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  min-height: 2.75rem;
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+.form textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+.form input::placeholder, .form textarea::placeholder {
+  color: var(--color-muted);
+  opacity: 0.7;
+}
+.form input:hover, .form select:hover, .form textarea:hover {
+  border-bottom-color: var(--color-ink);
 }
 .form input:focus-visible, .form select:focus-visible, .form textarea:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: none;
+  border-bottom: 2px solid var(--color-ink);
+}
+.form input[aria-invalid='true'], .form input:user-invalid, .form select:user-invalid, .form textarea:user-invalid {
+  border-bottom-color: var(--color-danger);
 }
 .form button {
   background: var(--color-accent);
   color: var(--color-paper);
-  border: none;
-  padding: var(--space-2);
+  border: 1px solid var(--color-accent);
+  border-radius: 999px;
+  /* --space-1, no 0.85rem: con ese literal el padding vertical mandaba sobre
+     el min-height y el botón medía 46 px, el único control del sitio que no
+     medía los 2.75rem de la barra, del selector de tema y de los campos de
+     este mismo formulario. */
+  padding: var(--space-1) var(--space-3);
+  min-height: 2.75rem;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
   cursor: pointer;
-  transition: opacity var(--duration-fast) var(--ease-standard);
+  transition: opacity var(--duration-fast) var(--ease-standard),
+    transform var(--duration-press) var(--ease-standard);
 }
 .form button:hover, .form button:focus-visible {
   opacity: 0.85;
+}
+/* Press feedback -- an 8-step form means "Siguiente" is pressed
+   repeatedly in one sitting, so this stays subtle (scale 0.98, not the
+   lower end of the range) rather than a showier press. */
+.form button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+@media (prefers-reduced-motion: reduce) {
+  .form button { transition: opacity var(--duration-fast) linear; }
+  .form button:active:not(:disabled) { transform: none; }
 }
 .form button:focus-visible {
   outline: 2px solid var(--color-ink);
@@ -91,4 +161,30 @@
 .form button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Field-level validation message. Sits directly under the input it
+   describes (never above, never in a toast): the reader's eye is already
+   at the field they just failed to fill. */
+.fieldError {
+  composes: eyebrow from global;
+  color: var(--color-danger);
+  margin: var(--space-0) 0 0;
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+
+/* Frase de ayuda bajo un campo obligatorio. Existe para que `fecha` y `lugar`
+   puedan exigirse sin bloquear a una pareja que todavía no tiene el sitio
+   cerrado: sin la frase, "obligatorio" es un muro; con ella, una pregunta que
+   admite un "todavía no lo sé". Misma familia que .fieldError pero en tono
+   apagado, porque no es un problema, es una aclaración. */
+.fieldHint {
+  composes: eyebrow from global;
+  color: var(--color-muted);
+  margin: var(--space-0) 0 var(--space-1);
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.4;
 }

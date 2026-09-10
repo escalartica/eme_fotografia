@@ -1,0 +1,119 @@
+/* Full-screen card: exactly one viewport tall so StackedSections pins it.
+   ---------------------------------------------------------------------
+   The paper strip sits at the FOOT of the frame, not centred in it. It was
+   centred, which put an opaque band straight across the middle of a
+   full-bleed photograph -- and the middle of a wedding photograph is where
+   the faces are. Both panels were cutting the couple in half: the black
+   and white one lost the bride from the shoulders down, the video one lost
+   both faces entirely behind the top edge of the strip.
+   A caption band at the foot of a full-bleed image is also simply the
+   right idiom: it leaves the photograph whole and reads as a plate with a
+   caption, which is what this is. */
+.panel {
+  position: relative;
+  height: 100svh;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  justify-items: center;
+  align-items: end;
+  padding-block-end: var(--space-4);
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--color-night-text);
+}
+
+.media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  will-change: transform;
+}
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: var(--photo-grade);
+}
+.scrim {
+  position: absolute;
+  inset: 0;
+  /* Weighted to the foot, where the strip and the paper meet the
+     photograph. The top of the frame is left alone -- that is the part
+     the visitor is meant to be looking at. */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-scrim) 10%, transparent) 0%, color-mix(in srgb, var(--color-scrim) 14%, transparent) 55%, color-mix(in srgb, var(--color-scrim) 34%, transparent) 100%);
+}
+
+/* The strip: one band of paper across the frame, in two halves. */
+.strip {
+  grid-row: 2;
+  width: calc(100% - 2 * var(--gutter));
+  max-width: 96rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+@media (min-width: 900px) {
+  .strip {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    padding: var(--space-3) var(--space-4);
+    align-items: end;
+  }
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.number {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 0.85;
+  color: var(--color-muted);
+}
+.promise {
+  composes: eyebrow from global;
+  max-width: 28rem;
+  line-height: 1.6;
+  /* Not the eyebrow's muted grey: this line sits on the paper strip as the
+     panel's actual promise copy, in full ink. */
+  color: inherit;
+}
+
+.right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+@media (min-width: 900px) {
+  .right {
+    align-items: flex-end;
+    text-align: right;
+  }
+}
+.label {
+  composes: eyebrow from global;
+}
+.name {
+  font-family: var(--font-serif);
+  font-size: var(--type-h2);
+  line-height: 0.95;
+  margin: 0;
+  font-variation-settings: 'wght' 400;
+}
+.arrow {
+  composes: arrowLink from global;
+  color: var(--color-accent);
+  margin-block-start: var(--space-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .media {
+    will-change: auto;
+  }
+}

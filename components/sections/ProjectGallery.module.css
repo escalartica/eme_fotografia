@@ -4,9 +4,14 @@
    image-cover case — CSS Modules scope classes per file so this is
    duplicated rather than imported across component boundaries. */
 .coverWrap {
+  /* Mirrors page.module.css's .coverWrap: the box takes the media's own
+     aspect ratio (--cover-ar, set inline from real pixel dimensions) so
+     the opening frame is never cropped, with the width capped so a
+     portrait can't run past the fold. */
   position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 5;
+  width: min(100%, var(--cover-max-w, 100%));
+  aspect-ratio: var(--cover-ar, 4 / 5);
+  margin-inline: auto;
   overflow: hidden;
   margin-block-end: var(--space-4);
 }
@@ -22,9 +27,7 @@
   width: 100%;
   height: 100%;
 }
-@media (min-width: 700px) {
-  .coverWrap { aspect-ratio: 2 / 1; }
-}
+
 
 /* Continuous, full-bleed editorial photo-essay flow (A3 pattern,
    docs/PATRONES-AWWWARDS.md): a single column of items in strict source
@@ -56,12 +59,15 @@
   aspect-ratio: 4 / 5;
 }
 
-/* Extra 8% top/bottom slack so the parallax translate never reveals empty
-   space at the item's edges — the same `inset: -8%` technique Hero.module.css
-   uses for its own scroll parallax layer (.imageParallax). */
+/* Extra slack on every side so the parallax travel (±13% vertical, ±5%
+   sideways drift, plus the 1.04 push-in -- see ProjectGallery.tsx) never
+   reveals empty space at the item's edges — the same `inset` technique
+   Hero.module.css uses for its own scroll parallax layer (.imageParallax).
+   will-change keeps the scrubbed transform on the compositor. */
 .parallaxInner {
   position: absolute;
-  inset: -8% 0;
+  inset: -3% -2%;
+  will-change: transform;
 }
 /* Stretch the parallax layer's direct child (VideoPreview's own wrapper div,
    or the image <button> below) to fill this enlarged box, overriding
@@ -92,6 +98,12 @@
 .wide { aspect-ratio: 21 / 9; }
 .half { aspect-ratio: 1 / 1; }
 
+/* Desktop: narrower frames lean to alternating sides and climb up over the
+   previous frame (negative block margin + z-index), so the flow reads as
+   overlapping prints laid on a table rather than a centered stack. The
+   overlap is only ever onto the previous item's bottom edge, never onto
+   the text above the flow. Below 700px everything stays single-column and
+   full-width: overlap on a phone just hides photo. */
 @media (min-width: 700px) {
   .wide {
     width: 70%;
@@ -101,6 +113,52 @@
     width: 46%;
     margin-inline: auto;
   }
+  .wide[data-side='left'],
+  .half[data-side='left'] {
+    margin-inline: 6vw auto;
+  }
+  .wide[data-side='right'],
+  .half[data-side='right'] {
+    margin-inline: auto 6vw;
+  }
+  .item + .wide,
+  .item + .half {
+    margin-block-start: calc(-1 * var(--space-5) - 4vh);
+    z-index: 2;
+    /* --color-scrim, no rgba(0, 0, 0, ...): mismo negro fijo en los dos
+       temas. En oscuro la sombra apenas se ve, y es correcto: lo que separa
+       esta foto de la anterior es el solape, no la sombra. */
+    box-shadow: 0 24px 60px -30px color-mix(in srgb, var(--color-scrim) 45%, transparent);
+  }
+}
+/* Two portraits side by side, like a pair of prints. */
+.duo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+}
+@media (min-width: 700px) {
+  .duo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 86%;
+    margin-inline: auto;
+    align-items: start;
+  }
+  .duo > .item {
+    width: 100%;
+    margin-inline: 0;
+  }
+  .duo > .item:nth-child(2) {
+    margin-block-start: var(--space-4);
+  }
+  .item + .duo,
+  .duo + .item.half,
+  .duo + .item.wide {
+    margin-block-start: var(--space-4);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .parallaxInner { will-change: auto; }
 }
 
 /* Lightbox content for an image gallery item: letterboxed within the
@@ -112,3 +170,34 @@
   height: 80vh;
 }
 .lightboxImageWrap img { object-fit: contain; filter: var(--photo-grade); }
+
+/* Cinema letterbox for the lightbox's video case (see ProjectGallery.tsx's
+   own comment on this wrapper). Black ground, a fixed ~2.39:1 frame, the
+   video contained within it -- true letterbox bars on real 16:9 footage,
+   not a crop. Held below the Lightbox's own 1200px .content max-width, so
+   the frame never grows wider than a cinema screen would read as. Below
+   700px the fixed ratio is dropped: at phone widths it would squeeze a
+   16:9 video down to a sliver, and the phone's own frame (the device
+   itself, held horizontally or not) already reads as a frame. */
+.lightboxVideoWrap {
+  width: 100%;
+  /* Cinemascope letterbox bars (the site's established art direction for
+     16:9 video inside the wider Lightbox frame) read as black in every
+     reference the project follows -- constant, not the theme token, so
+     they don't turn white in dark mode. Also sits inside the Lightbox's
+     own fixed-dark backdrop (components/motion/Lightbox.module.css). */
+  background: var(--color-night);
+}
+.lightboxVideoWrap video {
+  display: block;
+  width: 100%;
+}
+@media (min-width: 700px) {
+  .lightboxVideoWrap {
+    aspect-ratio: 2.39 / 1;
+  }
+  .lightboxVideoWrap video {
+    height: 100%;
+    object-fit: contain;
+  }
+}

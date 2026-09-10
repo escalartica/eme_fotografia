@@ -1,83 +1,64 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-
-const { gsapTo, gsapSet } = vi.hoisted(() => ({
-  gsapTo: vi.fn(),
-  gsapSet: vi.fn(),
-}));
-
-vi.mock('gsap', () => ({
-  gsap: {
-    to: gsapTo,
-    registerPlugin: vi.fn(),
-    context: vi.fn().mockImplementation((cb, ref) => {
-      cb();
-      return { revert: vi.fn() };
-    }),
-    set: gsapSet,
-  },
-}));
-vi.mock('gsap/ScrollTrigger', () => ({ ScrollTrigger: {} }));
-vi.mock('@/lib/hooks/useReducedMotion', () => ({ useReducedMotion: vi.fn() }));
-
 import { ScrollReveal } from './ScrollReveal';
-import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
+import styles from './ScrollReveal.module.css';
 
-afterEach(() => vi.clearAllMocks());
-
+/**
+ * These tests describe the ONE guarantee this component has to keep: the
+ * content it wraps is in the DOM and is not hidden. The previous
+ * implementation set `opacity: 0` from JavaScript and relied on a GSAP
+ * ScrollTrigger to undo it, so the old suite asserted against gsap.set and
+ * gsap.to call arguments -- it verified the mechanism, not the promise, and
+ * it would have passed just as happily on a build where the copy never
+ * became visible again. There is no GSAP here any more: the reveal is a CSS
+ * scroll-driven animation, so what is worth asserting is the markup.
+ */
 describe('ScrollReveal', () => {
-  it('always renders children in the DOM (progressive enhancement)', () => {
-    (useReducedMotion as any).mockReturnValue(false);
+  it('renders its children with no JavaScript involved', () => {
     render(<ScrollReveal><p>Contenido visible</p></ScrollReveal>);
     expect(screen.getByText('Contenido visible')).toBeInTheDocument();
   });
 
-  it('skips animation setup when motion is reduced', () => {
-    (useReducedMotion as any).mockReturnValue(true);
-    render(<ScrollReveal><p>Contenido</p></ScrollReveal>);
-    expect(gsapTo).not.toHaveBeenCalled();
+  it('never sets an inline opacity, so content is visible at rest', () => {
+    const { container } = render(<ScrollReveal><p>Contenido</p></ScrollReveal>);
+    const wrapper = container.firstElementChild as HTMLElement;
+    expect(wrapper.style.opacity).toBe('');
+    expect(wrapper.style.visibility).toBe('');
   });
 
-  it('sets up a GSAP animation when motion is not reduced', () => {
-    (useReducedMotion as any).mockReturnValue(false);
-    render(<ScrollReveal><p>Contenido</p></ScrollReveal>);
-    expect(gsapTo).toHaveBeenCalled();
+  it('carries the base reveal class', () => {
+    const { container } = render(<ScrollReveal><p>Contenido</p></ScrollReveal>);
+    expect(container.firstElementChild).toHaveClass(styles.reveal);
   });
 
-  it('does not add a filter property by default', () => {
-    (useReducedMotion as any).mockReturnValue(false);
-    render(<ScrollReveal><p>Contenido</p></ScrollReveal>);
-    expect(gsapSet.mock.calls[0][1]).not.toHaveProperty('filter');
-    expect(gsapTo.mock.calls[0][1]).not.toHaveProperty('filter');
+  it('adds the blur variant only when asked', () => {
+    const { container: plain } = render(<ScrollReveal><p>a</p></ScrollReveal>);
+    expect(plain.firstElementChild).not.toHaveClass(styles.blur);
+    const { container: blurred } = render(<ScrollReveal blur><p>b</p></ScrollReveal>);
+    expect(blurred.firstElementChild).toHaveClass(styles.blur);
   });
 
-  it('layers a blur filter transition on top of the base reveal when blur is true', () => {
-    (useReducedMotion as any).mockReturnValue(false);
-    render(<ScrollReveal blur><p>Contenido</p></ScrollReveal>);
-    expect(gsapSet.mock.calls[0][1]).toMatchObject({ opacity: 0, y: 40, filter: 'blur(6px)' });
-    expect(gsapTo.mock.calls[0][1]).toMatchObject({ opacity: 1, y: 0, filter: 'blur(0px)' });
+  it('uses the curtain wipe instead of the rise when clipReveal is set', () => {
+    const { container } = render(<ScrollReveal clipReveal><p>c</p></ScrollReveal>);
+    expect(container.firstElementChild).toHaveClass(styles.clip);
   });
 
-  it('skips the blur filter too when motion is reduced, even with blur set', () => {
-    (useReducedMotion as any).mockReturnValue(true);
-    render(<ScrollReveal blur><p>Contenido</p></ScrollReveal>);
-    expect(gsapSet).not.toHaveBeenCalled();
-    expect(gsapTo).not.toHaveBeenCalled();
+  it('turns a stagger delay into an animation-range offset', () => {
+    const { container } = render(<ScrollReveal delay={0.15}><p>d</p></ScrollReveal>);
+    const wrapper = container.firstElementChild as HTMLElement;
+    expect(wrapper.style.getPropertyValue('--reveal-offset')).toBe('12%');
   });
 
-  it('uses a clip-path wipe instead of the base y-translate when clipReveal is true', () => {
-    (useReducedMotion as any).mockReturnValue(false);
-    render(<ScrollReveal clipReveal><p>Contenido</p></ScrollReveal>);
-    expect(gsapSet.mock.calls[0][1]).toMatchObject({ opacity: 0, clipPath: 'inset(0 0 100% 0)' });
-    expect(gsapSet.mock.calls[0][1]).not.toHaveProperty('y');
-    expect(gsapTo.mock.calls[0][1]).toMatchObject({ opacity: 1, clipPath: 'inset(0 0 0% 0)' });
-    expect(gsapTo.mock.calls[0][1]).not.toHaveProperty('y');
+  it('caps that offset so a late item still reveals on screen', () => {
+    const { container } = render(<ScrollReveal delay={5}><p>e</p></ScrollReveal>);
+    const wrapper = container.firstElementChild as HTMLElement;
+    expect(wrapper.style.getPropertyValue('--reveal-offset')).toBe('24%');
   });
 
-  it('uses the base y-translate, not clip-path, when clipReveal is not set', () => {
-    (useReducedMotion as any).mockReturnValue(false);
-    render(<ScrollReveal><p>Contenido</p></ScrollReveal>);
-    expect(gsapSet.mock.calls[0][1]).toMatchObject({ opacity: 0, y: 40 });
-    expect(gsapSet.mock.calls[0][1]).not.toHaveProperty('clipPath');
+  it('keeps a caller-supplied className alongside its own', () => {
+    const { container } = render(<ScrollReveal className="propia"><p>f</p></ScrollReveal>);
+    const wrapper = container.firstElementChild as HTMLElement;
+    expect(wrapper).toHaveClass('propia');
+    expect(wrapper).toHaveClass(styles.reveal);
   });
 });

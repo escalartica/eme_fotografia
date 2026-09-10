@@ -1,134 +1,138 @@
+/* Masthead band over a full-bleed media band. Together they fill the
+   first screen; the media band is what the reader scrolls into. */
 .hero {
   position: relative;
   min-height: 100svh;
   display: flex;
-  align-items: flex-end;
-  overflow: hidden;
-}
-.imageParallax {
-  position: absolute;
-  inset: -8% 0;
-  z-index: -1;
-}
-.imageParallax .video {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-.video { object-fit: cover; }
-
-/* Cinematic scrim so the wordmark and eyebrow stay legible over real,
-   unpredictable footage — darkest at the bottom-left where the type sits.
-   CSS gradient angles point toward the END color, so the START (darkest)
-   stop sits in the OPPOSITE direction: 20deg's end is up-and-right, which
-   correctly puts the dark 0% stop down-and-left, where .content lives. */
-.overlay {
-  position: absolute;
-  inset: 0;
-  /* Two independent gradients: the diagonal one protects the bottom-left
-     wordmark/eyebrow; by 60% it's fully transparent, so it never reaches
-     the top-right nav (logo + menu toggle, fixed there at every breakpoint
-     since the nav rebuild). mix-blend-mode:difference on the nav elements
-     helps but isn't reliable alone over a moving video background -- a
-     bright/light-toned frame can wash the toggle out. This second, flat
-     top-down gradient gives the nav a constant floor of protection
-     regardless of what's playing underneath. */
-  background:
-    linear-gradient(180deg, rgba(17, 20, 24, 0.45) 0%, rgba(17, 20, 24, 0) 180px),
-    linear-gradient(
-      20deg,
-      rgba(17, 20, 24, 0.72) 0%,
-      rgba(17, 20, 24, 0.32) 32%,
-      rgba(17, 20, 24, 0) 60%
-    );
-  pointer-events: none;
-}
-
-/* Midground: the wordmark, pushed to the left edge (aligned with the
-   Header's logo via the shared --space-3 horizontal padding) and given
-   maximum graphic weight — the largest single element on the page. */
-.content {
-  position: relative;
-  z-index: 1;
-  /* Left padding matches the Header's own horizontal padding so the
-     wordmark's left edge lines up with the logo above it. Right padding
-     is deliberately larger so the wordmark's box never reaches the
-     bottom-right scroll indicator, at any viewport width. */
-  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-3);
-  color: var(--color-paper);
-  max-width: min(100%, 60rem);
-}
-
-.eyebrow {
-  /* Now a <span> inside <h1> (was a sibling <p>) so it carries real SEO
-     weight as part of the page's one heading — needs an explicit block
-     display since <span> defaults to inline. */
-  display: block;
-  font-family: var(--font-sans);
-  font-size: clamp(0.6875rem, 0.65rem + 0.15vw, 0.8125rem);
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--color-paper);
-  opacity: 0.85;
-  margin: 0 0 var(--space-2);
-  max-width: 32ch;
-}
-
-.wordmark {
-  font-family: var(--font-serif);
-  font-size: var(--type-h1);
-  line-height: 0.86;
-  letter-spacing: -0.01em;
-  margin: 0;
-  overflow-wrap: break-word;
-}
-
-.wordmarkLine {
-  display: block;
-}
-
-/* Foreground: a small, subtly looping scroll cue tucked in a corner that
-   never overlaps the wordmark (opposite corner, bottom-right). */
-.scrollIndicator {
-  position: absolute;
-  right: var(--space-3);
-  bottom: var(--space-3);
-  z-index: 1;
-  display: flex;
   flex-direction: column;
-  align-items: center;
-  color: var(--color-paper);
 }
 
-.scrollLine {
-  width: 1px;
-  height: 2.5rem;
-  background: currentColor;
-  transform-origin: top center;
-  animation: scroll-cue 2.2s var(--ease-standard) infinite;
+/* Centred, edge to edge. The wordmark is the whole band: Belle Photo sets
+   theirs across the full width on cream with nothing else in the frame,
+   and the photography starts immediately beneath it. */
+.masthead {
+  position: relative;
+  /* Clears the fixed header, plus half a rem of air before the wordmark.
+     Expressed through the token rather than re-deriving the bar's height by
+     hand: this used to be its own arithmetic and had drifted from it. */
+  padding: calc(var(--header-h) + 0.5rem) var(--gutter) var(--space-3);
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: var(--space-2);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .scrollLine {
-    animation: none;
+.heading {
+  margin: 0;
+}
+
+/* The wordmark is the largest element on the page by a wide margin. A
+   Didone only reads as a masthead at this scale: below roughly 4rem its
+   hairlines thin out and it reverts to looking like a body serif. */
+.wordmark {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--type-mega);
+  /* Not --leading-display (0.88): the per-line mask used by the reveal is
+     sized to the line box, and at 0.88 the box cuts through the acute on
+     the uppercase I of FOTOGRAFIA. 1.0 is the tightest value that still
+     clears Spanish accents on a Didone at this size. */
+  line-height: 1.06;
+  letter-spacing: var(--tracking-display);
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.aside {
+  margin: 0;
+}
+
+/* Set as a label, not as body copy: at this size under a 9rem wordmark a
+   paragraph competes, a tracked-out line reads as a nameplate. */
+.asideText {
+  composes: eyebrow from global;
+  display: block;
+  line-height: 1.4;
+}
+
+@media (min-width: 900px) {
+  .wordmark {
+    /* Fills the band edge to edge at desktop, which is the entire point of
+       the composition. 9.6vw keeps "EME FOTOGRAFIA SEVILLA" on two lines
+       at every width above 900px without reaching the gutters. */
+    /* Zoom fix: was `min(9.6vw, 9.5rem)`, pure viewport units, so zooming in
+       made the masthead SMALLER (a narrower layout viewport shrinks a vw).
+       The rem term restores the zoom response while tracking the old curve
+       within ~1.5% at every width from 900px up, so the two-line break the
+       comment above depends on is unchanged. */
+    font-size: min(0.25rem + 9.3vw, 9.5rem);
   }
 }
 
-@keyframes scroll-cue {
-  0% { transform: scaleY(0.25); opacity: 0.35; }
-  50% { transform: scaleY(1); opacity: 1; }
-  100% { transform: scaleY(0.25); opacity: 0.35; }
+/* Mosaic band. Fills whatever the masthead leaves of the first screen.
+   overflow-x clip: the band's entrance scale-in (HeroMosaic) would
+   otherwise extend the page's scrollable width for a second. */
+.media {
+  position: relative;
+  flex: 1 1 auto;
+  overflow-x: clip;
 }
 
-.intro {
-  position: fixed;
-  inset: 0;
-  background: var(--color-ink);
-  color: var(--color-paper);
-  z-index: 300;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-serif);
-  font-size: var(--type-h1);
+/* Corner notes: four short claims pinned to the corners of the masthead,
+   arriving a beat after the wordmark. Desktop only -- on narrow screens
+   they would collide with the wordmark. */
+.corners {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: none;
 }
+@media (min-width: 900px) {
+  .corners {
+    display: contents;
+  }
+  /* A clear row above the wordmark for the top corner notes: la misma
+     línea de salida que el padding base de .masthead (línea 18) más el alto
+     de una nota de dos líneas. Antes rehacía la altura de la barra a mano
+     (--space-2 * 2 + 3.25rem), que es lo que ya se corrigió en styles/
+     globals.css y en el propio .masthead: el token es la única copia. */
+  .masthead {
+    padding-top: calc(var(--header-h) + 0.5rem + 2.6rem);
+  }
+}
+.corner {
+  composes: eyebrow from global;
+  position: absolute;
+  max-width: 24ch;
+  line-height: 1.5;
+  /* No opacity declared here on purpose: these four lines carry the
+     studio's actual claims and their resting state is visible. They used
+     to sit at `opacity: 0` waiting on a delayed animation to put them
+     back, which makes the copy's visibility contingent on that animation
+     running. See the fill-mode note below. */
+}
+@media (prefers-reduced-motion: no-preference) {
+  .corner {
+    /* `backwards`, not `forwards`. With `forwards` the element's own
+       resting opacity has to be 0 and the animation is what puts it back,
+       so anything that stops the animation from running leaves the copy
+       permanently invisible. With `backwards` the from-state applies only
+       during the delay, and when the animation finishes -- or never runs
+       at all -- the element falls back to its own style, which is
+       visible. Same fade on screen, no failure mode. */
+    animation: cornerIn var(--duration-base) var(--ease-standard) backwards;
+  }
+}
+/* Las notas superiores se apoyan en la misma línea que el padding base del
+   masthead, para que las cuatro esquinas y el wordmark salgan de un único
+   número (ver el comentario de .masthead). */
+.cornerTL { top: calc(var(--header-h) + 0.5rem); left: var(--gutter); animation-delay: 1s; }
+.cornerTR { top: calc(var(--header-h) + 0.5rem); right: var(--gutter); text-align: right; animation-delay: 1.1s; }
+.cornerBL { bottom: calc(var(--space-3) - 0.2rem); left: var(--gutter); animation-delay: 1.2s; }
+.cornerBR { bottom: calc(var(--space-3) - 0.2rem); right: var(--gutter); text-align: right; animation-delay: 1.3s; }
+@keyframes cornerIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+

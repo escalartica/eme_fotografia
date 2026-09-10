@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect, FormEvent, KeyboardEvent } from 'react';
+import Link from 'next/link';
 import { gsap } from 'gsap';
 import { site } from '@/content/site';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
@@ -7,19 +8,67 @@ import { motion } from '@/lib/motion-tokens';
 import styles from './ContactForm.module.css';
 
 // A4 (docs/PATRONES-AWWWARDS.md): one question per screen instead of a
-// wall of fields, cualifying the lead as they go. Register: "tú" singular
-// throughout, matching this project's own already-established copy
-// convention (content/faq.ts) -- NOT the source pattern's "vosotros",
-// which would break consistency with the rest of the site.
+// wall of fields, qualifying the lead as they go.
+//
+// REGISTER: "vosotros", the couple, like the rest of the site. This comment
+// used to claim the opposite -- that singular "tú" matched "this project's
+// own already-established copy convention (content/faq.ts)". That was simply
+// wrong: content/faq.ts is entirely in vosotros ("Escribidnos", "os
+// contestamos", "vuestra fecha", "si incluís", "no tenéis que coordinar"),
+// and so is every other public surface. The whole form was written in the
+// wrong person on the strength of a mistaken comment, and step 7 switched to
+// vosotros mid-form anyway.
+//
+// SIX steps, not eight. What changed and why:
+//  - `fecha` and `lugar` are now REQUIRED. The entire site promises "decidnos
+//    la fecha y el lugar y os decimos si estamos libres"; leaving the only two
+//    facts needed to keep that promise optional was the single most expensive
+//    thing in this form. Each carries a hint so a couple who has not closed
+//    the date yet is not blocked.
+//  - `comoNosConociste` is now OPTIONAL and LAST. It is attribution data:
+//    useful to the studio, worth nothing to the couple, and it used to block
+//    them on step 3 of 8 before they had said a word about their wedding.
+//  - `presupuesto` is GONE. Its placeholder ("Ej. 1500-2500€") was the only
+//    price anywhere on this site, against an explicit client decision not to
+//    publish rates -- and it anchored low.
+//  - `numeroInvitados` is GONE. It is not among the price variables the site
+//    itself declares in content/faq.ts (hours of coverage, preboda, album,
+//    travel), so it was asking for something nobody uses.
+//  - The two textareas are merged. The good question ("qué es lo más
+//    importante para vosotros ese día") was the optional one; the vague one
+//    ("Mensaje") was required.
 const TOTAL_STEPS = 6;
+
+/**
+ * The one place a field's problem is stated, and it stays stated.
+ * `role="alert"` so it is announced the moment it appears; the id matches
+ * the `aria-describedby` the input carries while it is invalid.
+ */
+function FieldError({ name, message }: { name: string; message?: string }) {
+  if (!message) return null;
+  return (
+    <p id={`${name}-error`} className={styles.fieldError} role="alert">
+      {message}
+    </p>
+  );
+}
 
 export function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
+  // Distingue "enviado" de "guardado pero no entregado": la ruta devuelve 200
+  // con delivered:false cuando no hay proveedor de correo configurado.
+  const [delivered, setDelivered] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState(0);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const reducedMotion = useReducedMotion();
   const stepRefs = useRef<Array<HTMLFieldSetElement | null>>([]);
+  // Campo concreto al que hay que ir cuando el paso cambie por una
+  // validación fallida (ver handleSubmit). Sin esto el efecto de abajo
+  // enfoca siempre el PRIMER campo del paso, que no tiene por qué ser el
+  // que está mal: el paso 3 tiene dos.
+  const pendingFocusRef = useRef<string | null>(null);
   // Skips the very first run of the effect below (mirrors
   // TrabajosFilter.tsx's own isFirstRenderRef) -- see that effect's own
   // comment for why.
@@ -42,8 +91,17 @@ export function ContactForm() {
     if (isFirstRenderRef.current) {
       isFirstRenderRef.current = false;
     } else {
-      const firstField = el.querySelector<HTMLElement>('input, select, textarea');
-      firstField?.focus();
+      const pending = pendingFocusRef.current;
+      pendingFocusRef.current = null;
+      const target =
+        (pending ? el.querySelector<HTMLElement>(`[name="${pending}"]`) : null) ??
+        el.querySelector<HTMLElement>('input, select, textarea');
+      target?.focus({ preventScroll: true });
+      // On a phone the soft keyboard takes the bottom half of the screen:
+      // centre the step so the field AND its "Siguiente" button stay above it.
+      if (window.matchMedia('(max-width: 959px)').matches) {
+        el.scrollIntoView({ block: 'center', behavior: reducedMotion ? 'auto' : 'smooth' });
+      }
     }
     if (reducedMotion) return;
     const ctx = gsap.context(() => {
@@ -51,6 +109,39 @@ export function ContactForm() {
     });
     return () => ctx.revert();
   }, [step, reducedMotion]);
+
+  // Persistent, readable errors. `reportValidity()` alone draws the
+  // browser's own bubble, which vanishes the moment the field loses focus:
+  // a visitor who tabbed away was left on a step that would not advance
+  // with nothing on screen saying why. The native message is still the
+  // source of the wording (it is already localised and phrased for the
+  // constraint), it is just kept on the page and wired to the input with
+  // aria-describedby so a screen reader reads it too.
+/**
+ * Los mensajes de error, escritos por nosotros.
+ *
+ * `field.validationMessage` es el texto del NAVEGADOR: en Chrome en español
+ * dice "Rellena este campo" y "Incluye un signo @ en la dirección de correo
+ * electrónico". Tutea, es genérico y aparece justo debajo de preguntas
+ * escritas en vosotros ("¿Cómo os llamáis?"), en el único formulario de la
+ * web y en el momento en que la pareja está a punto de abandonarlo. Cada
+ * mensaje dice además POR QUÉ hace falta el dato, que es lo que evita que
+ * alguien se levante sin enviarlo. El del navegador se queda de reserva para
+ * cualquier campo que no esté en esta tabla.
+ */
+const MENSAJES_ERROR: Record<string, string> = {
+  nombre: 'Poned vuestros nombres, para saber con quién hablamos.',
+  email: 'Necesitamos un correo válido: es por donde os contestamos.',
+  telefono: 'Ese teléfono no parece completo. Repasadlo, o dejadlo en blanco.',
+  fecha: 'Decidnos la fecha, aunque sea la que estáis barajando.',
+  lugar: 'Escribid el sitio y, si todavía no lo tenéis, la zona.',
+  tipoEvento: 'Elegid una opción para saber qué necesitáis.',
+  mensaje: 'Contadnos algo de vuestra boda, aunque sean dos líneas.',
+};
+
+function mensajeDeError(field: { name: string; validationMessage: string }): string {
+  return MENSAJES_ERROR[field.name] ?? field.validationMessage;
+}
 
   function currentStepFields() {
     const el = stepRefs.current[step];
@@ -61,11 +152,28 @@ export function ContactForm() {
   function goNext() {
     for (const field of currentStepFields()) {
       if (!field.checkValidity()) {
-        field.reportValidity();
+        setErrors((prev) => ({ ...prev, [field.name]: mensajeDeError(field) }));
+        field.focus();
         return;
       }
     }
     setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
+  }
+
+  /** Clears a field's error as soon as it becomes valid again. */
+  function clearError(name: string, valid: boolean) {
+    if (!valid) return;
+    setErrors((prev) => (prev[name] ? { ...prev, [name]: '' } : prev));
+  }
+
+  function fieldProps(name: string) {
+    const message = errors[name];
+    return {
+      'aria-invalid': message ? (true as const) : undefined,
+      'aria-describedby': message ? `${name}-error` : undefined,
+      onInput: (e: FormEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+        clearError(name, e.currentTarget.checkValidity()),
+    };
   }
 
   function goBack() {
@@ -86,7 +194,31 @@ export function ContactForm() {
     e.preventDefault();
     const form = e.currentTarget;
     if (!form.checkValidity()) {
-      form.reportValidity();
+      const next: Record<string, string> = {};
+      let first: HTMLInputElement | null = null;
+      for (const field of Array.from(form.elements) as HTMLInputElement[]) {
+        if (field.name && field.willValidate && !field.checkValidity()) {
+          next[field.name] = mensajeDeError(field);
+          first = first ?? field;
+        }
+      }
+      setErrors(next);
+      // Saltar AL PASO donde está el error, no solo enfocarlo. Los seis
+      // fieldsets siguen montados y solo se ocultan con `hidden`, así que
+      // focus() sobre un campo de un paso oculto no hace absolutamente
+      // nada: el botón "Consultar disponibilidad" parecía no responder y
+      // el mensaje de error se pintaba en una pantalla que no se veía
+      // (WCAG 3.3.1). Pasa en cuanto se vuelve Atrás y se borra un campo
+      // ya rellenado, que es exactamente lo que hace quien se corrige.
+      if (first) {
+        const stepIndex = stepRefs.current.findIndex((el) => el?.contains(first));
+        if (stepIndex >= 0 && stepIndex !== step) {
+          pendingFocusRef.current = first.getAttribute('name');
+          setStep(stepIndex);
+        } else {
+          first.focus();
+        }
+      }
       return;
     }
     setIsSubmitting(true);
@@ -97,19 +229,71 @@ export function ContactForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      let body: { delivered?: boolean; error?: string } = {};
+      try {
+        body = (await res.json()) as typeof body;
+      } catch {
+        /* no JSON body */
+      }
       if (!res.ok) {
-        setError(`No hemos podido enviar tu mensaje. Escríbenos directamente a ${site.email}`);
+        setError(body.error || `No hemos podido enviar vuestro mensaje. Escribidnos directamente a ${site.email}`);
         return;
       }
+      // Leer `delivered`, no solo `res.ok`. app/api/contacto/route.ts devuelve
+      // 200 con delivered:false cuando no hay RESEND_API_KEY: el mensaje queda
+      // guardado en /admin/mensajes pero NADIE recibe aviso. Mirando solo
+      // res.ok, el formulario le decía a la pareja "tu mensaje ya está en
+      // nuestro correo" y el estudio no se enteraba. Reproducido en el
+      // navegador: {status: 200, ok: true, delivered: false}.
+      setDelivered(body.delivered === true);
       setSubmitted(true);
     } catch {
-      setError(`No hemos podido enviar tu mensaje. Escríbenos directamente a ${site.email}`);
+      setError(`No hemos podido enviar vuestro mensaje. Escribidnos directamente a ${site.email}`);
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  if (submitted) return <p role="status">Gracias, hemos recibido tu mensaje. Te responderemos lo antes posible.</p>;
+  if (submitted) {
+    return (
+      <div role="status" className={styles.success}>
+        {delivered ? (
+          <>
+            <p className={styles.successTitle}>Mensaje enviado. Ya lo tenemos.</p>
+            <p>
+              Os contestamos personalmente con nuestra disponibilidad para vuestra fecha. Si en un par de días no
+              veis respuesta, mirad en la carpeta de spam: os escribimos desde{' '}
+              <a href={`mailto:${site.email}`}>{site.email}</a>.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className={styles.successTitle}>
+              Hemos guardado vuestro mensaje, pero no hemos podido hacérselo llegar al equipo.
+            </p>
+            <p>
+              Para que no se quede en el aire, escribidnos vosotros directamente a{' '}
+              <a href={`mailto:${site.email}`}>{site.email}</a> o por WhatsApp al{' '}
+              <a href={`https://wa.me/${site.whatsappNumber}`} target="_blank" rel="noopener noreferrer">
+                {site.phoneDisplay}
+              </a>
+              , con la fecha y el sitio de la boda. Perdonad el rodeo.
+            </p>
+          </>
+        )}
+        <div className={styles.successLinks}>
+          <Link href="/trabajos" className={styles.successLink}>
+            Ver trabajos
+            <span className="arrow" aria-hidden="true">↗</span>
+          </Link>
+          <a href={site.instagramUrl} target="_blank" rel="noopener noreferrer" className={styles.successLink}>
+            {site.instagramHandle}
+            <span className="arrow" aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
@@ -123,6 +307,21 @@ export function ContactForm() {
       >
         <div className={styles.progressBar} style={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }} />
       </div>
+      <p className={styles.stepCounter} aria-hidden="true">
+        {String(step + 1).padStart(2, '0')} / {String(TOTAL_STEPS).padStart(2, '0')}
+      </p>
+      {/* El cambio de paso sí se ve (el contador de arriba) pero no se oía.
+          El aria-label del progressbar no sirve: cambiar un atributo no
+          dispara ningún anuncio, y el contador va aria-hidden porque
+          "01 / 06" leído en alto no es una frase. Mover el foco al campo
+          nuevo hace que se lea la pregunta y la etiqueta, pero no en qué
+          punto de seis está la pareja -- que es lo que decide si se sigue
+          o se abandona a mitad. Esta región lo dice, y solo eso (WCAG
+          4.1.3). No se anuncia al cargar: aria-live únicamente notifica
+          los cambios posteriores al primer renderizado. */}
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        Paso {step + 1} de {TOTAL_STEPS}
+      </p>
 
       <fieldset
         ref={(el) => { stepRefs.current[0] = el; }}
@@ -130,9 +329,10 @@ export function ContactForm() {
         className={styles.step}
         onKeyDown={handleStepKeyDown}
       >
-        <legend className={styles.question}>¿Cómo te llamas?</legend>
-        <label htmlFor="nombre" className={styles.fieldLabel}>Nombre</label>
-        <input id="nombre" name="nombre" autoComplete="name" required />
+        <legend className={styles.question}>¿Cómo os llamáis?</legend>
+        <label htmlFor="nombre" className={styles.fieldLabel}>Vuestros nombres</label>
+        <input id="nombre" name="nombre" autoComplete="name" required {...fieldProps('nombre')} />
+        <FieldError name="nombre" message={errors.nombre} />
       </fieldset>
 
       <fieldset
@@ -141,38 +341,58 @@ export function ContactForm() {
         className={styles.step}
         onKeyDown={handleStepKeyDown}
       >
-        <legend className={styles.question}>¿Cuál es tu correo electrónico?</legend>
+        <legend className={styles.question}>¿A qué correo os contestamos?</legend>
         <label htmlFor="email" className={styles.fieldLabel}>Correo electrónico</label>
-        <input id="email" name="email" type="email" autoComplete="email" required />
+        <input id="email" name="email" type="email" autoComplete="email" required {...fieldProps('email')} />
+        <FieldError name="email" message={errors.email} />
       </fieldset>
 
+      {/* Las dos preguntas que el estudio necesita para poder contestar, y
+          por eso obligatorias. Las frases de ayuda son lo que permite exigirlas
+          sin perder a quien todavía no tiene el sitio cerrado. */}
       <fieldset
         ref={(el) => { stepRefs.current[2] = el; }}
         hidden={step !== 2}
         className={styles.step}
         onKeyDown={handleStepKeyDown}
       >
-        <legend className={styles.question}>¿Qué vamos a celebrar?</legend>
-        <label htmlFor="tipoEvento" className={styles.fieldLabel}>Tipo de evento</label>
-        <select id="tipoEvento" name="tipoEvento" required defaultValue="">
-          <option value="" disabled>Selecciona una opción</option>
-          <option value="boda">Boda</option>
-          <option value="evento">Evento corporativo</option>
-          <option value="otro">Otro</option>
-        </select>
+        <legend className={styles.question}>¿Cuándo y dónde es la boda?</legend>
+        <label htmlFor="fecha" className={styles.fieldLabel}>Fecha</label>
+        <input id="fecha" name="fecha" type="date" required {...fieldProps('fecha')} />
+        <p className={styles.fieldHint}>Si todavía no está cerrada, poned la que estáis barajando.</p>
+        <FieldError name="fecha" message={errors.fecha} />
+
+        <label htmlFor="lugar" className={styles.fieldLabel}>Lugar o pueblo</label>
+        <input
+          id="lugar"
+          name="lugar"
+          placeholder="Ej. una hacienda en Sevilla"
+          required
+          {...fieldProps('lugar')}
+        />
+        <p className={styles.fieldHint}>Si aún estáis viendo sitios, decidnos la zona.</p>
+        <FieldError name="lugar" message={errors.lugar} />
       </fieldset>
 
+      {/* Sustituye a "¿Qué vamos a celebrar?" (Boda / Evento corporativo /
+          Otro), que aportaba poco en una web que solo habla de bodas. Esta es
+          literalmente la primera variable de precio que declara content/faq.ts. */}
       <fieldset
         ref={(el) => { stepRefs.current[3] = el; }}
         hidden={step !== 3}
         className={styles.step}
         onKeyDown={handleStepKeyDown}
       >
-        <legend className={styles.question}>¿Cuándo y dónde?</legend>
-        <label htmlFor="fecha" className={styles.fieldLabel}>Fecha aproximada</label>
-        <input id="fecha" name="fecha" type="date" />
-        <label htmlFor="lugar" className={styles.fieldLabel}>Lugar del evento</label>
-        <input id="lugar" name="lugar" placeholder="Ej. Hacienda de San Rafael, Sevilla" />
+        <legend className={styles.question}>¿Qué queréis que cubramos?</legend>
+        <label htmlFor="tipoEvento" className={styles.fieldLabel}>Cobertura</label>
+        <select id="tipoEvento" name="tipoEvento" required defaultValue="" {...fieldProps('tipoEvento')}>
+          <option value="" disabled>Elegid una opción</option>
+          <option value="foto">Solo fotografía</option>
+          <option value="video">Solo vídeo</option>
+          <option value="foto-y-video">Fotografía y vídeo</option>
+          <option value="por-decidir">Todavía no lo tenemos decidido</option>
+        </select>
+        <FieldError name="tipoEvento" message={errors.tipoEvento} />
       </fieldset>
 
       <fieldset
@@ -181,22 +401,39 @@ export function ContactForm() {
         className={styles.step}
         onKeyDown={handleStepKeyDown}
       >
-        <legend className={styles.question}>Un par de detalles más</legend>
-        <label htmlFor="numeroInvitados" className={styles.fieldLabel}>Número de invitados, más o menos</label>
-        <input id="numeroInvitados" name="numeroInvitados" type="number" min="0" placeholder="Ej. 80" />
-        <label htmlFor="presupuesto" className={styles.fieldLabel}>Presupuesto aproximado, si ya lo tienes</label>
-        <input id="presupuesto" name="presupuesto" placeholder="Ej. 1500-2500€" />
+        <legend className={styles.question}>¿Qué es lo más importante para vosotros ese día?</legend>
+        <label htmlFor="mensaje" className={styles.fieldLabel}>Contádnoslo con vuestras palabras</label>
+        <textarea
+          id="mensaje"
+          name="mensaje"
+          required
+          placeholder="Ej. fotos naturales, sin posados forzados; que no se note que estáis…"
+          {...fieldProps('mensaje')}
+        />
+        <FieldError name="mensaje" message={errors.mensaje} />
       </fieldset>
 
+      {/* Último y opcional: es dato de atribución para el estudio, no algo
+          que le sirva a la pareja. Antes bloqueaba en el paso 3 de 8. */}
       <fieldset
         ref={(el) => { stepRefs.current[5] = el; }}
         hidden={step !== 5}
         className={styles.step}
         onKeyDown={handleStepKeyDown}
       >
-        <legend className={styles.question}>Cuéntanos un poco más</legend>
-        <label htmlFor="mensaje" className={styles.fieldLabel}>Mensaje</label>
-        <textarea id="mensaje" name="mensaje" required />
+        <legend className={styles.question}>¿Cómo nos habéis encontrado?</legend>
+        <label htmlFor="comoNosConociste" className={styles.fieldLabel}>
+          Nos ayuda a saber dónde nos encuentran
+        </label>
+        <select id="comoNosConociste" name="comoNosConociste" defaultValue="">
+          <option value="">Prefiero no decirlo</option>
+          <option value="instagram">Instagram</option>
+          <option value="google">Google</option>
+          <option value="bodas-net">Bodas.net</option>
+          <option value="recomendacion">Recomendación de otra pareja</option>
+          <option value="feria">Feria de bodas</option>
+          <option value="otro">Otro</option>
+        </select>
       </fieldset>
 
       {error && <p role="alert">{error}</p>}
@@ -210,7 +447,9 @@ export function ContactForm() {
         {step < TOTAL_STEPS - 1 ? (
           <button type="button" onClick={goNext}>Siguiente</button>
         ) : (
-          <button type="submit" disabled={isSubmitting}>Enviar</button>
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Enviando…' : 'Consultar disponibilidad'}
+          </button>
         )}
       </div>
     </form>

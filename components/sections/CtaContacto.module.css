@@ -1,98 +1,111 @@
-/* Bespoke to this section (final whole-branch review, finding I2): the
-   previous version of this file was the exact `.section { max-width;
-   margin-inline: auto; padding-block; text-align: center }` idiom the plan's
-   first locked decision forbids everywhere else -- on the one section the
-   plan's own rationale names by name as the textbook "hero genérico con
-   CTA relocated to the page bottom" offender. Full-bleed width via
-   `.breakout` (the sitewide technique for exactly this), heading/paragraph
-   left-aligned in a wider column, badge in a narrower column bottom-aligned
-   to the right at desktop -- an asymmetric two-column composition, not a
-   centered stack. */
 .section {
-  composes: breakout from global;
-  display: grid;
-  grid-template-columns: 1fr;
-  align-items: start;
-  gap: var(--space-3);
-  padding-block: var(--space-5) var(--space-4);
-  padding-inline: var(--space-3);
-}
-@media (min-width: 700px) {
-  .section {
-    grid-template-columns: 2fr 1fr;
-    align-items: end;
-  }
-}
-
-.section h2 {
-  font-family: var(--font-serif);
-  font-size: var(--type-h1);
-  line-height: 0.95;
-  margin: 0;
-  max-width: 14ch;
-}
-/* <em>'s own UA-default italic is enough on its own (real italic cut,
-   see app/layout.tsx's font config, not a synthesized slant) -- this
-   class exists so the intent is explicit in the markup/styles rather
-   than relying on the browser default silently doing the right thing. */
-.emphasis {
-  font-style: italic;
-}
-
-.section p {
-  color: var(--color-muted);
-  margin: var(--space-2) 0 0;
-  max-width: 30ch;
-}
-
-.badge {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: clamp(7rem, 6rem + 4vw, 9rem);
-  height: clamp(7rem, 6rem + 4vw, 9rem);
-  justify-self: start;
-  text-decoration: none;
-  cursor: pointer;
-  transition: opacity var(--duration-fast) var(--ease-standard);
+  isolation: isolate;
+  min-height: clamp(30rem, 82svh, 46rem);
+  display: grid;
+  place-items: center;
+  padding: var(--space-5) var(--gutter);
+  overflow: hidden;
+  /* Constant, not the theme token: this section's text sits on a photo
+     plus a fixed dark scrim (.scrim below, rgba(6, 6, 6, ...)), not on
+     the page's own paper -- see --color-night-text in styles/tokens.css
+     for the same reasoning applied to nightBlock and the Lightbox. */
+  color: var(--color-night-text);
 }
-@media (min-width: 700px) {
-  .badge {
-    justify-self: end;
-  }
+
+.background {
+  object-fit: cover;
 }
-.badge:hover,
-.badge:focus-visible {
-  opacity: 0.75;
+
+/* The outer element ScrollParallax itself renders (position:absolute,
+   see its own doc comment on this className prop) needs the negative
+   z-index that used to live on .background directly -- .content below is
+   a non-positioned grid item, not position:absolute, so this section's
+   stacking (unlike EditorialSpread's panoramic variant) relies on
+   negative z-index rather than DOM order to keep the photo and scrim
+   behind it. */
+.parallaxLayer {
+  z-index: -2;
 }
-.badge:focus-visible {
-  outline: 2px solid var(--color-ink);
-  outline-offset: 4px;
-}
-.badgeRing {
+
+.scrim {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-scrim) 32%, transparent) 0%, color-mix(in srgb, var(--color-scrim) 62%, transparent) 55%, color-mix(in srgb, var(--color-scrim) 72%, transparent) 100%);
 }
-.badgeRingSpin {
-  animation: cta-badge-spin 14s linear infinite;
+
+.content {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: var(--space-2);
+  max-width: 46rem;
 }
-.badgeText {
+
+/* Small, italic, lowercase, sitting on top of the statement: the pairing
+   Belle Photo uses for its closing block ("Let's Create" over "SOMETHING
+   BEAUTIFUL"). */
+.lead {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--type-lead);
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--color-night-text) 90%, transparent);
+}
+
+.heading {
+  composes: display from global;
+  color: var(--color-night-text);
+  font-size: var(--type-h1);
+  line-height: 1.02;
+  margin: 0;
+}
+
+.body {
+  margin: 0;
   font-family: var(--font-sans);
-  font-size: 15px;
-  letter-spacing: 0.05em;
-  fill: var(--color-ink);
-  text-transform: uppercase;
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  color: color-mix(in srgb, var(--color-night-text) 82%, transparent);
+  max-width: 42ch;
+  text-wrap: pretty;
 }
-.badgeArrow {
-  font-size: 1.75rem;
-  color: var(--color-accent);
-  line-height: 1;
+
+.cta {
+  composes: arrowLink from global;
+  margin-top: var(--space-2);
+  color: var(--color-night-text);
 }
-@keyframes cta-badge-spin {
-  to {
-    transform: rotate(360deg);
+
+/* The global :focus-visible resolves to --color-ink, which in dark mode
+   is a light color invisible against this section's own always-dark
+   scrim. Override with the constant instead. */
+.section :focus-visible {
+  outline: 2px solid var(--color-night-text);
+  outline-offset: 4px;
+}
+
+/* The spinning badge sits in the lower-right corner, over the photograph. */
+.badge {
+  position: absolute;
+  right: var(--gutter);
+  bottom: var(--gutter);
+  /* La constante, no --color-paper: RotatingBadge pinta su texto circular
+     con `fill: currentColor` y la flecha con `color: currentColor`, así que
+     esta línea es la que decide si la insignia se ve. .section (arriba) ya
+     ponía bien --color-night-text y este override la deshacía: sobre el
+     scrim al 72 % de esta sección daba 1,32:1 en oscuro (13,06:1 en claro),
+     es decir, se borraba justo en el cierre de la home. */
+  color: var(--color-night-text);
+  z-index: 1;
+}
+@media (max-width: 899px) {
+  .badge {
+    right: var(--gutter);
+    bottom: var(--space-2);
   }
 }

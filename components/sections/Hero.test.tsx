@@ -1,22 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 
-const { gsapTo, gsapSet, gsapTimeline, gsapQuickTo, timelineInstance, quickToFn } = vi.hoisted(() => {
-  // A shared chainable stub returned by every gsap.timeline() call, so tests
-  // can assert on the tween(s) added to it via .fromTo/.to/.set.
-  const timelineInstance = {
-    fromTo: vi.fn().mockReturnThis(),
-    to: vi.fn().mockReturnThis(),
-    set: vi.fn().mockReturnThis(),
-  };
-  const quickToFn = vi.fn();
+const { gsapTo, gsapSet, gsapFrom, splitTextCreate, splitInstance } = vi.hoisted(() => {
+  const splitInstance = { chars: ['e', 'm', 'e'], revert: vi.fn() };
   return {
     gsapTo: vi.fn(),
     gsapSet: vi.fn(),
-    gsapTimeline: vi.fn(() => timelineInstance),
-    gsapQuickTo: vi.fn(() => quickToFn),
-    timelineInstance,
-    quickToFn,
+    gsapFrom: vi.fn(),
+    splitTextCreate: vi.fn(() => splitInstance),
+    splitInstance,
   };
 });
 
@@ -24,8 +16,7 @@ vi.mock('gsap', () => ({
   gsap: {
     to: gsapTo,
     set: gsapSet,
-    timeline: gsapTimeline,
-    quickTo: gsapQuickTo,
+    from: gsapFrom,
     registerPlugin: vi.fn(),
     context: vi.fn().mockImplementation((cb: () => void) => {
       cb();
@@ -34,6 +25,12 @@ vi.mock('gsap', () => ({
   },
 }));
 vi.mock('gsap/ScrollTrigger', () => ({ ScrollTrigger: {} }));
+vi.mock('gsap/SplitText', () => ({ SplitText: { create: splitTextCreate } }));
+// The mosaic has its own test (HeroMosaic.test.tsx) and its own gsap needs
+// (quickTo, timeline) that the minimal gsap stub above does not provide.
+vi.mock('./HeroMosaic', () => ({ HeroMosaic: () => <div data-testid="hero-mosaic" /> }));
+// The title sequence has its own test (components/motion/CinematicIntro.test.tsx).
+vi.mock('@/components/motion/CinematicIntro', () => ({ CinematicIntro: () => <div data-testid="intro-sequence" /> }));
 
 import { Hero } from './Hero';
 
@@ -55,15 +52,14 @@ function mockMatchMedia(overrides: Record<string, boolean>) {
 }
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
-const HOVER_FINE_QUERY = '(hover: hover) and (pointer: fine)';
 
 describe('Hero', () => {
   beforeEach(() => {
     sessionStorage.clear();
     // jsdom has no real media pipeline: HTMLMediaElement.prototype.play/pause
     // throw "not implemented" unless stubbed. Mirrors VideoPreview.test.tsx.
-    (window.HTMLMediaElement.prototype as any).play = vi.fn().mockResolvedValue(undefined);
-    (window.HTMLMediaElement.prototype as any).pause = vi.fn();
+    window.HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);
+    window.HTMLMediaElement.prototype.pause = vi.fn();
   });
   afterEach(() => vi.clearAllMocks());
 
@@ -78,10 +74,20 @@ describe('Hero', () => {
     expect(screen.queryByTestId('intro-sequence')).not.toBeInTheDocument();
   });
 
+  it('renders the mosaic band beneath the masthead', () => {
+    render(<Hero />);
+    expect(screen.getByTestId('hero-mosaic')).toBeInTheDocument();
+  });
+
   it('always renders the hero headline communicating who/what/why', () => {
     render(<Hero />);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/EME Fotografía Sevilla/i);
-    expect(screen.getByText(/bodas/i)).toBeInTheDocument();
+    // Both assertions on the H1 itself. A bare getByText(/bodas/i) matched
+    // four elements -- the heading, the standfirst and two corner notes --
+    // and threw. What this test is about is the HEADING saying who and
+    // what, so that is what it should look at.
+    const heading = screen.getByRole('heading', { level: 1 });
+    expect(heading).toHaveTextContent(/EME Fotografía Sevilla/i);
+    expect(heading).toHaveTextContent(/bodas/i);
   });
 
   it('never leaves the intro sequence stuck on screen when the OS reports reduced motion', () => {
@@ -118,146 +124,47 @@ describe('Hero', () => {
     }
   });
 
-  it('sets up a contained parallax tween on the hero image when motion is not reduced', () => {
-    render(<Hero />);
-    expect(gsapTo).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({
-        scrollTrigger: expect.objectContaining({ trigger: expect.anything() }),
-      })
-    );
-  });
-
-  it('renders the real wedding footage as the hero background video, with its poster', () => {
-    render(<Hero />);
-    const video = document.querySelector('video');
-    expect(video).toBeInTheDocument();
-    expect(video?.getAttribute('src')).toContain('real-boda-01-hero-drone.mp4');
-    expect(video?.getAttribute('poster')).toContain('real-boda-01-hero-drone.webp');
-    expect((video as HTMLVideoElement).muted).toBe(true);
-    expect(video).toHaveAttribute('loop');
-    expect(video).toHaveAttribute('playsinline');
-  });
-
-  it('plays the hero video imperatively when motion is not reduced', () => {
-    render(<Hero />);
-    expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalled();
-  });
-
-  it('never calls .play() on the hero video when motion is reduced, showing the static poster instead', () => {
-    // Same real-matchMedia-override pattern as the other reduced-motion tests
-    // in this file: drive the real useReducedMotion hook to `true`.
-    const originalMatchMedia = window.matchMedia;
-    window.matchMedia = ((query: string) => ({
-      matches: true,
-      media: query,
-      onchange: null,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      addListener: () => {},
-      removeListener: () => {},
-      dispatchEvent: () => false,
-    })) as unknown as typeof window.matchMedia;
-
-    try {
-      render(<Hero />);
-      expect(window.HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
-    } finally {
-      window.matchMedia = originalMatchMedia;
-    }
-  });
-
-  it('does not set up parallax when motion is reduced', () => {
-    // Same real-matchMedia-override pattern as the stuck-intro-overlay
-    // regression test above: drive the real useReducedMotion hook to `true`
-    // rather than mocking the hook itself, since this file establishes that
-    // convention already.
-    const originalMatchMedia = window.matchMedia;
-    window.matchMedia = ((query: string) => ({
-      matches: true,
-      media: query,
-      onchange: null,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      addListener: () => {},
-      removeListener: () => {},
-      dispatchEvent: () => false,
-    })) as unknown as typeof window.matchMedia;
-
-    try {
-      render(<Hero />);
-      expect(gsapTo).not.toHaveBeenCalled();
-    } finally {
-      window.matchMedia = originalMatchMedia;
-    }
-  });
-
-  it('reveals the wordmark lines with a staggered GSAP timeline once the intro is resolved and motion is not reduced', () => {
+  it('reveals the wordmark per character via a masked SplitText once the intro is resolved and motion is not reduced', async () => {
     // Simulate a repeat visit (sessionStorage already marks the intro as
     // shown) so `introResolved` flips `true` synchronously on mount, same
     // convention as "skips the intro sequence on a later mount" above --
     // this is what lets the reveal effect's guard clear without needing to
-    // advance fake timers past the 1400ms first-visit intro.
+    // advance fake timers past the 900ms first-visit intro. The split itself
+    // is deferred behind `document.fonts.ready` (stubbed resolved in
+    // vitest.setup.ts), so the assertion has to wait a tick for that
+    // microtask to flush.
     sessionStorage.setItem('eme-intro-shown', 'true');
     render(<Hero />);
-    expect(gsapTimeline).toHaveBeenCalled();
-    expect(timelineInstance.fromTo).toHaveBeenCalledWith(
+    await waitFor(() => expect(splitTextCreate).toHaveBeenCalled());
+    // objectContaining, not deep equality: Hero also passes `aria: 'none'`
+    // (SplitText must not put aria-label on a generic <span>; the h1's name
+    // comes from its sr-only copy). What this test cares about is the split
+    // type and the line mask, not the full options bag.
+    expect(splitTextCreate).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ opacity: 0 }),
-      expect.objectContaining({ opacity: 1, stagger: expect.any(Number) })
+      expect.objectContaining({ type: 'chars,lines', mask: 'lines' })
+    );
+    expect(gsapFrom).toHaveBeenCalledWith(
+      splitInstance.chars,
+      expect.objectContaining({ yPercent: 115, stagger: expect.any(Number) })
     );
   });
 
-  it('does not run the wordmark reveal timeline when motion is reduced', () => {
+  it('does not run the wordmark reveal when motion is reduced', async () => {
     // Same real-matchMedia-override pattern as the other reduced-motion
     // tests in this file: drive the real useReducedMotion hook to `true`.
     const originalMatchMedia = window.matchMedia;
     window.matchMedia = mockMatchMedia({ [REDUCED_MOTION_QUERY]: true });
 
     try {
+      sessionStorage.setItem('eme-intro-shown', 'true');
       render(<Hero />);
-      expect(gsapTimeline).not.toHaveBeenCalled();
+      // Flush the document.fonts.ready microtask queue the same way the
+      // positive-case test waits for it, then confirm it never fired.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(splitTextCreate).not.toHaveBeenCalled();
     } finally {
       window.matchMedia = originalMatchMedia;
     }
-  });
-
-  it('sets up cursor-reactive quickTo tweens on a fine-pointer, hover-capable (desktop) viewport when motion is not reduced', () => {
-    const originalMatchMedia = window.matchMedia;
-    window.matchMedia = mockMatchMedia({ [HOVER_FINE_QUERY]: true });
-
-    try {
-      render(<Hero />);
-      expect(gsapQuickTo).toHaveBeenCalledWith(expect.anything(), 'x', expect.anything());
-      expect(gsapQuickTo).toHaveBeenCalledWith(expect.anything(), 'y', expect.anything());
-    } finally {
-      window.matchMedia = originalMatchMedia;
-    }
-  });
-
-  it('does not set up cursor-reactive quickTo tweens when motion is reduced', () => {
-    const originalMatchMedia = window.matchMedia;
-    // Reduced motion AND (irrelevant, but realistic) a fine pointer present --
-    // the reduced-motion gate alone must be enough to skip quickTo.
-    window.matchMedia = mockMatchMedia({ [REDUCED_MOTION_QUERY]: true, [HOVER_FINE_QUERY]: true });
-
-    try {
-      render(<Hero />);
-      expect(gsapQuickTo).not.toHaveBeenCalled();
-    } finally {
-      window.matchMedia = originalMatchMedia;
-    }
-  });
-
-  it('does not set up cursor-reactive quickTo tweens on a touch-only viewport (no hover, no fine pointer)', () => {
-    // No override needed for the touch case: the jsdom-less default stub in
-    // vitest.setup.ts already returns `matches: false` for every query,
-    // which doubles as "no hover: hover, no pointer: fine" here -- this is
-    // exactly the environment every other test in this file already runs
-    // under implicitly. Spelled out explicitly (rather than just relying on
-    // the implicit default) so this guarantee has its own named regression
-    // test, per the task brief's touch-device requirement.
-    render(<Hero />);
-    expect(gsapQuickTo).not.toHaveBeenCalled();
   });
 });

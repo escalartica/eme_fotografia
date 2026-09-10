@@ -3,6 +3,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import { ScrollParallax } from '@/components/motion/ScrollParallax';
+import { motion } from '@/lib/motion-tokens';
+import { focusOf } from '@/lib/focal';
 import styles from './EditorialSpread.module.css';
 
 export interface EditorialSpreadMedia {
@@ -83,7 +85,7 @@ export function EditorialSpread({
   const link = (
     <Link
       href={href}
-      aria-label={`Ver proyecto ${title}`}
+      aria-label={`Ver reportaje ${title}`}
       data-cursor="ver"
       onClick={onClick}
       className={`${styles.spread} ${variantClass(variant)}`}
@@ -108,7 +110,20 @@ export function EditorialSpread({
   }
 
   return (
-    <ScrollReveal className={className} delay={delay} clipReveal>
+    <ScrollReveal
+      className={className}
+      delay={delay}
+      clipReveal
+      // The panoramic variant is the one deliberate "establishing shot" in
+      // this system (a Cinemascope crop, see EditorialSpread.module.css's
+      // .panoramicImageWrap) -- letting its curtain lift noticeably slower
+      // than every other card's is what makes it read as a held beat
+      // rather than the same reveal at a wider aspect ratio. A per-instance
+      // override (ScrollReveal's `duration` prop) rather than changing
+      // `motion.duration.slow` itself, which every other reveal on the
+      // site also uses.
+      duration={variant === 'panoramic' ? motion.duration.slow * 1.5 : undefined}
+    >
       {link}
     </ScrollReveal>
   );
@@ -151,6 +166,7 @@ function MediaFrame({
       height={media.height}
       sizes={sizes}
       className={className}
+      style={focusOf(media.type === 'video' ? media.poster : media.src)}
     />
   );
   if (media.type !== 'video') return image;
@@ -249,7 +265,10 @@ function Panoramic({
         {image.type === 'video' ? (
           <MediaFrame media={image} sizes="100vw" className={styles.panoramicImage} />
         ) : (
-          <ScrollParallax>
+          // Restrained drift (5% vs the default 8%) -- a wide establishing
+          // shot reads as held and deliberate; the default amount of
+          // travel on a frame this size starts to look like a slide.
+          <ScrollParallax strength={5}>
             <MediaFrame media={image} sizes="100vw" className={styles.panoramicImage} />
           </ScrollParallax>
         )}

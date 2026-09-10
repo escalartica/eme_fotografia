@@ -1,0 +1,183 @@
+/* The band is the viewport onto a strip wider than the page. Its height
+   is set by the component to the tallest column (like the reference's
+   .c-home__parallax), so the whole mosaic is part of the page's own
+   height and the reader scrolls through it while the columns climb at
+   different rates. The value here is only the pre-measure fallback. */
+.band {
+  position: relative;
+  width: 100%;
+  height: 120vw;
+  overflow: hidden;
+  will-change: transform;
+  margin-block-end: var(--space-3);
+}
+
+/* 130vw strip, centred by the pan script (starts at -15vw). On touch
+   widths it is the plain page width and the columns after the third are
+   simply not rendered (see .col). */
+.inner {
+  width: 130vw;
+  transform: translate3d(-15vw, 0, 0);
+  will-change: transform;
+}
+@media (max-width: 899px) {
+  .inner {
+    width: 100%;
+    transform: none;
+    will-change: auto;
+  }
+}
+
+.grid {
+  display: flex;
+  gap: var(--space-1);
+  padding: 0 var(--space-1);
+  width: 100%;
+  /* Room above so the staggered columns start below the masthead's
+     baseline, and the first frames sit at varied heights. */
+  padding-top: 2vw;
+}
+
+.col {
+  flex: 1 1 0;
+  min-width: 0;
+}
+@media (max-width: 899px) {
+  .col:nth-child(n + 4) {
+    display: none;
+  }
+}
+
+/* Stagger: columns 2 and 4 start lowest, 3 in between, 1 and 5 highest. */
+.col[data-col='2'] .item,
+.col[data-col='4'] .item {
+  margin-top: 22.5vw;
+}
+.col[data-col='3'] .item {
+  margin-top: 9.5vw;
+}
+@media (max-width: 899px) {
+  .col[data-col='2'] .item {
+    margin-top: 28vw;
+  }
+  .col[data-col='3'] .item {
+    margin-top: 12vw;
+  }
+}
+
+.item {
+  will-change: transform;
+}
+
+.link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-bottom: var(--space-3);
+  color: var(--color-ink);
+  text-decoration: none;
+  cursor: pointer;
+}
+.link:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 4px;
+}
+
+/* The frame takes the photograph's own shape (--tile-ar, set inline from
+   the file's real pixel size), falling back to 3:4.
+   ---------------------------------------------------------------------
+   It used to be 3:4 for every tile "so five weddings read as one
+   composition". The cost of that uniformity was measured, not felt: two
+   thirds of the tiles in this mosaic are 3:2 landscape photographs, and a
+   3:2 photograph in a 3:4 box shows 50% of its width. Half of every one of
+   those frames was being thrown away -- which is why the couples looked
+   cut off. No focal point can fix that; there is no position at which a
+   missing half comes back.
+   What actually holds the composition together is the column rhythm, the
+   stagger and the shared grade, not identical rectangles. Tiles of
+   different heights read as a photographer's mosaic; identical ones read
+   as a grid of thumbnails.
+
+   The TOP tile is the exception and stays 3:4 (.wrapTop below): it
+   crossfades between frames, so its height must not change mid-cycle.
+   Every frame that tile can show is portrait, checked in content/mosaic.ts. */
+.wrap {
+  position: relative;
+  aspect-ratio: var(--tile-ar, 3 / 4);
+  width: 100%;
+  overflow: hidden;
+  background: var(--color-hairline);
+  will-change: transform;
+}
+
+.wrapTop {
+  aspect-ratio: 3 / 4;
+}
+
+/* The clip fades over its poster only once it is genuinely playing, so a
+   refused or buffering autoplay degrades to the photograph rather than to
+   whatever the first frame happens to be. */
+.clip {
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-standard);
+}
+
+.clip[data-playing='true'] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clip { display: none; }
+}
+
+.media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: var(--photo-grade);
+}
+
+/* Backlit frames do not want the grade. Less saturation takes the orange
+   out, a touch more brightness lifts the background back towards the white
+   it is in the original file, and the contrast bump is dropped so the
+   shadows stop closing up. Measured against its neighbours in the column,
+   not guessed. */
+.soft {
+  filter: saturate(0.84) brightness(1.04);
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.name {
+  composes: eyebrow from global;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0);
+  color: var(--color-ink);
+  padding-inline: var(--space-0);
+}
+.meta {
+  color: var(--color-muted);
+  text-transform: none;
+  letter-spacing: 0.04em;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .link:hover .name {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+    text-decoration-thickness: 1px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .band,
+  .inner,
+  .item,
+  .wrap {
+    will-change: auto;
+  }
+}

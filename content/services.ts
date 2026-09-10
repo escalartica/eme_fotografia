@@ -3,64 +3,103 @@ import type { Service } from './types';
 export const services: Service[] = [
   {
     slug: 'boda',
-    name: 'Fotografía de Boda',
-    tagline: 'Cada boda, contada como una historia editorial.',
-    includes: ['Cobertura completa del día', 'Preboda opcional', 'Álbum editorial impreso', 'Galería digital privada'],
-    idealFor: 'Parejas que quieren fotografías con dirección artística, no solo un reportaje.',
-    // Genuinely real client asset — the same raquel-y-fran cover photo
-    // shown on /trabajos and the Home SelectedWork grid.
-    previewImage: '/images/trabajos/raquel-y-fran/cover.webp',
+    name: 'Fotografía de boda',
+    route: '/servicios/fotografia-de-boda',
+    heading: 'Fotografía de boda en Sevilla',
+    // 41 caracteres: la plantilla de app/layout.tsx añade 17 (' · EME
+    // Fotografía'), así que el título servido mide 58 y no los 71 de antes,
+    // que Google cortaba justo por la marca. En plural ('bodas'), que es
+    // como se busca y como lo titula la propia categoría de Bodas.net.
+    metaTitle: 'Fotógrafo de bodas en Sevilla y Andalucía',
+    // 153 caracteres, por debajo del recorte de clampDescription: la
+    // anterior medía 173 y el fragmento se quedaba en la primera frase, o
+    // sea sin la parte que nombraba Sevilla.
+    metaDescription:
+      'Qué incluye el reportaje: la boda entera, de los preparativos al último baile, con sesión de preboda, álbum impreso y galería privada para los invitados.',
+    tagline: 'De los nervios de la mañana al último baile.',
+    intro:
+      'Cerca de vosotros y sin interrumpir nada. Buscamos la mirada que se cruza, la abuela que se emociona, la luz de las siete de la tarde en el patio. Nada de eso se puede encargar: hay que estar delante cuando pasa.',
+    includes: [
+      'Reportaje completo de la boda: preparativos, ceremonia, cóctel, banquete y fiesta',
+      'Sesión de preboda o postboda en Sevilla o donde os apetezca',
+      'Álbum editorial impreso, con la selección que hacemos juntos',
+      'Galería online privada para vosotros y vuestros invitados',
+    ],
+    idealFor: 'Para parejas que quieren fotos de boda naturales, con dirección de arte y sin la sensación de estar posando.',
+    // Real client asset. Deliberately NOT one of the weddings in the hero
+    // mosaic or the reel above it: this panel is full-bleed on the home, so
+    // repeating a photograph here is the most visible repeat of all.
+    // Portrait, because the frame that shows it is portrait. The previous
+    // pick was a 3:2 landscape in a 4:5 box (and a tall sticky column on
+    // desktop), so barely half of it was ever on screen.
+    previewImage: '/images/trabajos/carmen-y-enrique/08.webp',
+    previewImageAlt: 'Los novios caminando por el pasillo del jardín tras la ceremonia, en blanco y negro',
+    panelImage: '/images/trabajos/raquel-y-fran/primer-baile.webp',
+    relatedCategory: 'boda',
+    gallery: [
+      { src: '/images/trabajos/virginia-y-jorge/12.webp', alt: 'Los novios de noche frente a los faros del coche clásico', width: 1600, height: 1067 },
+      { src: '/images/trabajos/angelica-y-jesus/12.webp', alt: 'Vista cenital de los novios sobre la línea de la carretera con el velo extendido', width: 1600, height: 987 },
+      { src: '/images/trabajos/preboda-en-santa-cruz/cover.webp', alt: 'La pareja bajo un arco con la Giralda al fondo', width: 1333, height: 2000 },
+    ],
     process: [
-      { step: 1, title: 'Primera conversación', description: 'Conocemos la pareja, el lugar y el estilo que buscan.' },
-      { step: 2, title: 'Planificación', description: 'Diseñamos la cobertura del día junto a la pareja y el resto de proveedores.' },
-      { step: 3, title: 'El gran día', description: 'Cobertura discreta y dirigida a la vez, sin interrumpir la celebración.' },
-      { step: 4, title: 'Entrega', description: 'Selección editada y álbum en un plazo acordado.' },
+      { step: 1, title: 'Nos conocemos', description: 'Una videollamada o un café: nos contáis cómo imagináis el día y vemos si encajamos, antes de hablar de números.' },
+      { step: 2, title: 'Lo planificamos juntos', description: 'Horarios, luz de cada espacio y coordinación con el resto de proveedores, para que ese día solo tengáis que disfrutar.' },
+      { step: 3, title: 'El día de la boda', description: 'Discretos y en el sitio justo. Los posados duran minutos; el resto del día lo pasamos atentos a lo que ocurre.' },
+      { step: 4, title: 'Entrega', description: 'Galería privada, selección editada y álbum impreso en el plazo que acordemos.' },
     ],
     ctaLabel: 'Reservar fecha',
   },
   {
     slug: 'video',
-    name: 'Vídeo',
-    tagline: 'Cine de bodas y eventos, no un simple resumen.',
-    includes: ['Vídeo resumen cinematográfico', 'Audio ambiente y votos', 'Teaser para redes sociales', 'Entrega en 4K'],
-    idealFor: 'Quienes quieren revivir el día en movimiento, con ritmo y banda sonora propia.',
-    // Genuinely real client asset — the same boda-real-01 poster frame used
-    // in Hero (Task 1) and the masked-wordmark moment (Task 9).
-    previewImage: '/videos/posters/real-boda-01-full.webp',
+    name: 'Vídeo de boda',
+    route: '/servicios/video-de-boda',
+    heading: 'Vídeo de boda en Sevilla',
+    // Mismo recorte que el servicio de foto: 36 + 17 = 53 caracteres.
+    metaTitle: 'Vídeo de boda en Sevilla y Andalucía',
+    // 150 caracteres. 'Videógrafos' entra aquí porque es la palabra con la
+    // que Bodas.net titula su categoría y con la que buscan las parejas que
+    // vienen de ahí; el título se queda con 'vídeo de boda', que es el
+    // término principal.
+    metaDescription:
+      'Película del día completo y tráiler corto para compartir, con planos aéreos y el sonido real de los votos. Los videógrafos son el equipo de las fotos.',
+    tagline: 'Los votos y las risas, tal y como sonaron.',
+    intro:
+      'Planos aéreos de la hacienda abriéndose al campo, cámara en mano en los momentos que solo pasan una vez y un montaje con ritmo. Os entregamos un tráiler corto para compartir la misma semana que os apetezca presumir, y una película completa para volver a vivirlo dentro de diez años.',
+    includes: [
+      'Película cinematográfica del día completo',
+      'Tráiler corto, pensado para Instagram y WhatsApp',
+      'Planos aéreos con dron del lugar y del paseo',
+      'Sonido real: votos, discursos y ambiente',
+      'Entrega en 4K, lista para verla en la tele del salón',
+    ],
+    idealFor: 'Para quienes quieren volver a oír aquel día, no solo mirarlo.',
+    // Poster frame from the Eva y Rafa drone set; the looping clip below is
+    // the Carmen y Alberto trailer cut from the studio's delivered film.
+    // Also portrait, and from the wedding this site publishes as its
+    // video-led project. A 16:9 poster in the same 4:5 frame was showing
+    // 45% of its width. The looping trailer below still plays in full.
+    previewImage: '/images/trabajos/virginia-y-jorge/09.webp',
+    previewImageAlt: 'Beso de los novios bajo la celosía de la carpa',
+    // A 16:9 poster in a ~1.9:1 full-screen band loses almost nothing, and
+    // a frame from the delivered film is the honest image for this panel.
+    panelImage: '/videos/posters/carmen-y-alberto-trailer.webp',
+    previewVideo: {
+      src: '/videos/previews/carmen-y-alberto-trailer.mp4',
+      poster: '/videos/posters/carmen-y-alberto-trailer.webp',
+      alt: 'Tráiler de la boda de Carmen y Alberto: escaleras, coche clásico, pasillo de sables y baile',
+    },
+    relatedCategory: 'video',
+    gallery: [
+      { src: '/videos/posters/real-boda-01-aerial.webp', alt: 'La hacienda y la pareja vistas desde el aire', width: 1280, height: 720 },
+      { src: '/videos/posters/virginia-y-jorge-nocturna.webp', alt: 'Los novios de noche bajo la luz de las farolas', width: 1280, height: 720 },
+      { src: '/videos/posters/real-boda-01-golden-hour.webp', alt: 'Paseo de los novios entre olivos a la hora dorada', width: 1280, height: 720 },
+    ],
     process: [
-      { step: 1, title: 'Guion emocional', description: 'Definimos qué momentos deben protagonizar el vídeo.' },
-      { step: 2, title: 'Rodaje', description: 'Cámara en mano y fija, sonido ambiente capturado en directo.' },
-      { step: 3, title: 'Montaje', description: 'Edición narrativa con música con licencia y color grading propio.' },
-      { step: 4, title: 'Entrega', description: 'Vídeo final y teaser corto para compartir.' },
+      { step: 1, title: 'Guion emocional', description: 'Decidimos juntos qué momentos y qué personas tienen que protagonizar la película.' },
+      { step: 2, title: 'Rodaje', description: 'Cámara en mano, cámara fija y dron; el sonido se graba en directo, incluidos los votos.' },
+      { step: 3, title: 'Montaje', description: 'Edición narrativa, música con licencia y el sonido del día por debajo: los votos, los discursos, el ruido de la fiesta.' },
+      { step: 4, title: 'Entrega', description: 'Tráiler primero, película completa después, en 4K.' },
     ],
     ctaLabel: 'Consultar disponibilidad',
-  },
-  {
-    slug: 'fotomaton',
-    name: 'Fotomatón',
-    tagline: 'Diversión instantánea con acabado editorial.',
-    includes: ['Fotomatón con atrezzo a medida', 'Impresión instantánea ilimitada', 'Álbum de firmas de invitados', 'Copia digital de todas las fotos'],
-    idealFor: 'Bodas, comuniones y eventos de empresa que buscan un momento memorable para los invitados.',
-    process: [
-      { step: 1, title: 'Diseño del rincón', description: 'Adaptamos el fotomatón a la estética del evento.' },
-      { step: 2, title: 'Montaje', description: 'Instalación y prueba técnica antes de la llegada de invitados.' },
-      { step: 3, title: 'Durante el evento', description: 'Personal presente para asistir a los invitados.' },
-      { step: 4, title: 'Entrega', description: 'Galería digital completa al día siguiente.' },
-    ],
-    ctaLabel: 'Pedir presupuesto',
-  },
-  {
-    slug: '360',
-    name: 'Experiencia 360°',
-    tagline: 'La plataforma que convierte a los invitados en protagonistas.',
-    includes: ['Plataforma 360° con cámara elevada', 'Vídeos a cámara lenta editados al instante', 'Compartición inmediata por QR', 'Iluminación y atrezzo temático'],
-    idealFor: 'Eventos que buscan el momento más compartido en redes sociales de la noche.',
-    process: [
-      { step: 1, title: 'Ubicación', description: 'Elegimos el punto del evento con mejor flujo de invitados.' },
-      { step: 2, title: 'Montaje técnico', description: 'Calibración de la plataforma e iluminación.' },
-      { step: 3, title: 'Durante el evento', description: 'Operador dedicado durante todo el horario contratado.' },
-      { step: 4, title: 'Entrega', description: 'Todos los vídeos disponibles para descarga inmediata.' },
-    ],
-    ctaLabel: 'Pedir presupuesto',
   },
 ];

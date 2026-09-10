@@ -1,0 +1,49 @@
+.stack {
+  position: relative;
+}
+
+/* Every panel is positioned and opaque so later panels paint over earlier
+   ones as they slide up -- the stack only reads if nothing shows through.
+   Sections with their own ground (the night block, the CTA photo) simply
+   cover this paper. */
+.panel {
+  position: relative;
+  background: var(--color-paper);
+}
+
+/* A panel that fits the viewport pins at the top while the next one
+   climbs over it. Height is locked to the viewport so the pinned panel's
+   content sits centred in the frame, like a full-screen card. */
+.pinned {
+  position: sticky;
+  top: 0;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+.pinned > * {
+  width: 100%;
+}
+
+/* Paper veil that rises over a pinned panel while the next covers it. */
+.veil {
+  position: absolute;
+  inset: 0;
+  background: var(--color-paper);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    will-change: auto;
+  }
+  .pinned {
+    position: relative;
+    min-height: 0;
+    display: block;
+  }
+}

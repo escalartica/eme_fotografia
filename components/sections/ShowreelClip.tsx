@@ -12,7 +12,7 @@ import styles from './ShowreelClip.module.css';
  * reduced-motion gate: under `prefers-reduced-motion`, `.play()` is never
  * called and the poster frame is the entire, fully-static experience.
  */
-export function ShowreelClip({ src, poster, alt }: { src: string; poster: string; alt: string }) {
+export function ShowreelClip({ src, poster, alt, fill = false }: { src: string; poster: string; alt: string; fill?: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const reducedMotion = useReducedMotion();
 
@@ -20,11 +20,15 @@ export function ShowreelClip({ src, poster, alt }: { src: string; poster: string
     if (reducedMotion || !videoRef.current) return;
     const el = videoRef.current;
     el.muted = true;
-    el.play().catch(() => {});
+    // `play()` returns a Promise in every current browser, but not in every
+    // environment: jsdom returns undefined, and so did Safari before 10.
+    // Calling .catch() on undefined threw at mount, which took down the
+    // whole /servicios page the moment a service gained a preview video.
+    void el.play()?.catch(() => {});
   }, [reducedMotion]);
 
   return (
-    <div className={styles.wrap}>
+    <div className={`${styles.wrap} ${fill ? styles.fill : ''}`}>
       <video ref={videoRef} src={src} poster={poster} muted loop playsInline preload="none" aria-label={alt} className={styles.video} />
     </div>
   );

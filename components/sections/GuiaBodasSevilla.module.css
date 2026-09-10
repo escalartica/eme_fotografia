@@ -1,0 +1,110 @@
+/* The one prose block on the home. Set as a two-column editorial spread on
+   desktop so ~650 words read as a magazine sidebar rather than as a wall
+   of SEO text under the photographs; a single measure-limited column on
+   phones. Hairline rules, no cards -- the rest of this page has no boxed
+   containers and this section should not introduce them. */
+.section {
+  padding: var(--space-5) var(--gutter);
+  max-width: 84rem;
+  margin-inline: auto;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.eyebrow {
+  composes: eyebrow from global;
+  margin: 0 0 var(--space-1);
+}
+
+.heading {
+  composes: display from global;
+  /* --type-h2-sm en vez de clamp(1.75rem, 3.4vw, 3.25rem): el término medio
+     era vw puro, así que este titular ignoraba el tamaño de letra del
+     usuario y no crecía con el zoom (WCAG 1.4.4) -- la escalera de
+     styles/tokens.css existe justamente para eso. Mismo suelo (1.75rem) y
+     techo 3rem en lugar de 3.25rem, un peldaño real del sistema. */
+  font-size: var(--type-h2-sm);
+  max-width: 18ch;
+  margin: 0 0 var(--space-4);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 900px) {
+  .columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-5);
+    row-gap: var(--space-4);
+  }
+}
+
+.block {
+  display: grid;
+  gap: var(--space-1);
+  padding-block-start: var(--space-2);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.subheading {
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--color-muted);
+  font-weight: 500;
+  margin: 0 0 var(--space-1);
+  max-width: 34ch;
+}
+
+.block p {
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+  max-width: 62ch;
+  margin: 0 0 var(--space-1);
+}
+
+.block p:last-child {
+  margin-bottom: 0;
+}
+
+.block a {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--color-muted);
+  transition: text-decoration-color var(--duration-fast) var(--ease-standard);
+}
+
+.block a:hover,
+.block a:focus-visible {
+  text-decoration-color: var(--color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .block a { transition: none; }
+}
+
+.closing {
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  color: var(--color-muted);
+  text-wrap: pretty;
+  max-width: 62ch;
+  margin: var(--space-4) 0 0;
+  padding-block-start: var(--space-2);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.closingLink {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+}

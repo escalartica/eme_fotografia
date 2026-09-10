@@ -1,0 +1,375 @@
+/* WCAG 2.2 SC 2.4.11 (foco no oculto). La barra de "Enviar selección" es
+   position: fixed pegada abajo, y esta galería son cientos de fotos con dos
+   botones cada una: tabulando hacia abajo, la foto que acaba de recibir el
+   foco quedaba entera debajo de la barra y no se veía dónde estaba nadie.
+   El navegador respeta scroll-padding cuando desplaza un elemento al
+   enfocarlo, así que reserva el alto de la barra por debajo. Va en :global
+   porque scroll-padding tiene que ir en el contenedor de scroll (el <html>),
+   no en .page; este módulo solo se carga en la ruta de la galería privada.
+   El equivalente de arriba (la cabecera fija) vive en styles/globals.css. */
+:global(html) {
+  scroll-padding-bottom: 7rem;
+}
+
+.page {
+  min-height: 100svh;
+  padding: var(--space-2) var(--space-3) calc(var(--space-5) + 5rem);
+  background: var(--color-paper);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--color-hairline);
+  margin-block-end: var(--space-3);
+}
+.eyebrow {
+  composes: eyebrow from global;
+  margin: 0 0 0.3em;
+}
+.heading {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 1.05;
+  margin: 0;
+}
+.date {
+  color: var(--color-muted);
+  margin: 0.3em 0 0;
+  text-transform: capitalize;
+}
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.logout {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  background: none;
+  border: 1px solid var(--color-muted);
+  color: var(--color-ink);
+  padding: 0.5em 1em;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  cursor: pointer;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+.logout:hover, .logout:focus-visible {
+  opacity: 0.7;
+}
+.logout:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.instructions {
+  max-width: 46rem;
+  color: var(--color-muted);
+  margin: 0 0 var(--space-3);
+}
+.instructions strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--space-2);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  /* Entrance: a low-frequency, one-time reveal (this list renders once
+     per visit, not on every interaction) -- opacity+scale from the
+     Audit Playbook's own physicality rule (never scale(0)), staggered
+     per grid position via nth-child so the set settles in as a group
+     rather than all at once. */
+  animation: itemIn var(--duration-base) var(--ease-standard) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .item { animation: none; }
+}
+@keyframes itemIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+.grid .item:nth-child(1) { animation-delay: 0ms; }
+.grid .item:nth-child(2) { animation-delay: 40ms; }
+.grid .item:nth-child(3) { animation-delay: 80ms; }
+.grid .item:nth-child(4) { animation-delay: 120ms; }
+.grid .item:nth-child(5) { animation-delay: 160ms; }
+.grid .item:nth-child(n+6) { animation-delay: 200ms; }
+
+.frame {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--color-hairline);
+}
+
+.photoButton {
+  all: unset;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: var(--photo-grade);
+  transition: transform var(--duration-slow) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  /* WCAG 2.4.7 (foco visible). El anillo global es `outline-offset: 4px`
+   (styles/globals.css), o sea pintado 4 px POR FUERA del botón -- y este
+   botón ocupa .frame entero, que es `overflow: hidden`. El recorte del
+   contenedor sí alcanza al contorno de sus descendientes, así que al tabular
+   por la cuadrícula el anillo se recortaba por completo: la pareja iba
+   pasando de foto en foto sin ninguna señal de dónde estaba. Con el desfase
+   hacia dentro el anillo cae dentro del recorte y se ve. Va por dentro
+   también para no confundirse con el aro de "seleccionada" (que es
+   --color-accent, grueso, en -3px): este es fino y en el color del texto. */
+.photoButton:focus-visible {
+  outline: 2px solid var(--color-night-text);
+  outline-offset: -6px;
+}
+
+.photoButton:hover .image {
+    transform: scale(1.03);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .image { transition: none; }
+}
+
+/* Liked state: a thin accent ring around the whole frame -- legible at a
+   glance across a dense grid without relying on the heart icon's fill
+   alone (color is never the only signal: the heart glyph itself also
+   changes from outline to filled). */
+.item[data-liked='true'] .frame {
+  outline: 3px solid var(--color-accent);
+  outline-offset: -3px;
+}
+
+.overlayControls {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  z-index: 1;
+}
+
+/* Same fixed dark-chip treatment as the sourceBadge primitive
+   (styles/layout.css): this sits on top of client photography, not page
+   background, so it stays a constant dark register in both themes rather
+   than following the paper/ink theme swap. */
+.iconButton {
+  /* 2.75rem (44px @ default root size) meets the WCAG 2.5.5 touch-target
+     floor -- this is the primary, most-repeated interaction in the whole
+     gallery (tapped once per photo), so it gets the full target size
+     rather than the smaller 24px AA-minimum used for secondary controls
+     elsewhere in this feature. */
+  position: relative;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-scrim) 62%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: var(--color-night-text);
+  cursor: pointer;
+  transition: transform 140ms var(--ease-standard), background var(--duration-fast) var(--ease-standard);
+}
+.iconButton:hover, .iconButton:focus-visible {
+  background: color-mix(in srgb, var(--color-scrim) 75%, transparent);
+}
+.iconButton:active {
+  transform: scale(0.92);
+}
+.iconButton:focus-visible {
+  outline: 2px solid var(--color-night-text);
+  outline-offset: 2px;
+}
+.iconButton[aria-pressed='true'] {
+  /* --color-danger-bright, not --color-danger: this pill's own background is
+     a fixed near-black scrim in BOTH themes, so it always needs the on-dark
+     red rather than the light-mode one. */
+  color: var(--color-danger-bright);
+}
+@media (prefers-reduced-motion: reduce) {
+  .iconButton { transition: background var(--duration-fast) linear; }
+  .iconButton:active { transform: none; }
+}
+
+.commentDot {
+  position: absolute;
+  top: 0.3em;
+  right: 0.3em;
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 999px;
+  background: var(--color-night-text);
+}
+
+/* Animate-to-auto-height via the CSS grid-rows trick: 0fr collapsed,
+   1fr expanded, transitioning grid-template-rows -- no measured pixel
+   height needed (the comment can be any number of lines), and unlike
+   height:auto this interpolates smoothly. .commentPanelInner supplies
+   the min-height:0/overflow:hidden the trick depends on. */
+.commentPanel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-base) var(--ease-standard);
+}
+.commentPanel[data-open='true'] {
+  grid-template-rows: 1fr;
+}
+.commentPanelInner {
+  overflow: hidden;
+  min-height: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .commentPanel { transition: none; }
+}
+
+.commentLabel {
+  composes: eyebrow from global;
+  display: block;
+  padding-block-start: var(--space-1);
+}
+.commentInput {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--color-muted);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  padding: 0.5em;
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  margin-block-end: var(--space-1);
+}
+.commentInput:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.commentInput {
+  min-height: 2.75rem;
+}
+
+.submitBar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-paper);
+  border-top: 1px solid var(--color-hairline);
+}
+.submitInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: var(--type-label);
+}
+.likedCount {
+  font-weight: 600;
+}
+.submitConfirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  color: var(--color-accent);
+}
+.submitErrorText {
+  color: var(--color-danger);
+}
+.lastSubmitted {
+  color: var(--color-muted);
+}
+
+.submitButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  background: var(--color-accent);
+  color: var(--color-paper);
+  border: none;
+  padding: 0.75em 1.5em;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  cursor: pointer;
+  transition: opacity var(--duration-fast) var(--ease-standard),
+    transform var(--duration-press) var(--ease-standard);
+}
+.submitButton:hover, .submitButton:focus-visible {
+  opacity: 0.85;
+}
+.submitButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+@media (prefers-reduced-motion: reduce) {
+  .submitButton { transition: opacity var(--duration-fast) linear; }
+  .submitButton:active:not(:disabled) { transform: none; }
+}
+
+.lightboxImageWrap {
+  position: relative;
+  width: 100%;
+  height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lightboxImageWrap img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: var(--photo-grade);
+}
+
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  }
+  .submitBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .submitButton {
+    width: 100%;
+  }
+}

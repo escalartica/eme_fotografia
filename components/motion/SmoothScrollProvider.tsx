@@ -17,6 +17,12 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (reducedMotion) return;
     const lenis = new Lenis({ duration: 1.1, smoothWheel: true });
+    // A Lenis instance cannot exist before the DOM does, so there is no
+    // value to read during render and nothing to hoist out of the effect:
+    // creating it here and publishing it on the context is the only order
+    // that works. Not the pattern the rule is aimed at (deriving state
+    // that could have been computed during render).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLenisInstance(lenis);
     // Canonical Lenis+ScrollTrigger wiring: drive Lenis from GSAP's own
     // ticker (one rAF loop instead of a second, independent one) and tell

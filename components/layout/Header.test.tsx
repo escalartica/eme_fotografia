@@ -10,100 +10,96 @@ function setScrollY(y: number) {
 }
 
 beforeEach(() => {
-  (usePathname as any).mockReturnValue('/');
+  vi.mocked(usePathname).mockReturnValue('/');
   setScrollY(0);
 });
 
 describe('Header', () => {
-  it('renders the brand and the single menu toggle — no persistent nav-link row, at any width', () => {
+  it('renders the brand, a persistent desktop nav, the contact link, and the menu toggle', () => {
     render(<Header />);
     expect(screen.getByRole('img', { name: 'EME Fotografía Sevilla' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Trabajos' })).toHaveAttribute('href', '/trabajos');
+    expect(screen.getByRole('link', { name: 'Servicios' })).toHaveAttribute('href', '/servicios');
+    expect(screen.getByRole('link', { name: 'Equipo' })).toHaveAttribute('href', '/sobre-nosotros');
+    expect(screen.getByRole('link', { name: 'Contacto' })).toHaveAttribute('href', '/contacto');
     expect(screen.getByRole('button', { name: 'Abrir menú' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Trabajos' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Contacto' })).not.toBeInTheDocument();
   });
 });
 
-describe('Header — current-section label', () => {
-  it('shows the label for the current route', () => {
-    (usePathname as any).mockReturnValue('/servicios');
+describe('Header — current-route indicator', () => {
+  it('marks the matching nav link aria-current="page" for the current route', () => {
+    vi.mocked(usePathname).mockReturnValue('/servicios');
     render(<Header />);
-    expect(screen.getByText('Servicios')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Servicios' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Trabajos' })).not.toHaveAttribute('aria-current');
   });
 
-  it('shows the section label on nested routes below a section (e.g. a project detail page)', () => {
-    (usePathname as any).mockReturnValue('/trabajos/boda-real-01');
+  it('marks the section link current on nested routes below it (e.g. a project detail page)', () => {
+    vi.mocked(usePathname).mockReturnValue('/trabajos/boda-real-01');
     render(<Header />);
-    expect(screen.getByText('Trabajos')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Trabajos' })).toHaveAttribute('aria-current', 'page');
   });
 
-  it('omits the label on the home route', () => {
+  it('marks no nav link current on the home route', () => {
     render(<Header />);
-    expect(screen.queryByText('Trabajos')).not.toBeInTheDocument();
-    expect(screen.queryByText('Servicios')).not.toBeInTheDocument();
-    expect(screen.queryByText('Sobre nosotros')).not.toBeInTheDocument();
-    expect(screen.queryByText('Contacto')).not.toBeInTheDocument();
+    for (const name of ['Trabajos', 'Servicios', 'Equipo', 'Contacto']) {
+      expect(screen.getByRole('link', { name })).not.toHaveAttribute('aria-current');
+    }
   });
 });
 
-describe('Header — scroll visibility', () => {
-  it('stays visible near the top of the page', async () => {
+describe('Header — paper fill on scroll', () => {
+  it('has no paper fill at the top of the page', async () => {
+    render(<Header />);
+    expect(screen.getByRole('banner')).toHaveAttribute('data-scrolled', 'false');
+  });
+
+  it('gains the paper fill once the page scrolls past the threshold', async () => {
     render(<Header />);
     setScrollY(20);
     fireEvent.scroll(window);
     await waitFor(() => {
-      expect(screen.getByRole('banner')).toHaveAttribute('data-hidden', 'false');
+      expect(screen.getByRole('banner')).toHaveAttribute('data-scrolled', 'true');
     });
   });
 
-  it('hides after scrolling down past the threshold', async () => {
+  it('loses the paper fill again when scrolled back to the top', async () => {
     render(<Header />);
     setScrollY(300);
     fireEvent.scroll(window);
     await waitFor(() => {
-      expect(screen.getByRole('banner')).toHaveAttribute('data-hidden', 'true');
+      expect(screen.getByRole('banner')).toHaveAttribute('data-scrolled', 'true');
+    });
+
+    setScrollY(0);
+    fireEvent.scroll(window);
+    await waitFor(() => {
+      expect(screen.getByRole('banner')).toHaveAttribute('data-scrolled', 'false');
     });
   });
 
-  it('reappears when scrolling back up', async () => {
+  it('never hides on scroll — the nav stays visible the whole page (no data-hidden state)', async () => {
     render(<Header />);
     setScrollY(300);
     fireEvent.scroll(window);
     await waitFor(() => {
-      expect(screen.getByRole('banner')).toHaveAttribute('data-hidden', 'true');
+      expect(screen.getByRole('banner')).toHaveAttribute('data-scrolled', 'true');
     });
-
-    setScrollY(150);
-    fireEvent.scroll(window);
-    await waitFor(() => {
-      expect(screen.getByRole('banner')).toHaveAttribute('data-hidden', 'false');
-    });
+    expect(screen.getByRole('banner')).not.toHaveAttribute('data-hidden');
   });
+});
 
-  it('never hides while the mobile menu is open', async () => {
+describe('Header — mobile menu toggle', () => {
+  it('opens the overlay menu and flips the accessible name to close it', () => {
     render(<Header />);
-    fireEvent.click(screen.getByRole('button', { name: 'Abrir menú' }));
+    const toggle = screen.getByRole('button', { name: 'Abrir menú' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
 
-    setScrollY(300);
-    fireEvent.scroll(window);
-    // Give any (unexpected) pending rAF callback a chance to run before asserting.
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    fireEvent.click(toggle);
+    const closeToggle = screen.getByRole('button', { name: 'Cerrar menú' });
+    expect(closeToggle).toHaveAttribute('aria-expanded', 'true');
 
-    expect(screen.getByRole('banner')).toHaveAttribute('data-hidden', 'false');
-  });
-
-  it('does not re-hide from a scroll frame that was already queued when the menu opens', async () => {
-    render(<Header />);
-    setScrollY(300);
-    // Queues a requestAnimationFrame callback bound to the pre-menu-open
-    // closure, before the menu has opened.
-    fireEvent.scroll(window);
-    // Opens the menu synchronously, before that queued frame has run.
-    fireEvent.click(screen.getByRole('button', { name: 'Abrir menú' }));
-    // Give the queued frame a chance to run (and be cancelled by cleanup)
-    // before asserting.
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    expect(screen.getByRole('banner')).toHaveAttribute('data-hidden', 'false');
+    fireEvent.click(closeToggle);
+    expect(screen.getByRole('button', { name: 'Abrir menú' })).toHaveAttribute('aria-expanded', 'false');
   });
 });

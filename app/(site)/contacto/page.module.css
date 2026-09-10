@@ -1,0 +1,227 @@
+.page {
+  padding-inline: var(--gutter);
+  padding-block: var(--space-4) var(--space-5);
+}
+
+/* Two columns on desktop: editorial side (who you are writing to, what
+   happens next) and the form panel. Single column, side first, on narrow
+   viewports. */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+@media (min-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: var(--space-5);
+  }
+}
+
+/* ---------- side ---------- */
+.side {
+  max-width: 36rem;
+}
+
+.eyebrow {
+  composes: eyebrow from global;
+  margin-block-end: var(--space-2);
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: var(--type-h1);
+  line-height: 0.98;
+  margin: 0 0 var(--space-3);
+  font-variation-settings: 'wght' 400;
+}
+.title em {
+  font-style: italic;
+  color: var(--color-muted);
+}
+
+.lead {
+  font-size: var(--type-body);
+  color: var(--color-ink);
+  margin: 0 0 var(--space-3);
+  max-width: 30rem;
+}
+
+.figure {
+  margin: 0 0 var(--space-3);
+}
+.image {
+  width: 100%;
+  height: auto;
+  filter: var(--photo-grade);
+}
+
+.contactList {
+  margin: 0 0 var(--space-4);
+  border-top: 1px solid var(--color-hairline);
+}
+.contactRow {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  gap: var(--space-2);
+  align-items: baseline;
+  padding-block: var(--space-1);
+  border-bottom: 1px solid var(--color-hairline);
+}
+.contactRow dt {
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.contactRow dd {
+  margin: 0;
+}
+/* A 375 px la fila pedía 6rem de etiqueta (96 px) + --space-2 de hueco
+   (16 px) + los ~260 px del enlace de correo (icono de 16 px, 0,4em de
+   hueco y la dirección a --type-body) = 372 px dentro de los 335 px útiles
+   que deja --gutter. Como el mínimo de la pista `1fr` es su min-content, la
+   rejilla no encogía: se desbordaba, y el `overflow-x: clip` del body
+   (styles/globals.css) recortaba el final de la dirección en vez de
+   mostrarla. Por debajo de 600 px la etiqueta pasa encima del valor y la
+   fila recupera los 335 px completos, que es además el patrón normal de una
+   <dl> en móvil. */
+@media (max-width: 599px) {
+  .contactRow {
+    grid-template-columns: 1fr;
+    gap: var(--space-0);
+  }
+}
+.contactInline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.contactLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  color: var(--color-ink);
+  text-decoration: none;
+  position: relative;
+  /* `anywhere`, no `break-word`: solo `anywhere` reduce además el
+     min-content de la caja, que es lo que aquí hace falta. La dirección de
+     correo es una única palabra de 29 caracteres y la columna `1fr` de
+     .contactRow es en realidad minmax(auto, 1fr), cuyo mínimo es ese
+     min-content -- ver el arreglo de .contactRow más abajo. */
+  overflow-wrap: anywhere;
+}
+.contactLink::after {
+  content: '';
+  position: absolute;
+  left: 1.5em;
+  right: 0;
+  bottom: -0.1em;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.contactLink:hover::after,
+.contactLink:focus-visible::after {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .contactLink::after { transition: none; }
+}
+
+.nextSteps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.nextStep {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2);
+  align-items: baseline;
+}
+.nextNumber {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 0.85;
+  color: var(--color-muted);
+}
+.nextTitle {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: var(--type-body);
+  line-height: 1.1;
+}
+.nextText {
+  margin: 0.25em 0 0;
+  color: var(--color-muted);
+  max-width: 28rem;
+}
+
+/* ---------- form panel ---------- */
+.jump {
+  composes: arrowLink from global;
+  margin-block-start: var(--space-1);
+}
+@media (min-width: 960px) {
+  .jump {
+    display: none;
+  }
+}
+
+/* A diferencia de .jump, este se queda en todas las anchuras: en escritorio
+   el formulario ya se ve, pero las respuestas siguen estando al pie de una
+   página larga y nada las anuncia. */
+.jumpFaq {
+  composes: arrowLink from global;
+  margin-block-start: var(--space-1);
+}
+
+.formPanel {
+  scroll-margin-top: 5rem;
+  position: relative;
+  padding: var(--space-4) var(--space-3);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-paper);
+}
+@media (min-width: 960px) {
+  .formPanel {
+    position: sticky;
+    top: var(--space-4);
+    padding: var(--space-4);
+  }
+}
+
+.formHeading {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 1;
+  margin: 0 0 var(--space-1);
+  font-variation-settings: 'wght' 400;
+}
+.formHint {
+  color: var(--color-muted);
+  margin: 0 0 var(--space-3);
+}
+
+.privacy {
+  margin: var(--space-3) 0 0;
+  font-size: var(--type-small);
+  color: var(--color-muted);
+}
+.privacy a {
+  color: var(--color-ink);
+}
+
+/* ---------- FAQ ---------- */
+.faqWrap {
+  max-width: 44rem;
+  margin-inline: auto;
+  margin-block-start: var(--space-5);
+}

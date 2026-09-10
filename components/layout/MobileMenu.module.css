@@ -1,31 +1,144 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: var(--color-ink);
-  color: var(--color-paper);
+  /* Constants, not the theme tokens: this full-screen nav panel is meant
+     to be a fixed dark register in both light and dark mode (same idea
+     as nightBlock in styles/layout.css, reusing its constants) -- not a
+     surface that flips light when the rest of the page goes dark. */
+  background: var(--color-night);
+  color: var(--color-night-text);
   z-index: 100;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: space-between;
+  /* El hueco de arriba es "la barra fija más aire", no un número: era
+     calc(var(--space-5) + 2rem), la tercera copia a mano de la altura de la
+     cabecera que quedaba en el proyecto. El resultado a 375 es el mismo
+     (105 px frente a 104), pero ahora sigue a la barra si esta cambia. */
+  padding: calc(var(--header-h) + var(--space-3)) var(--gutter) var(--space-4);
+  overflow-y: auto;
+  opacity: 1;
+  transition: opacity var(--duration-fast) var(--ease-standard);
 }
+/* El panel solo existe en el DOM mientras esta abierto
+   (MobileMenu.tsx: `if (!isOpen) return null`), asi que aparecia de golpe:
+   un telon negro a pantalla completa en un solo fotograma y, acto seguido,
+   las cinco lineas subiendo. Era el corte mas brusco del sitio y estaba en
+   la navegacion principal del movil, que es como entra la mayoria.
+   @starting-style cubre la entrada sin una linea de JavaScript y sin tocar
+   el desmontaje instantaneo del que dependen las aserciones de
+   MobileMenu.test.tsx -- misma tecnica, mismo token y misma duracion que ya
+   usa el visor de fotos (components/motion/Lightbox.module.css), para que
+   las dos superficies a pantalla completa del sitio abran igual.
+   Solo opacidad: las lineas de dentro ya tienen su propio movimiento, y
+   sumarle un desplazamiento al telon seria contar dos veces lo mismo. */
+@starting-style {
+  .overlay { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .overlay { transition: none; }
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+}
+
 .list {
   list-style: none;
   padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+/* Each row is its own clipping window so the staggered entry reads as the
+   line rising into view from below rather than sliding across the panel. */
+.item {
+  overflow: hidden;
+  border-top: 1px solid color-mix(in srgb, var(--color-night-text) 16%, transparent);
+}
+.item:last-child {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-night-text) 16%, transparent);
+}
+
+.row {
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
   gap: var(--space-3);
-  font-family: var(--font-serif);
-  font-size: var(--type-h3);
-  text-align: center;
+  padding-block: clamp(0.6rem, 2vw, 1.1rem);
 }
-.list a {
-  display: inline-block;
-  transition: opacity var(--duration-fast) var(--ease-standard);
+
+.index {
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  /* WCAG AA fix: 0.45 measured 4.08:1 against this panel's own background
+     (var(--color-night), #060606 light / #000 dark) -- under the 4.5:1
+     small-text floor (--type-label renders ~11-13px, below the large-text
+     exemption). 0.6 clears it with margin (~6.6:1) in both themes. */
+  color: color-mix(in srgb, var(--color-night-text) 60%, transparent);
+  flex: 0 0 auto;
 }
-.list a:hover {
-  opacity: 0.65;
+
+.label {
+  font-family: var(--font-display);
+  font-size: var(--type-h1);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  transition: transform var(--duration-fast) var(--ease-standard);
 }
-/* No local outline override: the global :focus-visible rule (styles/globals.css,
-   2px solid var(--color-accent)) applies cleanly here since this overlay has no
-   mix-blend-mode to fight -- and dimming opacity on focus (as :hover does) would
-   make the keyboard focus indicator less visible, the opposite of the point. */
+
+.row:focus-visible .label {
+  transform: translateX(0.35em);
+}
+/* Este panel es, por definicion, la interfaz tactil del sitio, y el hover
+   estaba sin puerta: al tocar "Trabajos" el rotulo se desplazaba 0.35em y
+   se quedaba asi, porque iOS mantiene el :hover sintetico hasta que se toca
+   otra cosa. El dedo movia el sitio al que apuntaba. */
+@media (hover: hover) and (pointer: fine) {
+  .row:hover .label {
+    transform: translateX(0.35em);
+  }
+  .footLink:hover {
+    color: var(--color-night-text);
+  }
+}
+/* Y la respuesta que si es del dedo. El mismo 0.98 y el mismo
+   --duration-press del boton del formulario, para que pulsar sea el mismo
+   gesto en todo el sitio. Funciona porque el tween de entrada
+   (MobileMenu.tsx) libera ya su `transform` en linea al terminar: sin ese
+   clearProps, el estilo en linea de GSAP ganaba siempre a esta regla. */
+.row {
+  transition: transform var(--duration-press) var(--ease-standard);
+}
+.row:active {
+  transform: scale(0.98);
+}
+@media (prefers-reduced-motion: reduce) {
+  .label,
+  .row { transition: none; }
+  .row:hover .label,
+  .row:focus-visible .label { transform: none; }
+  .row:active { transform: none; }
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+}
+.footLink {
+  composes: eyebrow from global;
+  color: color-mix(in srgb, var(--color-night-text) 65%, transparent);
+}
+
+/* The global :focus-visible rule resolves to --color-ink, which in dark
+   mode is a light color that would vanish against this always-dark
+   panel. Override with the panel's own constant text color so the
+   keyboard ring stays visible in both themes. */
+.overlay :focus-visible {
+  outline: 2px solid var(--color-night-text);
+  outline-offset: 4px;
+}

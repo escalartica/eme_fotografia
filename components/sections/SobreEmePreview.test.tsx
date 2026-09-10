@@ -7,19 +7,23 @@ describe('SobreEmePreview', () => {
     render(<SobreEmePreview />);
     expect(
       screen.getByRole('heading', {
-        name: 'No dirigimos la boda: la seguimos de cerca hasta que se cuenta sola.',
+        name: 'El día de la boda ya nos conocéis.',
       })
     ).toBeInTheDocument();
   });
 
   it('renders the team image with correct alt text', () => {
     render(<SobreEmePreview />);
-    expect(screen.getByAltText('Equipo de EME Fotografía Sevilla')).toBeInTheDocument();
+    expect(
+      screen.getByAltText(
+        'El equipo de EME fotografiando a una pareja junto a un coche clásico en una hacienda sevillana'
+      )
+    ).toBeInTheDocument();
   });
 
   it('links to the full about page', () => {
     render(<SobreEmePreview />);
-    expect(screen.getByRole('link', { name: 'Conocer el estudio' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Conocer al equipo' })).toHaveAttribute(
       'href',
       '/sobre-nosotros'
     );

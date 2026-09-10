@@ -1,0 +1,122 @@
+.page {
+  max-width: 75rem;
+  margin-inline: auto;
+  /* --gutter, mismo motivo que en TrabajosIndex: cabecera, pie y el resto de
+     páginas alinean ahí, y la ficha de boda se salía sola. */
+  padding-inline: var(--gutter);
+  padding-block: var(--space-4) var(--space-5);
+}
+/* Elevated to match the Hero/portfolio type scale (docs/PATRONES-AWWWARDS.md
+   A3, per this task's typography decision): the couple's real name is the
+   identifying title -- not a poetic non-naming headline -- and now reads
+   with the same graphic weight as the site's other lead headings, instead
+   of the previous plain single-line treatment. */
+.title {
+  font-family: var(--font-serif);
+  font-size: var(--type-h1);
+  line-height: 0.95;
+  margin-block-end: var(--space-2);
+  max-width: 24ch;
+}
+.meta {
+  composes: eyebrow from global;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-block-end: var(--space-3);
+  line-height: 1.5;
+}
+.meta span[aria-hidden] { opacity: 0.5; }
+.impact {
+  color: var(--color-accent);
+  font-weight: 600;
+  margin-block-end: var(--space-1);
+}
+.description { max-width: 44rem; margin-block-end: var(--space-4); }
+
+/* Cover hero: a dominant opening shot above the editorial gallery flow,
+   taller on mobile and wide/short on desktop. Duplicated verbatim from
+   ProjectGallery.module.css's .coverWrap (which handles the video-cover
+   case) — CSS Modules scope classes per file, so the same rule set is
+   defined once per file rather than imported across component
+   boundaries. */
+.coverWrap {
+  /* The opening frame of every wedding story is shown WHOLE. The box takes
+     the photograph's own aspect ratio (--cover-ar, set inline from the
+     file's real pixel dimensions in page.tsx), so object-fit: cover has
+     nothing left to crop -- no heads, no feet, no cut bodies. A fixed
+     4/5-then-2/1 pair used to force every cover into the same two shapes:
+     a 2:3 portrait lost two thirds of its height on desktop, which is
+     exactly where the beheaded covers came from.
+
+     Width is capped so a tall portrait can't run off the screen:
+     min(100%, 76svh x ratio) makes the height land at 76svh at most while
+     the ratio is preserved, instead of a max-height that would keep the
+     width at 100% and start cropping again. */
+  position: relative;
+  width: min(100%, var(--cover-max-w, 100%));
+  aspect-ratio: var(--cover-ar, 4 / 5);
+  margin-inline: auto;
+  /* clip, NOT hidden. `overflow: hidden` makes this element a scroll
+     container, so the `animation-timeline: view()` on the image inside it
+     resolved against THIS box instead of the viewport -- and since the image
+     is `fill` (absolute, inset 0) it exactly fills that scrollport, making the
+     entry/cover range degenerate. The settle animation below never ran. `clip`
+     crops identically without creating a scroll container. The `hidden` line
+     stays first as the fallback for anything that predates `clip`. */
+  overflow: hidden;
+  overflow: clip;
+  margin-block-end: var(--space-4);
+}
+.coverWrap img { object-fit: cover; filter: var(--photo-grade); }
+/* Scroll-driven "liquid settle" -- same native animation-timeline
+   mechanism as the site's other full-bleed openers (see
+   app/sobre-nosotros/page.module.css's .openerImage). Targets the plain
+   `img` descendant selector rather than a dedicated class, matching this
+   rule's own existing convention above; layered under ScrollParallax's
+   own translateY, which lands on a separate sibling `layer` element (see
+   that component's doc comment), so the two transforms never collide on
+   one element. This was the opening shot of every wedding story on the
+   site with zero motion of its own -- every other opener already has
+   this treatment. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .coverWrap img {
+      animation: coverSettle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 55%;
+    }
+  }
+}
+@keyframes coverSettle {
+  from { transform: scale(1.06); }
+  to { transform: scale(1); }
+}
+
+/* Understated text-link idiom (no button chrome) -- this plan's global CTA
+   direction, applied here ahead of Task 11's own CTA/Footer rebuild.
+   `.breakout` makes the divider read as a full-bleed close to the editorial
+   flow above rather than reintroducing the page's centered max-width. */
+.nextLink {
+  composes: breakout from global;
+  display: flex;
+  justify-content: center;
+  /* Sin margen superior: el bloque de proyectos relacionados que va justo
+     encima ya cierra con su propio padding-block de --space-4, y un padding
+     no colapsa con un margen. Sumaban 2x--space-4 (6-9rem) sobre este filete
+     frente a los --space-4 que tiene el filete de "Otros reportajes", así que
+     los dos cierres de la ficha respiraban distinto sin motivo. */
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--color-muted);
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+.nextLink:hover,
+.nextLink:focus-visible {
+  color: var(--color-accent);
+}

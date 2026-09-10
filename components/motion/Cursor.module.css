@@ -14,7 +14,7 @@
   color: var(--color-paper);
   border-radius: 999px;
   padding: var(--space-1) var(--space-2);
-  font-size: 0.7rem;
+  font-size: var(--type-label);
   letter-spacing: 0.08em;
   white-space: nowrap;
 }

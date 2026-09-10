@@ -44,6 +44,27 @@ if (typeof window !== 'undefined' && !window.IntersectionObserver) {
   } as unknown as typeof window.IntersectionObserver;
 }
 
+// Default stub so any component that waits on document.fonts.ready (e.g.
+// Hero, which defers its GSAP intro timeline until the display font has
+// loaded so it doesn't measure/split text against the fallback font's
+// metrics) doesn't crash in jsdom, which has no native FontFaceSet.
+if (typeof document !== 'undefined' && !document.fonts) {
+  Object.defineProperty(document, 'fonts', {
+    // FontFaceSet is an EventTarget, and libraries treat it as one: GSAP's
+    // SplitText subscribes to 'loadingdone' and unsubscribes in kill().
+    // A stub with only `ready` therefore blows up on teardown rather than
+    // on use, which is why it surfaced as a confusing failure in whichever
+    // test happened to unmount a real split.
+    value: {
+      ready: Promise.resolve(),
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    },
+    configurable: true,
+  });
+}
+
 // jsdom has no layout engine, so Element.getClientRects() always returns an
 // empty list. The `tabbable` library (used internally by `focus-trap`, which
 // Lightbox uses for its modal focus trap) treats "zero client rects" as
@@ -75,3 +96,10 @@ if (typeof window !== 'undefined' && typeof Element !== 'undefined') {
     return [rect] as unknown as DOMRectList;
   };
 }
+
+// No mail provider during tests, ever. app/api/contacto/route.ts branches on
+// isMailConfigured(); on a machine where the real RESEND_API_KEY happens to be
+// exported, the contact-route suite would otherwise send genuine email to the
+// studio inbox on every run. Pinning it empty makes that impossible and makes
+// the `delivered: false` branch deterministic.
+process.env.RESEND_API_KEY = '';

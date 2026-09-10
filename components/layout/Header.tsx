@@ -1,64 +1,53 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { site } from '@/content/site';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
+import { useLenis } from '@/lib/hooks/useLenis';
+import { MenuIcon, CloseIcon } from '@/components/ui/Icon';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { MobileMenu } from './MobileMenu';
 import styles from './Header.module.css';
 
+// Primary nav, always visible at desktop. Previously these links existed
+// ONLY inside the mobile overlay, reachable through a single toggle that
+// was invisible on every page except the home hero (mix-blend-mode:
+// difference against the paper background, which the body's own canvas
+// fill does not participate in). A sighted mouse user had no navigation
+// at all off the home page. Both reference studios that carry copy
+// (bellephoto.com.au, danieleandmarilia.com) keep a persistent nav.
 const LINKS = [
   { href: '/trabajos', label: 'Trabajos' },
   { href: '/servicios', label: 'Servicios' },
-  { href: '/sobre-nosotros', label: 'Sobre nosotros' },
-  { href: '/contacto', label: 'Contacto' },
+  { href: '/sobre-nosotros', label: 'Equipo' },
 ];
 
-// Below this scroll offset the header always stays visible, so it never
-// flickers hidden/shown from the tiny scroll deltas that happen right at
-// the top of the page.
-const HIDE_THRESHOLD = 80;
+const CONTACT = { href: '/contacto', label: 'Contacto' };
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [hidden, setHidden] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  // Drives the paper fill under the bar. The header no longer hides on
+  // scroll-down: bellephoto.com.au keeps its nav on screen for the whole
+  // page, and a bar that disappears is a bar the reader has to go looking
+  // for. At the very top it sits on the hero's own paper band and needs no
+  // chrome; once photography passes underneath it needs a real surface.
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const reducedMotion = useReducedMotion();
+  const lenis = useLenis();
 
-  // Current-section indicator: a single label, not a link list — matches on
-  // the route itself or any nested path beneath it (e.g. a project detail
-  // page at /trabajos/boda-real-01 still reads "Trabajos"). Home has no
-  // entry in LINKS, so it correctly resolves to no label. usePathname() can
-  // return null outside a router context (e.g. RootLayout's own test, which
-  // renders without mocking next/navigation) — guard against that.
-  const sectionLabel = pathname
-    ? LINKS.find((link) => pathname === link.href || pathname.startsWith(`${link.href}/`))?.label
-    : undefined;
+  const isActive = (href: string) =>
+    pathname === href || (pathname?.startsWith(`${href}/`) ?? false);
 
   useEffect(() => {
-    // Never hide the header while the mobile menu is open — resetting here
-    // and not attaching a scroll listener below covers both "already open"
-    // and "opened while scrolled down".
-    if (menuOpen) {
-      setHidden(false);
-      return;
-    }
-
-    let lastY = window.scrollY;
     let ticking = false;
     let rafId: number | null = null;
 
     const update = () => {
-      const currentY = window.scrollY;
-      if (currentY <= HIDE_THRESHOLD) {
-        setHidden(false);
-      } else if (currentY > lastY) {
-        setHidden(true);
-      } else if (currentY < lastY) {
-        setHidden(false);
-      }
-      lastY = currentY;
+      setScrolled(window.scrollY > 8);
       ticking = false;
       rafId = null;
     };
@@ -70,38 +59,128 @@ export function Header() {
       }
     };
 
+    update();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', onScroll);
-      // Cancel any in-flight frame from a scroll event that fired just before
-      // the menu opened — without this, a stale `update()` bound to the
-      // pre-menu-open closure can call setHidden(true) right after this
-      // effect's own setHidden(false), defeating "never hide while the menu
-      // is open" on mobile momentum-scroll.
       if (rafId !== null) window.cancelAnimationFrame(rafId);
     };
-  }, [menuOpen]);
+  }, []);
+
+  // Close the overlay on route change, so following a link from inside it
+  // never leaves the menu covering the page it just navigated to.
+  //
+  // Adjusted during render rather than in an effect. React re-runs this
+  // component immediately, before the browser paints, so the menu is never
+  // shown open over the new page for a frame -- which is exactly what an
+  // effect would allow, and why `react-hooks/set-state-in-effect` flags
+  // the effect form. https://react.dev/learn/you-might-not-need-an-effect
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
+    setMenuOpen(false);
+  }
+
+  // Pulsar el logotipo tiene que llevar SIEMPRE al principio de la home. Fuera
+  // de la home lo hace la navegación; estando ya en ella, Next no vuelve a
+  // montar la página y el scroll se queda donde estaba, así que el logotipo
+  // parecía no responder. Se sube a mano, y por Lenis cuando está activo para
+  // que el movimiento sea el mismo que el del resto del sitio.
+  const goHomeTop = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (pathname !== '/') return;
+    event.preventDefault();
+    if (lenis && !reducedMotion) {
+      lenis.scrollTo(0);
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
+  };
 
   return (
     <header
       className={`${styles.header}${reducedMotion ? '' : ` ${styles.animated}`}`}
-      data-hidden={hidden ? 'true' : 'false'}
+      data-scrolled={scrolled ? 'true' : 'false'}
     >
-      <Link href="/" className={styles.brand}>
-        <Image src="/images/logo/eme-logo.png" alt={site.brandName} width={168} height={79} priority className={styles.logo} />
+      <Link
+        href="/"
+        className={styles.brand}
+        aria-label={`${site.brandName} - inicio`}
+        onClick={goHomeTop}
+      >
+        {/* Dos versiones del logotipo, una por tema, y el CSS enseña la que
+            toca. El original es tinta oscura sobre transparente: en modo
+            noche se quedaba invisible sobre la barra oscura, que es como la
+            mira la mayoría de las parejas. No se resuelve con `invert()`
+            porque el trazo tiene medios tonos y salían grises apagados; la
+            versión clara conserva la forma y se repinta con el color de
+            texto sobre fondo oscuro. */}
+        <Image
+          src="/images/logo/eme-logo.png"
+          alt={site.brandName}
+          width={168}
+          height={79}
+          /* No `priority`. A 168px wordmark is never the Largest
+             Contentful Paint element, and preloading it only takes
+             bandwidth away from the photograph that is. */
+          className={`${styles.logo} ${styles.logoDark}`}
+        />
+        <Image
+          src="/images/logo/eme-logo-light.png"
+          alt=""
+          aria-hidden="true"
+          width={168}
+          height={79}
+          className={`${styles.logo} ${styles.logoLight}`}
+        />
       </Link>
+
+      <nav className={styles.desktopNav} aria-label="Navegación principal">
+        <ul className={styles.navList}>
+          {LINKS.map((link) => (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                className={styles.navLink}
+                aria-current={isActive(link.href) ? 'page' : undefined}
+              >
+                <span className={styles.roll}>
+                  <span className={styles.rollText}>{link.label}</span>
+                  <span className={styles.rollText} aria-hidden="true">{link.label}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
       <div className={styles.controls}>
-        {sectionLabel && <span className={styles.sectionLabel}>{sectionLabel}</span>}
+        <Link
+          href={CONTACT.href}
+          className={styles.contactLink}
+          aria-current={isActive(CONTACT.href) ? 'page' : undefined}
+        >
+          <span className={styles.roll}>
+            <span className={styles.rollText}>{CONTACT.label}</span>
+            <span className={styles.rollText} aria-hidden="true">{CONTACT.label}</span>
+          </span>
+        </Link>
+        <ThemeToggle />
         <button
+          ref={menuButtonRef}
           className={styles.menuButton}
           aria-expanded={menuOpen}
           aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
           onClick={() => setMenuOpen((v) => !v)}
         >
-          {menuOpen ? 'Cerrar' : 'Menú'}
+          <span className={styles.menuIconStack}>
+            <MenuIcon className={styles.menuGlyph} size={17} />
+            <CloseIcon className={styles.closeGlyph} size={17} />
+          </span>
+          <span className={styles.menuButtonLabel}>{menuOpen ? 'Cerrar' : 'Menú'}</span>
         </button>
       </div>
-      <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+
+      <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} toggleRef={menuButtonRef} />
     </header>
   );
 }

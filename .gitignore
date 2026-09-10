@@ -43,6 +43,11 @@ next-env.d.ts
 # contact submissions
 data/contact-submissions/
 
+# private client galleries, admin credentials, and session tokens
+data/galleries/
+data/admin/
+data/sessions/
+
 # QA artifacts
 lighthouse-report.json
 
@@ -55,3 +60,11 @@ lighthouse-report.json
 # local Playwright CLI session artifacts (screenshots, snapshots, console
 # logs from manual browser-driven verification) -- not part of this app
 /.playwright-cli/
+data/analytics/
+
+# Scratch output from assistant sessions (tool logs, backups). Never source.
+_claude_tmp/
+CLAUDE.backup.md
+
+# Cache de Python de los scripts de etalonaje (scripts/grade-photos.py).
+__pycache__/

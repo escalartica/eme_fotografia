@@ -1,0 +1,390 @@
+/* Bespoke to this page — deliberately NOT the flagged
+   `.section { padding; max-width; margin-inline: auto; text-align: center }`
+   idiom (styles/layout.css's file header documents why). No outer
+   max-width here: each service's own `.copy` column keeps a readable
+   measure via its own max-width, while `.imageWrap` is free to run flush
+   to the viewport edge for a genuine full-bleed image, not a centered
+   card. */
+.page {
+  padding-block-end: var(--space-5);
+}
+
+/* Folded into the FIRST service's own .copy column (see page.tsx) instead
+   of a full-width serif banner section above the list -- this is the whole
+   point of this task for /servicios: no separate generic page-header
+   partial, distinct from /trabajos's full-bleed-photo opener treatment. A
+   small sans-serif label, not the old h2-scale serif heading. */
+.kicker {
+  composes: eyebrow from global;
+  font-weight: 400;
+  margin: 0 0 var(--space-2);
+  line-height: 1.5;
+}
+
+.revealWrap {
+  width: 100%;
+}
+
+/* Each service gets a generous, near-full-viewport "moment" via min-height
+   + vertical padding (not scroll-snap — this project has no precedent for
+   combining scroll-snap with Lenis's smooth-scroll and the risk of the two
+   fighting isn't worth it for this task). */
+.service {
+  min-height: 92svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-4);
+  padding-block: var(--space-5);
+  border-top: 1px solid var(--color-muted);
+}
+.service:first-of-type {
+  border-top: none;
+}
+
+.serviceInner {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .serviceInner {
+    /* Text column first in source order (already the DOM order) so
+       reading order and visual order match; image column runs flush to
+       the viewport's right edge since nothing above it constrains width. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    /* Align to the row's top, not its center (overriding the base rule
+       above). `.copy`'s real content (heading + tagline + two numbered
+       lists + CTA) is routinely taller than `.imageWrap`'s own bounded
+       height (min(70svh,46rem)) -- with align-items:center this centered
+       the image within the taller combined row, pushing it below the
+       first viewport on any service with a long includes/process list.
+       Verified live: a fresh DOM measurement on load found the image's
+       top edge 704px into the document -- no photography visible in the
+       first paint at all, on a page whose whole point is photography.
+       Paired with .imageWrap's own position:sticky below, so the photo
+       stays in view as the (taller) text column scrolls past it, instead
+       of just moving where it centers. */
+    align-items: start;
+  }
+  .serviceInner.noImage {
+    grid-template-columns: 1fr;
+    align-items: center;
+  }
+}
+
+.copy {
+  max-width: 34rem;
+  /* --gutter, no --space-3: es la misma línea vertical con la que alinean la
+     cabecera, el pie y el resto de páginas. Con --space-3 el texto de esta
+     página empezaba 20 px más adentro que el logotipo de encima. */
+  padding-inline: var(--gutter);
+}
+.noImage .copy {
+  max-width: 44rem;
+  margin-inline: auto;
+}
+
+.chapterNumber {
+  composes: chapterNumber from global;
+  display: block;
+  margin-block-end: var(--space-2);
+}
+
+.name {
+  font-family: var(--font-serif);
+  font-size: var(--type-h2);
+  line-height: 1;
+  margin: 0 0 var(--space-2);
+  /* Kinetic typography, same variable-font wght-shift mechanism as
+     EditorialSpread.module.css's .title and SelectedWork.module.css's
+     .name -- a direct self-hover here (not a wrapper/link hover) since
+     .name is a plain heading, not itself the interactive element; opsz
+     is left alone (stays on font-optical-sizing: auto). */
+  font-variation-settings: 'wght' 400;
+  transition: font-variation-settings var(--duration-base) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .name:hover {
+    font-variation-settings: 'wght' 600;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .name { transition: none; }
+}
+
+.tagline {
+  font-size: var(--type-body);
+  color: var(--color-ink);
+  margin: 0 0 var(--space-3);
+}
+
+.intro {
+  font-family: var(--font-serif);
+  font-size: var(--type-lead);
+  line-height: 1.35;
+  margin: 0 0 var(--space-2);
+}
+
+.idealFor {
+  color: var(--color-muted);
+  margin: 0 0 var(--space-4);
+}
+
+/* Numbered sequence: replaces the old `<ul><li>• ...</li></ul>` rendering
+   for both `includes` and `process`. `role="list"`/`role="listitem"` on
+   plain divs keep real list semantics for assistive tech (item count,
+   position) without a native <ul>/<li> element anywhere -- the numeral
+   itself is the visible marker, styled as a scaled-down version of the
+   same `.chapterNumber` treatment (serif, tight line-height, low visual
+   weight), never a bullet character. */
+.numberedGroup {
+  display: flex;
+  flex-direction: column;
+  margin-block-end: var(--space-4);
+}
+
+.numberedItem {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  padding-block: var(--space-1);
+  border-top: 1px solid var(--color-muted);
+}
+.numberedItem:first-child {
+  border-top: none;
+}
+
+.itemNumber {
+  font-family: var(--font-serif);
+  /* Same treatment as .chapterNumber (serif, tight line-height, muted
+     weight) at a much smaller scale -- a "chapter numeral" reduced to an
+     item marker, not a different visual language. */
+  font-size: var(--type-h3);
+  line-height: 0.85;
+  color: var(--color-muted);
+  flex-shrink: 0;
+}
+
+.itemText {
+  display: block;
+}
+
+.stepTitle {
+  display: block;
+  font-weight: 600;
+}
+
+.stepDescription {
+  color: var(--color-muted);
+  margin: 0.25em 0 0;
+}
+
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-3);
+  margin-block-start: var(--space-1);
+}
+
+.cta {
+  composes: arrowLink from global;
+  color: var(--color-accent);
+}
+
+.secondaryCta {
+  composes: arrowLink from global;
+  /* font-size / text-transform / letter-spacing all came from arrowLink
+     already; the only thing this variant actually changes is the colour. */
+  color: var(--color-muted);
+}
+
+/* Film strip of real work under each service: natural aspect ratios,
+   one shared height, horizontal scroll with snap on narrow viewports
+   (never cropped into uniform squares -- a drone frame and a portrait
+   need different boxes). */
+.strip {
+  display: flex;
+  gap: var(--space-1);
+  height: clamp(12rem, 36svh, 26rem);
+  padding-inline: var(--gutter);
+  padding-block-end: var(--space-2);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.strip::-webkit-scrollbar { display: none; }
+
+.stripItem {
+  position: relative;
+  flex: 0 0 auto;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  scroll-snap-align: start;
+  background: transparent;
+}
+
+@media (min-width: 900px) {
+  .strip {
+    height: clamp(16rem, 56svh, 40rem);
+    gap: var(--space-2);
+  }
+  /* Three landscape frames (video posters) need a lower row to fit the
+     viewport side by side without cropping. */
+  .stripLandscape {
+    height: clamp(12rem, 31svh, 22rem);
+  }
+  .stripItem:nth-child(2) {
+    /* Lift the middle frame so the three read as a laid-out spread, not a
+       flat row. */
+    transform: translateY(calc(-1 * var(--space-2)));
+  }
+}
+
+.imageWrap {
+  position: relative;
+  aspect-ratio: 4 / 5;
+}
+
+@media (min-width: 900px) {
+  .imageWrap {
+    aspect-ratio: auto;
+    height: min(70svh, 46rem);
+    /* Sticks within .serviceInner's own row as the taller .copy column
+       scrolls past -- see .serviceInner's align-items:start comment
+       above. --space-4 clears Header.module.css's fixed header (roughly
+       2*--space-2 padding + a 2.25rem logo, comfortably under --space-4's
+       4-6rem range) even when the header hasn't auto-hidden yet. */
+    position: sticky;
+    top: var(--space-4);
+  }
+}
+
+.image {
+  object-fit: cover;
+  filter: var(--photo-grade);
+}
+
+/* ---------- índice de servicios ---------- */
+/* La página padre no es una tercera versión del detalle: es una portada
+   corta que reparte hacia las dos hijas. Por eso tiene su propio bloque de
+   estilos y no reutiliza `.service`, que está construido para un "momento"
+   de casi pantalla completa por servicio. */
+.indexPage {
+  padding-block: var(--space-5);
+  padding-inline: var(--gutter);
+}
+
+.indexHeader {
+  max-width: 44rem;
+  margin-block-end: var(--space-5);
+}
+
+.indexTitle {
+  composes: display from global;
+  font-size: var(--type-h1);
+  line-height: 1;
+  margin: 0 0 var(--space-3);
+  text-wrap: balance;
+}
+.indexTitleEm {
+  composes: displayEm from global;
+}
+
+.indexLead {
+  font-size: var(--type-lead);
+  color: var(--color-muted);
+  max-width: 36rem;
+  margin: 0;
+}
+
+.indexGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+@media (min-width: 760px) {
+  .indexGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+}
+
+.cardLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Retrato: las dos `previewImage` de content/services.ts son verticales, y
+   una foto vertical dentro de una tarjeta apaisada enseña un tercio de sí
+   misma. */
+.cardFrame {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--color-hairline);
+  margin-block-end: var(--space-2);
+}
+.cardImage {
+  object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cardLink:hover .cardImage {
+    transform: scale(1.03);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cardImage { transition: none; }
+  .cardLink:hover .cardImage { transform: none; }
+}
+
+.cardNumber {
+  composes: chapterNumber from global;
+  display: block;
+}
+
+.cardName {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 1.05;
+  margin: 0 0 var(--space-1);
+}
+
+.cardTagline {
+  display: block;
+  color: var(--color-muted);
+  margin-block-end: var(--space-2);
+}
+
+.cardCta {
+  composes: arrowLink from global;
+  color: var(--color-accent);
+}
+
+/* Vuelta al índice desde una hija. Ocupa el sitio que tenía `.kicker` en la
+   página única, con el mismo tamaño de etiqueta pequeña. */
+.kickerLink {
+  composes: eyebrow from global;
+  display: inline-block;
+  font-weight: 400;
+  margin: 0 0 var(--space-2);
+  line-height: 1.5;
+  color: var(--color-muted);
+  text-decoration: none;
+}
+.kickerLink:hover,
+.kickerLink:focus-visible {
+  color: var(--color-ink);
+}

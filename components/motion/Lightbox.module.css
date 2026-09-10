@@ -1,23 +1,68 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(31, 38, 46, 0.92);
+  /* Was rgba(31, 38, 46, 0.92) -- an off-palette blue-grey with no source
+     in styles/tokens.css. This site's chrome is pure monochrome
+     everywhere else (see that file's PALETTE comment); the scrim is now
+     the same ink the rest of the page uses, just near-opaque.
+     --color-scrim, not --color-night: a lightbox backdrop reads as "dim
+     the world behind the photo" in both themes, so it must not follow a
+     theme-swapped token -- which is the whole reason --color-scrim is
+     declared constant. */
+  background: color-mix(in srgb, var(--color-scrim) 92%, transparent);
   z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-3);
+  opacity: 1;
+  transition: opacity var(--duration-fast) var(--ease-standard);
 }
-.content { max-width: 1200px; width: 100%; position: relative; }
+/* Teleporting-state fix: this backdrop only ever exists in the DOM while
+   isOpen is true (Lightbox.tsx: `if (!isOpen) return null`), so it used
+   to pop in at full opacity with no bridge. @starting-style covers the
+   entrance with zero JS and no change to the instant-unmount behaviour
+   Lightbox.test.tsx's "renders children only when open" test depends on
+   (exit stays instant; only the mount transitions). Occasional
+   frequency (opening a gallery piece), "preventing a jarring change". */
+@starting-style {
+  .backdrop { opacity: 0; }
+}
+.content {
+  max-width: 1200px;
+  width: 100%;
+  position: relative;
+  transform: scale(1);
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+@starting-style {
+  .content { transform: scale(0.97); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .backdrop, .content { transition: none; }
+}
 
 .closeButton {
   position: absolute;
   bottom: 100%;
   right: 0;
   margin-bottom: var(--space-1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* The only way out of a full-screen lightbox besides Escape. A 14px
+     icon with no padding gave it a ~20px hit area. */
+  min-height: 2.75rem;
+  padding-inline: var(--space-1);
+  gap: 0.4em;
   background: transparent;
-  border: 1px solid var(--color-paper);
-  color: var(--color-paper);
+  /* Constant, not the theme token: this button always sits on the
+     near-black scrim above (background: rgba(6, 6, 6, 0.92), same
+     reasoning), so its own color must not follow --color-paper into a
+     dark near-black in dark mode -- see --color-night-text in
+     styles/tokens.css for the same fix applied to nightBlock. */
+  border: 1px solid var(--color-night-text);
+  color: var(--color-night-text);
   font-family: var(--font-sans);
   font-size: var(--type-body);
   padding: var(--space-1) var(--space-2);

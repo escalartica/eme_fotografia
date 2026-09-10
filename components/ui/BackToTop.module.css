@@ -1,0 +1,73 @@
+/* Mismo material que el botón de WhatsApp —papel translúcido, filete, tinta—
+   y apilado justo encima de él: dos pastillas del mismo tamaño en la misma
+   columna, no dos objetos distintos peleando por la esquina. */
+.button {
+  position: fixed;
+  right: var(--gutter);
+  /* Encima del botón de WhatsApp: su borde inferior (--space-2), su altura
+     (2.75rem) y un hueco. Si aquel cambia de tamaño, este se mueve solo. */
+  bottom: calc(var(--space-2) + 2.75rem + var(--space-1));
+  z-index: 240;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-paper) 88%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--color-hairline);
+  color: var(--color-ink);
+  cursor: pointer;
+  opacity: 0.92;
+  box-shadow: 0 6px 20px -8px color-mix(in srgb, var(--color-scrim) 25%, transparent);
+  transition:
+    opacity var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+.button:hover,
+.button:focus-visible {
+  opacity: 1;
+  border-color: var(--color-ink);
+  transform: translateY(-1px);
+}
+.button:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
+.arrow {
+  font-size: 1rem;
+  line-height: 1;
+  /* La flecha sube un pelo al pasar por encima: el gesto dice a dónde lleva
+     el botón mejor que cualquier etiqueta. */
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.button:hover .arrow,
+.button:focus-visible .arrow {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .arrow {
+    transition: none;
+  }
+  .button:hover,
+  .button:focus-visible {
+    transform: none;
+  }
+  .button:hover .arrow,
+  .button:focus-visible .arrow {
+    transform: none;
+  }
+}
+
+@media print {
+  .button {
+    display: none;
+  }
+}

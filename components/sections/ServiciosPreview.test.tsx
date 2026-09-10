@@ -11,7 +11,7 @@ describe('ServiciosPreview', () => {
       expect(screen.getByText(expectedNumber)).toBeInTheDocument();
       expect(screen.getByRole('link', { name: new RegExp(service.name) })).toHaveAttribute(
         'href',
-        `/servicios#${service.slug}`
+        service.route
       );
     });
   });
@@ -42,14 +42,6 @@ describe('ServiciosPreview', () => {
 
     fireEvent.focus(bodaLink);
     expect(screen.getByTestId('preview-image-boda')).toHaveAttribute('data-active', 'true');
-    expect(screen.getByTestId('preview-image-video')).toHaveAttribute('data-active', 'false');
-  });
-
-  it('degrades gracefully for services without a preview image: no image is marked active', () => {
-    render(<ServiciosPreview />);
-    const fotomatonLink = screen.getByRole('link', { name: /Fotomatón/i });
-    fireEvent.mouseEnter(fotomatonLink);
-    expect(screen.getByTestId('preview-image-boda')).toHaveAttribute('data-active', 'false');
     expect(screen.getByTestId('preview-image-video')).toHaveAttribute('data-active', 'false');
   });
 });

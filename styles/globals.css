@@ -2,11 +2,122 @@
 @import './tokens.css';
 @import './layout.css';
 
+/* Optical sizing is the reason a variable Didone is worth loading. Bodoni
+   Moda carries a real `opsz` axis: at 9rem the browser picks the display
+   cut, with hairline serifs and extreme stroke contrast, and at 1rem it
+   picks the text cut, with thicker hairlines that survive at body size.
+   Without this line the same static outline gets scaled to both, and the
+   masthead loses its hairlines while the small text goes spindly. */
+html {
+  font-optical-sizing: auto;
+  /* The header is position: fixed, so without this every anchor target, every
+     skip-link landing and every element the browser scrolls into view on Tab
+     ends up underneath it. That is WCAG 2.2 SC 2.4.11 (Focus Not Obscured),
+     and it affected the skip link, the FAQ anchor on /contacto and the
+     internal links in GuiaBodasSevilla. */
+  scroll-padding-top: calc(var(--header-h) + var(--space-2));
+  /* Safari-only today, harmless elsewhere: pulls opening quotes and
+     hyphens into the margin so the text block keeps a straight left edge,
+     which is the whole point of setting a quote in a display face. */
+  hanging-punctuation: first last;
+}
+
 body {
+  /* `clip`, no `hidden`: recorta el desbordamiento horizontal que dejan los
+     elementos .breakout (ver styles/layout.css) sin convertir el body en un
+     contenedor de scroll, que es lo que rompería `position: sticky`. Solo en
+     el eje X: el vertical tiene que seguir desplazándose. */
+  overflow-x: clip;
   background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: var(--type-body);
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures contextual;
+  /* Preventing a jarring change: ThemeToggle flips --color-paper/--color-ink
+     instantly (custom properties don't tween on their own); this softens
+     the swap into a brief cross-fade instead of a hard cut. Occasional
+     frequency (a handful of times per session at most), well inside the
+     "state indication" budget. */
+  transition: background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+@media (prefers-reduced-motion: reduce) {
+  body { transition: none; }
+}
+
+/* Dark mode's "carbon" read: not just an inverted palette, but a little
+   of the depth and material feel a genuinely dark room has -- a faint
+   vignette (light falls off toward the edges, same as it would in an
+   actual unlit space) and a barely-there film-grain texture (this
+   studio is a photography brand; grain is the one texture it can use
+   without borrowing from anywhere else). Both static, not animated --
+   nothing here for prefers-reduced-motion to gate. `pointer-events: none`
+   and a modest z-index keep it strictly visual, never blocking a click;
+   the real UI layer stays comfortably above it (Header is z-index: 101,
+   Lightbox 200, and so on -- see each component's own stacking comment).
+   Fixed rather than absolute, so it reads as one continuous room the
+   whole page scrolls inside, not a texture that repeats or seams per
+   section.
+
+   Gated exactly like styles/tokens.css's own dark-mode block (see that
+   file's DARK MODE comment): `[data-theme="dark"]` only, i.e. only after
+   an explicit click on ThemeToggle -- never from the visitor's own OS
+   dark-mode setting. Light mode -- the default for every visitor
+   regardless of their system preference -- gets neither; paper doesn't
+   vignette. */
+:root[data-theme='dark'] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    /* --color-scrim, no rgba(0, 0, 0, ...): este viñeteado solo existe en
+       modo oscuro, pero el token es el que ya nombra "oscurecer lo que hay
+       detrás" en todo el sitio y, como él, no cambia con el tema. */
+    radial-gradient(ellipse at 50% 40%, transparent 0%, transparent 55%, color-mix(in srgb, var(--color-scrim) 55%, transparent) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: cover, 160px 160px;
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+}
+
+/* Monochrome selection. The browser default is a saturated blue that has
+   nothing to do with this palette and shows up the moment anyone drags
+   across a headline. */
+::selection {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+.nightBlock ::selection {
+  /* Constants, not the theme tokens -- nightBlock always renders
+     dark-on-light selection regardless of light/dark mode, matching
+     --color-night-text's own constant treatment (styles/tokens.css). */
+  background: var(--color-night-text);
+  color: var(--color-scrim);
+}
+
+/* The scrollbar is chrome the page cannot opt out of, so it may as well
+   belong to the palette. Firefox first, then the WebKit/Blink pseudos. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--color-ink-rgb), 0.28) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-ink-rgb), 0.22);
+  border: 3px solid var(--color-paper);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-ink-rgb), 0.38);
 }
 
 /* The Header is `position: fixed` so page content isn't pushed down by it in
@@ -17,12 +128,41 @@ body {
    and visually overlapping — the fixed header. Give `main` clearance for the
    header by default, and opt the full-bleed Hero back out of it. */
 main {
-  padding-top: calc(var(--space-2) * 2 + 2.5rem);
+  /* Was calc(var(--space-2) * 2 + 2.5rem) -- a hand-rolled copy of the
+     header's height that had drifted 0.25rem+1px short of the real bar, so
+     the top of every non-hero page sat slightly under it. */
+  padding-top: var(--header-h);
 }
 
 main:has(> [data-hero-fullbleed]) {
   padding-top: 0;
 }
+
+/* ===================================================================
+   CLOSING FOOTER (bellephoto.com.au's dark bookend)
+   Earlier version of this comment described a sticky/negative-margin
+   "curtain" trick (main pinned above footer via z-index, footer pulled
+   up underneath via a negative margin equal to its own height) --
+   reverted after re-checking the reference site directly: scrolling
+   bellephoto.com.au into its footer and continuing to scroll produces
+   the exact same frame every time (verified by repeated screenshots),
+   meaning that footer is not doing anything cleverer than sitting in
+   normal document flow at full viewport height -- once you've scrolled
+   it fully into view you are simply at the end of the page. The
+   dramatic effect is entirely the ink-black panel and its full-screen
+   size, not a scroll trick, so `footer` (styles below) is just a plain
+   `min-height: 100dvh` section like any other -- see also
+   components/layout/Footer.module.css. */
+:root {
+  --footer-reveal-height: 100vh;
+}
+@supports (height: 100dvh) {
+  :root {
+    --footer-reveal-height: 100dvh;
+  }
+}
+
+
 
 .skip-link {
   position: absolute;
@@ -38,9 +178,28 @@ main:has(> [data-hero-fullbleed]) {
   top: var(--space-2);
 }
 
+/* Same clip-rect technique Testimonios.module.css's own .visuallyHidden
+   already used locally -- global here so any module can reach for it
+   (Footer's "opens in a new tab" hints below) without duplicating the
+   rule per-module. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 1px, not 2px, and further off the element: at 2px the ring reads as a
+   border the design did not ask for. The offset is what makes it legible
+   instead of the weight. */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 3px;
+  outline: 1px solid currentColor;
+  outline-offset: 4px;
 }
 
 ::view-transition-old(root), ::view-transition-new(root) {
@@ -54,4 +213,23 @@ main:has(> [data-hero-fullbleed]) {
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) {
     animation: none !important;
   }
+}
+
+/* ---------- Faces first ----------
+   Every photograph on the site that fills a frame (object-fit: cover)
+   crops from the top third downwards, never from the centre: heads sit in
+   the upper part of almost every wedding frame, and a centred crop of a
+   portrait inside a wide or square box takes them off. A parallax or
+   Ken Burns layer adds travel on top of the crop, so the bias stays
+   generous.
+
+   This is the FALLBACK only. 303 of the site's photographs now carry a
+   measured focal point (content/focus-points.ts, resolved through
+   lib/focal.ts and applied as an inline `object-position`), and an inline
+   style beats this rule. What is left on 50% 18% are the frames where no
+   face was detected at all -- a back turned, a detail, an empty room --
+   where a top-biased crop is the safe guess and there is no head to cut. */
+main img,
+main video {
+  object-position: 50% 18%;
 }

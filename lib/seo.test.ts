@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildMetadata, DEFAULT_OG_IMAGE } from './seo';
+import { site } from '@/content/site';
 
 describe('buildMetadata', () => {
   it('builds title, description, canonical, and OG fields', () => {
@@ -8,7 +9,7 @@ describe('buildMetadata', () => {
     expect(meta.description).toBe('Portfolio de EME');
     expect(meta.alternates?.canonical).toBe('/trabajos');
     expect(meta.openGraph?.title).toBe('Trabajos');
-    expect(meta.openGraph?.url).toBe('https://www.emefotografiasevilla.es/trabajos');
+    expect(meta.openGraph?.url).toBe(`${site.siteUrl}/trabajos`);
   });
 
   it('falls back to the site-wide default social share image when a page has no real photo of its own', () => {

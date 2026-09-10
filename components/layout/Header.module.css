@@ -1,3 +1,9 @@
+/* The bar is fixed and transparent at rest, sitting on the hero's own
+   paper band. Once the page scrolls, photography passes underneath, so it
+   picks up a real paper surface plus a hairline. No mix-blend-mode: the
+   previous version blended against the document canvas, which does not
+   participate in blending, so paper-coloured text stayed paper-coloured on
+   a paper background and the whole nav was invisible off the home page. */
 .header {
   position: fixed;
   top: 0;
@@ -6,48 +12,256 @@
   z-index: 50;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--space-2) var(--space-3);
+  gap: var(--space-3);
+  padding: var(--space-2) var(--gutter);
+  color: var(--color-ink);
+  background: transparent;
+  border-bottom: 1px solid transparent;
 }
-.header[data-hidden='true'] {
-  transform: translateY(-100%);
+
+.header[data-scrolled='true'] {
+  background: color-mix(in srgb, var(--color-paper) 88%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom-color: var(--color-hairline);
 }
+
+/* Solid fill where translucency is unavailable or unwanted. */
+@supports not (backdrop-filter: blur(1px)) {
+  .header[data-scrolled='true'] { background: var(--color-paper); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .header[data-scrolled='true'] {
+    background: var(--color-paper);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 .header.animated {
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.brand {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+.logo {
+  height: 2.25rem;
+  width: auto;
+}
+/* Una sola de las dos versiones se pinta, según el tema. Van las dos en el
+   HTML (y no un `src` condicional) para que el cambio de tema sea inmediato:
+   con `src` habría que esperar a que el navegador pidiera el otro fichero, y
+   el logotipo parpadearía en cada clic del interruptor. */
+.logoLight {
+  display: none;
+}
+:global([data-theme='dark']) .logoDark {
+  display: none;
+}
+:global([data-theme='dark']) .logoLight {
+  display: block;
+}
+
+/* Desktop nav: one line, centred between the wordmark and the contact
+   link. Hidden below 900px, where the overlay takes over. */
+.desktopNav {
+  display: none;
+  flex: 1 1 auto;
+}
+.navList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: var(--space-3);
+}
+
+.navLink,
+.contactLink,
+.menuButtonLabel {
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Link affordance is an underline that grows from the left on hover,
+   rather than a colour change: the palette is monochrome, so motion and
+   weight carry the state instead of hue. */
+.navLink,
+.contactLink {
+  position: relative;
+  display: inline-block;
+  padding-block: var(--space-0);
+}
+/* WCAG 2.5.8 without a taller masthead.
+   These links sit at label type, so their own box is about 24px high -- a
+   small target. Growing the box with padding does fix the target, but it
+   also grows the header: adding min-height took the masthead from ~64px to
+   91px, over the 80px a nav should ever cost, and the whole page moved
+   down with it. An absolutely-positioned ::before instead paints nothing
+   and lays out nothing, it just extends the element's hit area to 44px in
+   both directions. The underline lives on ::after, so this pseudo-element
+   was free. */
+.navLink::before,
+.contactLink::before {
+  content: '';
+  position: absolute;
+  inset: -0.6rem -0.5rem;
+}
+.navLink::after,
+.contactLink::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.navLink:hover::after,
+.contactLink:hover::after,
+.navLink[aria-current='page']::after,
+.contactLink[aria-current='page']::after {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .navLink::after,
+  .contactLink::after { transition: none; }
+}
+
+/* Rolling label (Agentura's nav): two copies stacked in a one-line-tall
+   clip; on hover the top one rolls up and out while the second rolls in
+   from below. */
+.roll {
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  height: 1em;
+  line-height: 1;
+  vertical-align: top;
+}
+.rollText {
+  display: block;
   transition: transform var(--duration-base) var(--ease-standard);
 }
-.brand { display: inline-flex; }
-.logo { height: 2.25rem; width: auto; }
+.rollText + .rollText {
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+}
+@media (hover: hover) and (pointer: fine) {
+  .navLink:hover .rollText,
+  .contactLink:hover .rollText {
+    transform: translateY(-100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rollText { transition: none; }
+  .navLink:hover .rollText,
+  .contactLink:hover .rollText { transform: none; }
+}
+
 .controls {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  margin-left: auto;
+  flex: 0 0 auto;
 }
-/* Current-section indicator: replaces the old persistent link row with a
-   single "you are here" label. Same mix-blend-mode treatment as .menuButton
-   since both sit over arbitrary hero/photo content at every breakpoint. */
-.sectionLabel {
-  font-family: var(--font-sans);
-  font-size: var(--type-label);
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  mix-blend-mode: difference;
-  color: var(--color-paper);
+
+.contactLink {
+  display: none;
 }
+
 .menuButton {
+  /* The only navigation affordance below 900px: it gets a full 44px box. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   position: relative;
-  /* Above MobileMenu's full-screen overlay (z-index: 100) so the button
-     stays visible and tappable as the "Cerrar" affordance once the menu
-     is open — otherwise touch users (no Escape key) have no way to close
-     it. mix-blend-mode keeps it legible against the overlay's dark fill. */
+  /* Above the overlay (z-index: 100) so it stays the close affordance. */
   z-index: 101;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
   background: none;
   border: none;
-  font: inherit;
+  padding: var(--space-0) 0;
   cursor: pointer;
-  mix-blend-mode: difference;
-  color: var(--color-paper);
+  color: inherit;
 }
 .menuButton:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 4px;
+}
+
+.menuIconStack {
+  position: relative;
+  display: inline-flex;
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+.menuGlyph,
+.closeGlyph {
+  position: absolute;
+  inset: 0;
+  transition: opacity var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+.closeGlyph { opacity: 0; transform: rotate(-45deg) scale(0.7); }
+.menuButton[aria-expanded='true'] .menuGlyph { opacity: 0; transform: rotate(45deg) scale(0.7); }
+.menuButton[aria-expanded='true'] .closeGlyph { opacity: 1; transform: rotate(0deg) scale(1); }
+@media (prefers-reduced-motion: reduce) {
+  .menuGlyph, .closeGlyph { transition: opacity var(--duration-fast) linear; transform: none !important; }
+}
+
+@media (min-width: 900px) {
+  .desktopNav { display: flex; justify-content: center; }
+  .contactLink { display: inline-block; }
+  /* The overlay is a small-screen affordance only. At desktop every
+     destination is already on the bar, so a toggle would be a second
+     route to the same four links. */
+  .menuButton { display: none; }
+}
+
+/* While the overlay is open the button must stay visible against the
+   ink-filled panel, at every breakpoint. */
+.header:has(.menuButton[aria-expanded='true']) .menuButton {
+  /* MobileMenu's overlay is a constant dark panel in both themes
+     (components/layout/MobileMenu.module.css) -- this button must match
+     with the same constant, not the theme-swapping --color-paper. */
+  color: var(--color-night-text);
+}
+
+/* The overlay renders inside the header at z-index 100, so without a
+   stacking bump of its own the wordmark is painted underneath the panel
+   and vanishes while the menu is open. Lift it alongside the toggle, and
+   invert the artwork: the logo is dark ink on transparent, which would be
+   invisible against the panel's ink fill even once it is on top. */
+.header:has(.menuButton[aria-expanded='true']) .brand {
+  position: relative;
+  z-index: 101;
+}
+/* El panel del menú es oscuro en los DOS temas, así que mientras está abierto
+   manda la versión clara del logotipo, gane lo que gane el tema. Antes esto
+   era un `filter: invert(1)` sobre el único fichero que había; ahora que
+   existe la versión clara, invertir sería repintar dos veces. */
+.header:has(.menuButton[aria-expanded='true']) .logoDark {
+  display: none;
+}
+.header:has(.menuButton[aria-expanded='true']) .logoLight {
+  display: block;
 }

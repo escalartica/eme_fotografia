@@ -5,6 +5,15 @@
   overflow: hidden;
   margin-block: var(--space-2);
 }
+/* `fill` variant: the clip fills whatever positioned box the caller gives
+   it (e.g. /servicios' sticky image column) instead of bringing its own
+   3:2 box and vertical margin. */
+.fill {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  margin-block: 0;
+}
 .video {
   width: 100%;
   height: 100%;

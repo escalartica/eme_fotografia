@@ -5,7 +5,7 @@ import { render, screen } from '@testing-library/react';
 // transform, which isn't available under plain Vite/Vitest. Stub them so
 // the layout module can be imported and rendered in jsdom.
 vi.mock('next/font/google', () => ({
-  Fraunces: () => ({ variable: '--font-serif-loaded' }),
+  Bodoni_Moda: () => ({ variable: '--font-display-loaded' }),
 }));
 vi.mock('next/font/local', () => ({
   default: () => ({ variable: '--font-sans-loaded' }),

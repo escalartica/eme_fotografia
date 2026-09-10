@@ -1,50 +1,181 @@
+/* Fills the sticky-positioned <footer> box (height set on the bare `footer`
+   tag selector in styles/globals.css, alongside the reveal mechanics) and
+   lays its three bands -- nav/contact, the big closing mark, copyright --
+   out top-to-bottom-to-baseline inside it. `nightBlock` (applied alongside
+   this module class in Footer.tsx) supplies the dark background/ink and the
+   inverted focus ring; this file only handles structure and the pieces
+   nightBlock's own selectors don't reach (plain <a>/<button>/<li> text). */
+/* A plain full-viewport-height dark section in normal document flow --
+   not a sticky/overlap "curtain" trick (see styles/globals.css's own
+   comment on --footer-reveal-height for why that was reverted). The
+   drama is the ink-black panel and its full-screen size alone. */
 .footer {
-  padding: var(--space-4) var(--space-3);
-  border-top: 1px solid var(--color-muted);
+  min-height: var(--footer-reveal-height);
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: var(--space-2);
+  padding: var(--space-3) var(--gutter) var(--space-2);
   font-family: var(--font-sans);
-  color: var(--color-ink);
 }
+
 .top {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  align-items: baseline;
-  gap: var(--space-2);
+  gap: var(--space-2) var(--space-4);
 }
-.brand {
-  font-family: var(--font-serif);
-  font-size: var(--type-h3);
-  line-height: 1;
+
+.navList {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  padding: 0;
+  margin: 0;
 }
-.row { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+/* WCAG 2.5.8 (24x24 px). `.eyebrow` fija line-height: 1, así que la caja de
+   estos seis enlaces medía exactamente lo que mide la letra a --type-label:
+   11 px en móvil, 13 en escritorio. El alto lo pone un min-height y no un
+   padding suelto, para que el texto siga sentado en la misma línea que el
+   resto de la fila y el bloque no se descuadre. */
+.navLink {
+  composes: eyebrow from global;
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  color: color-mix(in srgb, var(--color-night-text) 72%, transparent);
+  text-decoration: none;
+}
+.navLink:hover,
+.navLink:focus-visible {
+  /* Constant: the footer is always the dark nightBlock register (see
+     styles/layout.css), never the page's own paper. */
+  color: var(--color-night-text);
+}
+
+.contact {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
 .link {
-  color: var(--color-ink);
+  color: color-mix(in srgb, var(--color-night-text) 72%, transparent);
   font-size: var(--type-body);
   text-decoration: none;
 }
 .link:hover,
 .link:focus-visible {
+  /* Bug fix: was var(--color-paper), the theme-reactive token -- in dark
+     mode --color-paper flips to a near-black (#141412), which went
+     unreadable against this always-dark footer the instant the hover/focus
+     state fired. Constant, same reasoning as .navLink:hover above and
+     .mark below. */
+  color: var(--color-night-text);
   text-decoration: underline;
 }
-/* Confianza's real numbers, migrated here as a small, clearly-secondary
-   detail line -- --type-label (the smallest type-scale step) and muted
-   color keep it well below the brand/contact/social hierarchy above,
-   unlike Confianza's own --type-h2 headline-stat treatment. Deliberately
-   without the uppercase/letter-spacing this token is normally paired with
-   (see its own doc comment in styles/tokens.css) -- that treatment reads
-   fine on short tracked labels elsewhere, but uppercasing a natural-
-   language sentence like "me gusta en Facebook" looks like shouting, not
-   editorial restraint. */
-.stats {
-  color: var(--color-muted);
+.social {
+  display: flex;
+  gap: var(--space-2);
+}
+.social .link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+}
+.socialIcon {
+  flex: 0 0 auto;
+}
+
+/* Vertically centred in whatever space the top/bottom bands leave --
+   `flex: 1` rather than a fixed height, so the mark always fills the
+   remaining room instead of the bands fighting it for space at short
+   viewport heights. `min-height: 0` is the flexbox fix for a flex child
+   that would otherwise refuse to shrink below its content's intrinsic
+   size and blow out the footer's own fixed height. */
+.markWrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* `composes: display from global` pulls the Didone family/weight/tracking/
+   uppercase treatment (styles/layout.css); the size and colour overrides
+   below win over the composed rule (CSS Modules always emits the composed
+   class's rules before the local module's own, so same-specificity local
+   declarations take it -- already relied on by SobreEmePreview.module.css's
+   .heading). Sized to comfortably clear two lines under the top/bottom
+   bands even at the shortest supported viewport, unlike Hero's own
+   `--type-display` (tuned for a hero with nothing above or below it). */
+.mark {
+  composes: display from global;
+  /* Constant, same reasoning as .navLink:hover above. */
+  color: var(--color-night-text);
+  font-size: var(--type-mega);
+  line-height: 0.92;
+  text-align: center;
+  margin: 0;
+}
+
+.bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid color-mix(in srgb, var(--color-night-text) 16%, transparent);
+}
+.copy {
   font-size: var(--type-label);
+  color: color-mix(in srgb, var(--color-night-text) 50%, transparent);
+}
+/* Two items, not one dot-joined string (same reasoning as the retired
+   light-mode Footer's own .stats comment): a real gap does the separating
+   job a middle dot was doing, and it stacks cleanly on a narrow screen. */
+.stats {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-0) var(--space-3);
+  font-size: var(--type-label);
+  color: color-mix(in srgb, var(--color-night-text) 50%, transparent);
   font-variant-numeric: tabular-nums;
 }
-/* --type-label (not a hardcoded rem value, final review finding M10) --
-   used here for its size alone, not its usual uppercase+letter-spacing
-   pairing (see .stats's own comment on that established convention; a
-   plain sentence-case disclosure line reads wrong shouted in caps). */
-.notice { color: var(--color-muted); font-size: var(--type-label); }
+
+.backToTop {
+  composes: arrowLink from global;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: color-mix(in srgb, var(--color-night-text) 85%, transparent);
+}
+
+@media (min-width: 700px) {
+  .top { flex-wrap: nowrap; }
+  .contact { align-items: flex-end; text-align: right; }
+}
+
+/* Legal links, inline after the copyright at the same secondary weight. */
+.legal {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
+  margin-inline-start: var(--space-2);
+}
+.legal a {
+  /* Mismo mínimo táctil que .navLink: son tres enlaces a --type-label
+     apretados uno detrás de otro al pie de la página. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}

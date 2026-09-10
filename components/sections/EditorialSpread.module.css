@@ -126,13 +126,17 @@
 }
 
 /* ---------- panoramic ---------- */
-/* Full-bleed width via the same .breakout utility, but the height is
-   capped for a letterbox feel — the one variant in this system that
-   crops (object-fit: cover): a wide real photo spanning the full
-   viewport width AND held to a short height can't keep its exact
-   source ratio in both dimensions at once. That's an intentional,
-   single-variant creative choice driven by an already-wide source image,
-   not the uniform forced-crop the design audit flagged. */
+/* Full-bleed width via the same .breakout utility, held to a true
+   Cinemascope ratio (2.35:1) rather than a bare vh figure — the one
+   variant in this system that crops (object-fit: cover): a wide real
+   photo spanning the full viewport width AND held to a fixed widescreen
+   ratio can't keep its exact source ratio in both dimensions at once.
+   That's an intentional, single-variant creative choice driven by an
+   already-wide source image, not the uniform forced-crop the design audit
+   flagged. `aspect-ratio` (not vh) so the frame reads as the same
+   deliberate cinema still at any window height, not a fraction of
+   whatever the viewport happens to be; min/max-height keep it from
+   going too short on a wide-shallow window or too tall on a narrow one. */
 .panoramicOuter {
   composes: breakout from global;
   padding-block: var(--space-2);
@@ -141,11 +145,19 @@
   position: relative;
   overflow: hidden;
   width: 100%;
-  height: 56vh;
+  aspect-ratio: 2.35 / 1;
+  min-height: 20rem;
+  max-height: 44rem;
 }
 @media (max-width: 700px) {
   .panoramicImageWrap {
-    height: 40vh;
+    /* 2.35:1 at phone width reads as a thin strip. A taller ratio keeps
+       the couple legible while still sitting well short of a portrait
+       crop — still a deliberate change of register from the flow around
+       it, just not a full Cinemascope bar on a screen that narrow. */
+    aspect-ratio: 4 / 3;
+    min-height: 16rem;
+    max-height: 24rem;
   }
 }
 .panoramicImage {
@@ -157,7 +169,11 @@
 .panoramicScrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(31, 38, 46, 0.65), transparent 55%);
+  /* --color-ink's rgb() triplet, fixed (sits on photography, stays dark
+     in both themes). Was rgba(31, 38, 46, ...), an off-palette
+     slate-blue left over from a retired palette -- corrected to the
+     actual current ink. */
+  background: linear-gradient(to top, color-mix(in srgb, var(--color-scrim) 65%, transparent), transparent 55%);
   pointer-events: none;
 }
 .panoramicMeta {
@@ -349,16 +365,18 @@
   display: contents;
 }
 .playLabel {
+  composes: eyebrow from global;
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  font-family: var(--font-sans);
-  font-size: var(--type-label);
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--color-paper);
-  background: rgba(31, 38, 46, 0.55);
+  /* Both fixed, not theme tokens: this pill sits on a photo with its own
+     dark backing (below), independent of the page's light/dark mode --
+     same reasoning as the Lightbox close button and CtaContacto's text.
+     Background corrected from rgba(31, 38, 46, ...), an off-palette
+     slate-blue, to the real --color-ink triplet. */
+  color: var(--color-night-text);
+  background: color-mix(in srgb, var(--color-scrim) 55%, transparent);
   padding: var(--space-1) var(--space-2);
   pointer-events: none;
 }
@@ -371,6 +389,18 @@
   display: block;
   font-family: var(--font-serif);
   font-size: var(--type-h3);
+  /* Kinetic typography, same mechanism as SelectedWork.module.css's
+     .name: a variable-font wght shift on hover, opsz left alone (stays
+     on font-optical-sizing: auto). */
+  font-variation-settings: 'wght' 400;
+  transition: font-variation-settings var(--duration-base) var(--ease-standard);
+}
+.spread:hover .title,
+.spread:focus-visible .title {
+  font-variation-settings: 'wght' 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .title { transition: none; }
 }
 /* Overrides for meta rendered directly over a photo (panoramic only) —
    per styles/layout.css's own doc comment on .chapterNumber: callers
@@ -379,15 +409,27 @@
    small and to one side" per the brief, not the full ghost-numeral scale. */
 .chapterNumberOnPhoto {
   composes: chapterNumber from global;
-  color: var(--color-paper);
+  /* Constant: rendered directly over a photo (see comment above), not
+     the page background, so it must not follow --color-paper into a
+     dark tone in dark mode. */
+  color: var(--color-night-text);
   opacity: 0.85;
-  font-size: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+  font-size: var(--type-h2-sm);
 }
 .titleOnPhoto {
   display: block;
   font-family: var(--font-serif);
   font-size: var(--type-body);
-  color: var(--color-paper);
+  color: var(--color-night-text);
+  font-variation-settings: 'wght' 400;
+  transition: font-variation-settings var(--duration-base) var(--ease-standard);
+}
+.spread:hover .titleOnPhoto,
+.spread:focus-visible .titleOnPhoto {
+  font-variation-settings: 'wght' 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .titleOnPhoto { transition: none; }
 }
 
 /* ---------- Ken Burns (slow continuous scale, at rest) ---------- */

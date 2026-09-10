@@ -1,0 +1,164 @@
+.page {
+  min-height: 100svh;
+  padding: var(--space-2) var(--space-3) var(--space-5);
+  background: var(--color-paper);
+  max-width: 72rem;
+  margin-inline: auto;
+}
+
+.back {
+  display: inline-block;
+  color: var(--color-muted);
+  font-size: var(--type-label);
+  text-decoration: none;
+  margin-block-end: var(--space-2);
+}
+.back:hover, .back:focus-visible {
+  color: var(--color-ink);
+}
+
+.header {
+  padding-block-end: var(--space-2);
+  border-bottom: 1px solid var(--color-hairline);
+  margin-block-end: var(--space-3);
+}
+.eyebrow {
+  composes: eyebrow from global;
+  margin: 0 0 0.3em;
+}
+.heading {
+  font-family: var(--font-serif);
+  font-size: var(--type-h2);
+  line-height: 1.05;
+  margin: 0;
+}
+.date {
+  color: var(--color-muted);
+  margin: 0.3em 0 0;
+  text-transform: capitalize;
+}
+
+.infoList {
+  margin: var(--space-2) 0 0.6em;
+}
+.infoRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  font-size: var(--type-label);
+}
+.infoRow dt {
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+}
+.infoRow dd {
+  margin: 0;
+}
+.infoRow code {
+  font-family: var(--font-mono, monospace);
+}
+
+.passwordNote {
+  color: var(--color-muted);
+  font-size: var(--type-label);
+  max-width: 56ch;
+  margin: 0 0 var(--space-2);
+}
+
+.statusDone {
+  font-size: var(--type-label);
+  color: var(--color-ink);
+  font-weight: 600;
+  margin: 0;
+}
+.statusPending {
+  font-size: var(--type-label);
+  color: var(--color-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: var(--space-2);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.photoButton {
+  all: unset;
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--color-hairline);
+  cursor: pointer;
+}
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: var(--photo-grade);
+  transition: transform var(--duration-slow) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .photoButton:hover .image {
+    transform: scale(1.03);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .image { transition: none; }
+}
+
+.item[data-liked='true'] .photoButton {
+  outline: 3px solid var(--color-accent);
+  outline-offset: -3px;
+}
+
+.likedBadge {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-scrim) 55%, transparent);
+  backdrop-filter: blur(6px);
+  /* --color-danger-bright, not --color-danger: this button sits on its own
+     fixed near-black scrim in both themes and needs the on-dark red. */
+  color: var(--color-danger-bright);
+}
+
+.comment {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--type-label);
+  line-height: 1.4;
+}
+.comment svg {
+  flex-shrink: 0;
+  margin-block-start: 0.15em;
+}
+
+.lightboxImageWrap img {
+  max-width: 100%;
+  max-height: 85vh;
+  display: block;
+}

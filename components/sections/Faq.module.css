@@ -1,5 +1,72 @@
 .section { margin-block-start: var(--space-4); padding-block-start: var(--space-3); border-top: 1px solid var(--color-muted); }
 .section h2 { font-family: var(--font-serif); font-size: var(--type-h3); margin-block-end: var(--space-2); }
 .item { padding-block: var(--space-1); border-bottom: 1px solid var(--color-muted); }
-.item summary { cursor: pointer; font-weight: 600; padding-block: var(--space-1); }
-.item p { color: var(--color-muted); padding-block-end: var(--space-1); }
+
+/* Replaces the native disclosure triangle (::marker) with .marker's own
+   PlusIcon below -- kept as a real <summary> for native keyboard/AT
+   disclosure semantics, just re-laid-out as a flex row so the custom
+   glyph can sit at the trailing edge. */
+.item summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding-block: var(--space-1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  list-style: none;
+}
+.item summary::-webkit-details-marker { display: none; }
+.item summary::marker { content: ''; }
+
+.marker {
+  flex: none;
+  display: inline-flex;
+  color: var(--color-muted);
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+/* Plus rotated 45deg reads as the open state -- same icon-morph-via-
+   rotate mechanism as Header's .menuGlyph/.closeGlyph. */
+.item[open] .marker {
+  transform: rotate(45deg);
+  color: var(--color-accent);
+}
+
+.item p {
+  color: var(--color-muted);
+  padding-block-end: var(--space-1);
+  /* Entry transition for the answer, gated behind @supports so browsers
+     without discrete-property transitions just keep the instant native
+     show/hide -- same @starting-style mechanism this codebase already
+     uses in Lightbox.module.css. */
+}
+@supports (transition-behavior: allow-discrete) {
+  .item p {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard),
+      display var(--duration-fast) allow-discrete,
+      content-visibility var(--duration-fast) allow-discrete;
+  }
+  .item:not([open]) p {
+    display: none;
+    content-visibility: hidden;
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  @starting-style {
+    .item[open] p {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marker { transition: none; }
+  .item p { transition: opacity var(--duration-fast) linear; }
+  .item:not([open]) p { transform: none; }
+  @starting-style {
+    .item[open] p { transform: none; }
+  }
+}

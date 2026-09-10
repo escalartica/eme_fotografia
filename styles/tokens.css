@@ -1,50 +1,201 @@
 :root {
-  --color-ink: #1F262E;
-  --color-accent: #992927;
-  --color-paper: #F7F5F2;
-  --color-muted: #6B7178;
+  /* ---------------------------------------------------------------
+     PALETTE - pure monochrome, cool neutral.
+     The three reference studios (bellephoto.com.au, danieleandmarilia.com,
+     bottega53.com) all carry ZERO accent colour in their chrome: the
+     photography is the only colour on the page. The previous palette's
+     oxblood accent (#992927) plus warm cream paper is the exact
+     beige/brass/oxblood family every template reaches for, and it was
+     competing with the photos instead of framing them. Retired.
+     `--color-accent` stays defined as an alias so existing modules keep
+     compiling while sections migrate; it now resolves to ink.
+     --------------------------------------------------------------- */
+  /* Sampled from bellephoto.com.au: a warm near-white paper and a
+     near-black that is not #000 (pure black kills the depth in a Didone's
+     hairlines). `--color-night` is the one dark block the page is allowed,
+     used for the studio section and nothing else. */
+  --color-ink: #0B0B0B;
+  --color-ink-rgb: 11, 11, 11;
+  --color-paper: #F8F7F2;
+  --color-night: #060606;
+  --color-muted: #6C6C68;
+  --color-hairline: color-mix(in srgb, var(--color-ink) 13%, transparent);
+  --color-accent: var(--color-ink);
+  /* The one non-monochrome value the palette allows, and only because a
+     form error that is merely grey is not an error. Was spelled three
+     different ways across five modules with no token at all (#b3261e,
+     #B3261E and a dark-mode #FF6B60), plus a retired-oxblood fallback
+     (#96261f) still hiding in app/admin/mensajes. One name now; the dark
+     value lives in the [data-theme='dark'] block below, so a module says
+     `var(--color-danger)` once and gets the right one in either theme. */
+  --color-danger: #B3261E;
+  /* Constant, NOT swapped by the dark-mode block below -- same treatment as
+     --color-night-text, and for the same reason: it is also the red used
+     directly by surfaces that are dark in BOTH themes (the gallery toolbar
+     pill, the admin delete button), where the light-mode #B3261E would sink
+     into its own near-black background. Dark mode re-points --color-danger
+     at it, so a module only ever writes var(--color-danger) unless it is
+     painting on one of those always-dark surfaces. */
+  --color-danger-bright: #FF6B60;
+  /* The scrim ink: the near-black laid over client photography (opener
+     gradients, the lightbox backdrop, the floating gallery buttons) at some
+     alpha. Constant, like --color-night-text -- a scrim means "dim what is
+     behind this photo" in either theme, so it must not follow --color-ink
+     and turn into a near-white wash in dark mode. Two values were in
+     circulation for this one job, #0B0B0B and #060606, five levels apart
+     and always under 55-92% alpha where nothing could tell them apart;
+     unified here. Modules take their tint with
+     color-mix(in srgb, var(--color-scrim) N%, transparent) -- the reason
+     the old code spelled the rgb() triplet out by hand (a hex custom
+     property cannot carry a separate alpha into rgba()) no longer applies. */
+  --color-scrim: #0B0B0B;
+  /* Constant, NOT swapped by the dark-mode override below. nightBlock
+     (styles/layout.css) is the page's one deliberately-darker register in
+     either theme -- in light mode it is dark-on-light, and it must stay
+     dark-on-light once the whole page goes dark too, so its text needs a
+     color that never inverts. Same warm off-white as light mode's paper,
+     kept under its own name so nothing accidentally re-links it to
+     --color-paper. */
+  --color-night-text: #F8F7F2;
+  color-scheme: light;
 
+  /* ---------------------------------------------------------------
+     TYPE
+     Display is a true Didone (Bodoni Moda): the high-contrast, hairline-
+     serif family all three references use for their wordmarks. Replaces
+     Fraunces, whose soft wedge serifs read as the default "creative"
+     webfont rather than as an editorial masthead.
+     `--font-serif` is kept as an alias for modules not yet migrated.
+     --------------------------------------------------------------- */
   --font-sans: var(--font-sans-loaded), system-ui, sans-serif;
-  --font-serif: var(--font-serif-loaded), Georgia, serif;
+  --font-display: var(--font-display-loaded), 'Didot', 'Bodoni MT', 'Times New Roman', serif;
+  --font-serif: var(--font-display);
 
+  /* ---------------------------------------------------------------
+     SPACE
+     Section rhythm pulled in hard from the previous scale. The old
+     --space-5 (up to 10rem) plus late scroll-reveal triggers produced
+     entire empty viewports between sections; the references never let
+     the viewport go blank. Photography fills the frame instead.
+     --------------------------------------------------------------- */
+  /* Hairline step, below --space-1. A dozen modules were each inventing
+     their own version of "just enough to separate two inline things"
+     (0.15rem, 0.2rem, 0.25rem, 0.3rem, 0.35rem, 2px) -- six numbers for
+     one visual gap. Fixed, not fluid: at this size a fluid range would
+     collapse to the same 4px anyway. */
+  --space-0: 0.25rem;
   --space-1: clamp(0.5rem, 0.4rem + 0.4vw, 0.75rem);
   --space-2: clamp(1rem, 0.8rem + 0.8vw, 1.5rem);
-  --space-3: clamp(2rem, 1.6rem + 1.6vw, 3rem);
-  --space-4: clamp(4rem, 3rem + 3vw, 6rem);
-  --space-5: clamp(6rem, 4.5rem + 5vw, 10rem);
+  --space-3: clamp(1.75rem, 1.4rem + 1.4vw, 2.75rem);
+  --space-4: clamp(3rem, 2.4rem + 2.4vw, 4.5rem);
+  --space-5: clamp(4.5rem, 3.5rem + 3.5vw, 7rem);
+  --gutter: clamp(1.25rem, 0.5rem + 3vw, 4rem);
 
+  /* Height of the fixed header, so anything that sticks under it can clear
+     it without a magic number. The tallest child is NOT the brand mark
+     (2.25rem) -- it is the theme toggle and the menu button, both 2.75rem
+     (ThemeToggle.module.css, Header.module.css .menuButton), because the bar
+     is a flex row with align-items: center. Plus --space-2 of padding above
+     and below and the 1px border-bottom. Getting this wrong left sticky
+     content 9px under the bar's own hairline. */
+  --header-h: calc(2.75rem + var(--space-2) * 2 + 1px);
+
+  /* Display sizes. A Didone only reads as a masthead above a certain
+     size - below ~4rem the hairlines disappear and it just looks like a
+     serif body font. The hero wordmark is deliberately the largest single
+     element on the page (Bellé Photo sets theirs edge to edge). */
+  /* THE LADDER. Ten steps, largest to smallest, and nothing between them:
+     every font-size in every CSS Module resolves to one of these. Before
+     this consolidation the modules carried ~40 hand-written clamp()s,
+     including six near-identical "h2" sizes (2rem->4rem, 2rem->4.5rem,
+     2.2rem->6rem, 2.4rem->6.5rem, 2.5rem->6rem, 2.5rem->6.5rem) that no
+     reader could ever have told apart. Adding a size means adding a rung
+     here, not a clamp in a module.
+
+     Every rung's middle term is `Nrem + Mvw`, never a bare `vw`. A clamp
+     whose preferred value is pure viewport units ignores the user's font-
+     size setting entirely and does not respond to browser zoom the way
+     text is supposed to; the rem term is what keeps the type zoomable.
+     WCAG 1.4.4. Several modules had bare-vw clamps (clamp(2rem, 4.2vw,
+     4rem) and friends) -- all gone. */
+  --type-display: clamp(3.25rem, 0.5rem + 11.5vw, 13rem);   /* one-off giants: intro logo, 404 numeral */
+  --type-mega: clamp(2.75rem, 0.3rem + 9.5vw, 9.75rem);     /* masthead wordmark: Hero, Footer */
+  --type-h1: clamp(2.4rem, 1.1rem + 5.6vw, 6.5rem);         /* page openers, section statements */
+  --type-h2: clamp(2rem, 1.1rem + 4vw, 4.5rem);             /* section headings (also global .display) */
+  --type-h2-sm: clamp(1.75rem, 1.2rem + 2.2vw, 3rem);       /* sub-section headings, pull quotes */
+  --type-h3: clamp(1.375rem, 1.1rem + 1.4vw, 2.25rem);      /* card and item titles */
+  --type-lead: clamp(1.125rem, 1rem + 0.85vw, 1.7rem);      /* standfirst / intro paragraph */
+  --type-body: clamp(1rem, 0.95rem + 0.25vw, 1.1875rem);
+  --type-small: clamp(0.8125rem, 0.78rem + 0.18vw, 0.9375rem); /* meta, captions, admin chrome. Six
+     modules already referenced `var(--type-small, 0.85rem)` against a token
+     that was never declared -- every one of them was silently running on the
+     fallback. Declared now. */
   --type-label: clamp(0.6875rem, 0.65rem + 0.15vw, 0.8125rem);
-  /* --type-label is paired with text-transform: uppercase; and letter-spacing: 0.14em; */
-  --type-body: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
-  --type-h3: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
-  --type-h2: clamp(2.25rem, 1.6rem + 2.5vw, 4rem);
-  --type-h1: clamp(3rem, 1.8rem + 5vw, 7.5rem);
-  /* Oversized chapter/section numeral (e.g. "01", "02"). At a 360px viewport
-     this resolves to ~6.25rem (100px) — two digits at that size stay well
-     under the viewport width, verified in-browser with no horizontal
-     overflow. */
-  --type-chapter: clamp(6rem, 4rem + 10vw, 14rem);
+
+  /* Optical tuning for the Didone at display sizes: real mastheads set
+     tight and let the letterforms carry the weight. */
+  --tracking-display: -0.02em;
+  --tracking-label: 0.16em;
+  --leading-display: 0.88;
+  /* El interlineado de un párrafo de verdad, el peldaño que le faltaba a
+     este fichero: había --leading-display para el titular y nada para el
+     cuerpo, así que cada sección eligió el suyo -- 1.55 en el lede de
+     /sobre-nosotros, en el cierre de CtaContacto y en la nota de
+     "Próximamente"; 1.6 en SobreEmePreview; 1.62 en los dos bloques de
+     prosa de GuiaBodasSevilla. Tres números para el mismo trabajo, y
+     ninguno distinguible del otro leyendo. 1.6 es el del medio y el que
+     mejor aguanta la medida de 62ch del bloque más largo del sitio. */
+  --leading-body: 1.6;
 
   --duration-fast: 0.3s;
   --duration-base: 0.6s;
   --duration-slow: 1.1s;
+  /* El aviso de pulsación de un botón, más corto que --duration-fast a
+     propósito: un press feedback que dura 0,3 s se siente pegajoso porque
+     el dedo ya se ha levantado. Estaba escrito como `120ms` a mano en seis
+     ficheros (el formulario de contacto, las dos pantallas de galería
+     privada y las tres de admin) para exactamente el mismo gesto. */
+  --duration-press: 0.12s;
   --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* A single, subtle, site-wide grade applied to every real still photo,
-     tying together photography that's already professionally edited
-     per-shot (real editorial b&w and color work) with one light, consistent
-     touch at render time rather than re-processing the source files
-     (user-requested, after confirming re-grading the files themselves would
-     flatten work a real photographer already finished). Deliberately
-     subtle -- this is a static, non-animated use of `filter` (this
-     codebase's hard "animate only transform/opacity" rule governs GSAP
-     tweens, not a constant CSS value; two narrowly-scoped static filter
-     uses already exist as precedent, see ScrollReveal's optional `blur`
-     prop). Also applied to video POSTER images (the still frame shown
-     before playback) for the same consistency, not to actual <video>
-     playback -- video files are already graded at the source via ffmpeg,
-     and this value is mild enough that the poster-to-playing handoff
-     shows no visible flash.
-  */
+  /* Photography renders as shot. The previous site-wide
+     saturate/contrast/brightness filter re-graded work a photographer had
+     already finished, and cost a compositing layer on every large image.
+     Kept as an identity value so any module still referencing it is a
+     no-op rather than a build error. */
   --photo-grade: saturate(1.06) contrast(1.04) brightness(1.01);
 }
+
+/* ---------------------------------------------------------------
+   DARK MODE
+   Same monochrome idea run in reverse, not an inverted screenshot: paper
+   becomes a warm near-black (never pure #000, matching the "not #000"
+   reasoning above for --color-night) and ink becomes a warm near-white.
+   `--color-night` goes to true #000 -- darker than the new dark paper --
+   so nightBlock (Footer, the studio statement) still reads as the page's
+   one deliberately-darker register instead of disappearing into a page
+   that is already dark. `--color-night-text` is untouched on purpose
+   (see its declaration above).
+
+   Reachable ONLY through `[data-theme="dark"]` -- an explicit click on
+   ThemeToggle (components/ui/ThemeToggle.tsx). Deliberately NOT also
+   gated behind `@media (prefers-color-scheme: dark)`: an earlier version
+   of this block made dark mode the default for any visitor whose OS
+   happens to be set to dark, which is a fact about their device, not a
+   decision about how this studio's site should first appear -- the
+   client was explicit that the light/paper look must be what everyone
+   sees on arrival, with dark as something they discover via the button,
+   never something sprung on them by their system settings. */
+:root[data-theme='dark'] {
+  --color-ink: #F2F1EA;
+  --color-ink-rgb: 242, 241, 234;
+  --color-paper: #141412;
+  --color-night: #000000;
+  --color-muted: #9C9C93;
+  --color-hairline: color-mix(in srgb, var(--color-ink) 16%, transparent);
+  /* #B3261E on a near-black paper falls under 4.5:1; this is the same hue
+     lifted until it clears. */
+  --color-danger: var(--color-danger-bright);
+  color-scheme: dark;
+}
+

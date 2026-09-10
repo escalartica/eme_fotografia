@@ -7,6 +7,13 @@ import { testimonials } from '@/content/testimonials';
 vi.mock('@/lib/hooks/useReducedMotion', () => ({ useReducedMotion: vi.fn(() => false) }));
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 
+// The quote marks are real typographic glyphs wrapped around the sentence
+// in the component's own template string (`“${quote}”`), not a
+// separate decorative element -- so every lookup by quote text has to
+// include them.
+const quoteText = (i: number) => `“${testimonials[i].quote}”`;
+const findBlockquote = (i: number) => screen.getByText(quoteText(i)).closest('blockquote');
+
 describe('Testimonios', () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -20,48 +27,48 @@ describe('Testimonios', () => {
 
   it('shows the real Bodas.net Wedding Awards 2025 trust badge', () => {
     render(<Testimonios />);
-    const badge = screen.getByAltText(/bodas\.net wedding awards 2025/i);
+    // The full alt, not a fragment: the badge strip below this one also
+    // carries a "Wedding Awards 2025" badge, so the short regex matched two
+    // elements and getByAltText threw before reaching the src assertion.
+    const badge = screen.getByAltText(
+      'Distintivo Bodas.net Wedding Awards 2025: EME Fotografía Sevilla, 5 estrellas'
+    );
     expect(badge).toHaveAttribute('src', expect.stringContaining(encodeURIComponent('/images/trust/bodas-net-wedding-awards-2025.webp')));
   });
 
   it('keeps all 4 real testimonials reachable in the DOM, not silently dropped to 1', () => {
     render(<Testimonios />);
-    for (const t of testimonials) {
-      expect(screen.getByText(t.quote)).toBeInTheDocument();
-      expect(screen.getByText(new RegExp(`${t.author} — ${t.role}`))).toBeInTheDocument();
-    }
+    testimonials.forEach((t, i) => {
+      expect(screen.getByText(quoteText(i))).toBeInTheDocument();
+      expect(screen.getByText(t.author)).toBeInTheDocument();
+    });
+    expect(screen.getAllByText('Opinión verificada en Bodas.net')).toHaveLength(testimonials.length);
   });
 
   it('marks exactly one testimonial as the current one via aria-current, the rest visually hidden but not aria-hidden', () => {
     render(<Testimonios />);
-    const current = testimonials.filter((t) =>
-      screen.getByText(t.quote).closest('blockquote')?.getAttribute('aria-current') === 'true'
-    );
+    const current = testimonials.filter((_, i) => findBlockquote(i)?.getAttribute('aria-current') === 'true');
     expect(current).toHaveLength(1);
-    for (const t of testimonials) {
-      const bq = screen.getByText(t.quote).closest('blockquote');
-      expect(bq).not.toHaveAttribute('aria-hidden', 'true');
-    }
+    testimonials.forEach((_, i) => {
+      expect(findBlockquote(i)).not.toHaveAttribute('aria-hidden', 'true');
+    });
   });
 
-  it('renders real typographic quote glyphs as separate decorative graphic elements, not inline characters glued to the quote text', () => {
+  it('wraps the quote in real typographic quote glyphs as part of the sentence, not a separate decorative element', () => {
     render(<Testimonios />);
-    const activeText = screen.getByText(testimonials[0].quote);
-    // The quote paragraph's own text must not start/end with a literal quote
-    // character -- the glyph is a sibling decorative element, not part of
-    // this string.
-    expect(activeText.textContent?.trim().startsWith('"')).toBe(false);
-    expect(activeText.textContent?.trim().startsWith('“')).toBe(false);
+    const activeText = screen.getByText(quoteText(0));
+    expect(activeText.textContent?.startsWith('“')).toBe(true);
+    expect(activeText.textContent?.endsWith('”')).toBe(true);
   });
 
   it('auto-advances to the next testimonial over time when motion is not reduced', () => {
     vi.useFakeTimers();
     render(<Testimonios />);
-    expect(screen.getByText(testimonials[0].quote).closest('blockquote')).toHaveAttribute('aria-current', 'true');
+    expect(findBlockquote(0)).toHaveAttribute('aria-current', 'true');
     act(() => {
       vi.advanceTimersByTime(7000);
     });
-    expect(screen.getByText(testimonials[1].quote).closest('blockquote')).toHaveAttribute('aria-current', 'true');
+    expect(findBlockquote(1)).toHaveAttribute('aria-current', 'true');
   });
 
   it('does NOT auto-advance under prefers-reduced-motion, even after a long time', () => {
@@ -71,7 +78,7 @@ describe('Testimonios', () => {
     act(() => {
       vi.advanceTimersByTime(30000);
     });
-    expect(screen.getByText(testimonials[0].quote).closest('blockquote')).toHaveAttribute('aria-current', 'true');
+    expect(findBlockquote(0)).toHaveAttribute('aria-current', 'true');
   });
 
   it('provides manual next/prev controls with clear accessible names that are keyboard operable', async () => {
@@ -82,12 +89,12 @@ describe('Testimonios', () => {
     // Tab through to the next-control and activate it with the keyboard.
     next.focus();
     await user.keyboard('{Enter}');
-    expect(screen.getByText(testimonials[1].quote).closest('blockquote')).toHaveAttribute('aria-current', 'true');
+    expect(findBlockquote(1)).toHaveAttribute('aria-current', 'true');
 
     const prev = screen.getByRole('button', { name: /anterior/i });
     prev.focus();
     await user.keyboard('{Enter}');
-    expect(screen.getByText(testimonials[0].quote).closest('blockquote')).toHaveAttribute('aria-current', 'true');
+    expect(findBlockquote(0)).toHaveAttribute('aria-current', 'true');
   });
 
   it('manual controls still work under prefers-reduced-motion (manual-only cycling, never auto)', async () => {
@@ -96,7 +103,7 @@ describe('Testimonios', () => {
     render(<Testimonios />);
     const next = screen.getByRole('button', { name: /siguiente/i });
     await user.click(next);
-    expect(screen.getByText(testimonials[1].quote).closest('blockquote')).toHaveAttribute('aria-current', 'true');
+    expect(findBlockquote(1)).toHaveAttribute('aria-current', 'true');
   });
 
   it('stops auto-advancing once paused (WCAG 2.2.2) and resumes on a second click', () => {
@@ -110,13 +117,13 @@ describe('Testimonios', () => {
     });
     // Still on the first testimonial after 30s paused -- prev/next merely
     // restarting the timer would not catch a regression here.
-    expect(screen.getByText(testimonials[0].quote).closest('blockquote')).toHaveAttribute('aria-current', 'true');
+    expect(findBlockquote(0)).toHaveAttribute('aria-current', 'true');
 
     fireEvent.click(resumeButton);
     act(() => {
       vi.advanceTimersByTime(7000);
     });
-    expect(screen.getByText(testimonials[1].quote).closest('blockquote')).toHaveAttribute('aria-current', 'true');
+    expect(findBlockquote(1)).toHaveAttribute('aria-current', 'true');
   });
 
   it('has no pause control under prefers-reduced-motion (nothing to pause)', () => {

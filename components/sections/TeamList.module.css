@@ -1,0 +1,105 @@
+.wrap {
+  position: relative;
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-hairline);
+}
+.row {
+  border-bottom: 1px solid var(--color-hairline);
+}
+.rowInner {
+  display: grid;
+  grid-template-columns: 3.5rem 2.5rem minmax(0, 1fr);
+  grid-template-areas: 'thumb index name' 'thumb index role';
+  align-items: center;
+  column-gap: var(--space-2);
+  padding-block: var(--space-2);
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: padding-inline-start var(--duration-base) var(--ease-standard);
+}
+.thumb {
+  grid-area: thumb;
+  position: relative;
+  aspect-ratio: 3 / 4;
+  width: 3.5rem;
+  overflow: hidden;
+  background: var(--color-hairline);
+}
+.thumbImage {
+  object-fit: cover;
+  filter: var(--photo-grade);
+}
+.index {
+  grid-area: index;
+  font-family: var(--font-serif);
+  color: var(--color-muted);
+}
+.name {
+  grid-area: name;
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 1.05;
+}
+.role {
+  composes: eyebrow from global;
+  grid-area: role;
+  margin-top: var(--space-0);
+}
+
+/* Floating portrait, desktop only. */
+.float {
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) and (min-width: 900px) {
+  .thumb {
+    display: none;
+  }
+  .rowInner {
+    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    grid-template-areas: 'index name role';
+    align-items: baseline;
+    /* The desktop row used to bump padding-block from 0.9rem to 1.15rem by
+       hand. --space-2 is fluid and already grows over that range, so the
+       override is redundant. */
+  }
+  .role {
+    margin: 0;
+    text-align: right;
+  }
+  .row[data-hovered] .rowInner {
+    padding-inline-start: var(--space-1);
+  }
+  .row[data-hovered] .name {
+    font-style: italic;
+  }
+  .float {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 13.5rem;
+    aspect-ratio: 3 / 4;
+    pointer-events: none;
+    z-index: 60;
+    opacity: 0;
+    transform: scale(0.9) rotate(-4deg);
+    /* --color-scrim en vez del literal: negro constante en los dos temas,
+       igual que el resto de las sombras del sitio. */
+    box-shadow: 0 30px 60px -30px color-mix(in srgb, var(--color-scrim) 45%, transparent);
+    overflow: hidden;
+    background: var(--color-hairline);
+  }
+  .floatLayer {
+    position: absolute;
+    inset: 0;
+    transition: opacity var(--duration-fast) var(--ease-standard);
+  }
+  .floatImage {
+    object-fit: cover;
+    filter: var(--photo-grade);
+  }
+}

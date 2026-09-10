@@ -33,12 +33,28 @@ if (typeof window !== 'undefined') {
 export function ScrollParallax({
   children,
   strength = 8,
+  className,
 }: {
   children: React.ReactNode;
   /** Travel range in percent of this layer's own height, split evenly
    * above/below rest (e.g. 8 -> -8%..+8%). Keep small — this should read
    * as depth, not as a slide. */
   strength?: number;
+  /**
+   * Optional class applied to the outer, measured `trigger` element (the
+   * one this component itself renders as `position:absolute; inset:0`).
+   * Most callers rely on plain DOM order for stacking (this element is
+   * `z-index:auto`, so it simply paints in tree order among its own
+   * position:absolute siblings — see EditorialSpread's `panoramic`
+   * variant, which needs no className at all). This exists only for a
+   * caller whose surrounding layout instead depends on an explicit
+   * negative `z-index` to sit a full-bleed background behind
+   * non-positioned sibling content (e.g. CtaContacto.tsx) — passing a
+   * class that sets `z-index` here keeps that convention working once the
+   * image is wrapped. Defaults to `undefined`, so every existing caller's
+   * markup is unchanged.
+   */
+  className?: string;
 }) {
   const triggerRef = useRef<HTMLDivElement>(null);
   const layerRef = useRef<HTMLDivElement>(null);
@@ -49,9 +65,11 @@ export function ScrollParallax({
     const ctx = gsap.context(() => {
       gsap.fromTo(
         layerRef.current,
-        { yPercent: -strength },
+        // Starts shifted down (top of the photo showing first) and travels
+        // up: the crop never opens on a beheaded frame.
+        { yPercent: strength },
         {
-          yPercent: strength,
+          yPercent: -strength,
           ease: 'none',
           scrollTrigger: {
             trigger: triggerRef.current,
@@ -66,7 +84,7 @@ export function ScrollParallax({
   }, [reducedMotion, strength]);
 
   return (
-    <div ref={triggerRef} style={{ position: 'absolute', inset: 0 }}>
+    <div ref={triggerRef} className={className} style={{ position: 'absolute', inset: 0 }}>
       <div ref={layerRef} style={{ position: 'absolute', inset: `-${strength}% 0`, width: '100%' }}>
         {children}
       </div>

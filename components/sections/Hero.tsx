@@ -1,233 +1,162 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
-import { preload } from 'react-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SplitText } from 'gsap/SplitText';
 import { site } from '@/content/site';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import { motion } from '@/lib/motion-tokens';
+import { HeroMosaic } from './HeroMosaic';
+import { CinematicIntro } from '@/components/motion/CinematicIntro';
 import styles from './Hero.module.css';
 
 if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger, SplitText);
 }
 
 const INTRO_KEY = 'eme-intro-shown';
 
+/**
+ * Masthead over a mosaic. The wordmark is set at full width on the paper
+ * band; immediately beneath it, edge to edge, five staggered columns of
+ * real weddings (HeroMosaic) pan under the cursor, rise at different rates
+ * with the scroll and cycle through their photos -- the reference is
+ * vivmgmt.com's home, rebuilt in this site's own type and palette.
+ */
 export function Hero() {
-  // The video (7MB) is not the LCP element -- the poster image is, since
-  // it's what actually paints first. fetchPriority="high" belongs here, not
-  // on the <video>, which was the reviewer-caught inversion (a prior fix
-  // for lost LCP priority accidentally prioritized the wrong asset).
-  preload('/videos/posters/real-boda-01-hero-drone.webp', { as: 'image', fetchPriority: 'high' });
   const [showIntro, setShowIntro] = useState(false);
-  // Tracks whether the intro-timer effect below has *finished deciding* the
-  // intro's fate (skipped outright on a repeat visit, skipped under reduced
-  // motion, or played and timed out) — distinct from `showIntro` itself,
-  // which starts `false` on the very first render for every visitor
-  // (including first-time ones, before this effect has had a chance to flip
-  // it to `true`). The wordmark-reveal effect further down needs to tell
-  // "no intro is coming" apart from "intro hasn't been decided yet", since
-  // both look identical as `showIntro === false` on that first render — this
-  // flag is what makes that distinction possible.
+  // Distinguishes "no intro is coming" from "the intro has not been
+  // decided yet" - both look identical as `showIntro === false` on the
+  // first render, and the wordmark reveal must not fire behind an opaque
+  // overlay that is about to appear.
   const [introResolved, setIntroResolved] = useState(false);
   const reducedMotion = useReducedMotion();
   const heroRef = useRef<HTMLElement>(null);
-  const imageRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const wordmarkRef = useRef<HTMLHeadingElement>(null);
+  const wordmarkRef = useRef<HTMLSpanElement>(null);
+  const asideRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     const alreadyShown = sessionStorage.getItem(INTRO_KEY) === 'true';
     if (alreadyShown) {
+      // sessionStorage does not exist on the server. Reading it during
+      // render would make the server and the client disagree about whether
+      // the intro plays, and React would throw a hydration mismatch on the
+      // hero of every page. After mount is the only safe moment.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIntroResolved(true);
       return;
     }
     if (reducedMotion) {
-      // No flash-screen under reduced motion — mark it shown and skip straight to content.
-      // Also clear any intro state a prior stale run of this effect may have set: on
-      // mount, useReducedMotion() starts `false` and flips to `true` asynchronously in
-      // its own effect, so this effect can run once with the stale `false` value
-      // (scheduling the intro) before re-running here with the corrected `true` value.
-      // Without this, showIntro would stay stuck `true` with no timer left to clear it.
       setShowIntro(false);
       sessionStorage.setItem(INTRO_KEY, 'true');
       setIntroResolved(true);
       return;
     }
     setShowIntro(true);
-    const timer = setTimeout(() => {
-      setShowIntro(false);
-      sessionStorage.setItem(INTRO_KEY, 'true');
-      setIntroResolved(true);
-    }, 1400);
-    return () => clearTimeout(timer);
   }, [reducedMotion]);
 
-  // Progressive wordmark reveal: once the intro overlay is fully resolved
-  // (either it never showed, or it just finished), stagger the two wordmark
-  // lines in with a GSAP timeline (transform/opacity only). Gating on
-  // `introResolved` (not just mount) means first-time visitors never see the
-  // reveal wasted behind the opaque intro overlay, and `showIntro` in the
-  // dependency array means it re-checks the moment the overlay actually
-  // unmounts. Gated behind `!reducedMotion` like every other motion effect
-  // in this file — under reduced motion the lines simply render in their
-  // final, fully visible state (no `gsap.set` "from" state is ever applied).
+  // Called by CinematicIntro once its bars have opened and the screen has
+  // lifted; the wordmark reveal below waits for this.
+  const finishIntro = useCallback(() => {
+    setShowIntro(false);
+    sessionStorage.setItem(INTRO_KEY, 'true');
+    setIntroResolved(true);
+  }, []);
+
+  // Masthead reveal, per character, rising inside a per-line mask.
+  //
+  // Motivation (not decoration): the wordmark IS the hero. Letting it
+  // assemble left to right makes the studio's name the first thing the eye
+  // tracks, and the mask means characters never overlap the media band
+  // while they travel. Runs only once the intro overlay has resolved, so a
+  // first-time visitor never spends the animation behind an opaque screen.
+  //
+  // Split happens after `document.fonts.ready`: splitting before the Didone
+  // has loaded measures fallback metrics and the lines re-wrap underneath
+  // the finished split, leaving characters stranded mid-air.
   useEffect(() => {
-    if (reducedMotion || !introResolved || showIntro || !wordmarkRef.current) return;
-    const lines = Array.from(wordmarkRef.current.children) as HTMLElement[];
-    const ctx = gsap.context(() => {
-      gsap.timeline().fromTo(
-        lines,
-        { y: 28, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: motion.duration.base,
-          stagger: 0.12,
+    if (reducedMotion || !introResolved || showIntro) return;
+    const word = wordmarkRef.current;
+    const aside = asideRef.current;
+    if (!word) return;
+
+    let split: SplitText | null = null;
+    let ctx: gsap.Context | null = null;
+    let cancelled = false;
+
+    document.fonts.ready.then(() => {
+      if (cancelled || !word) return;
+      ctx = gsap.context(() => {
+        // aria: 'none' -- the split must not put aria-label on a <span>
+        // (prohibited on a generic); the h1's name comes from the sr-only copy.
+        split = SplitText.create(word, { type: 'chars,lines', mask: 'lines', aria: 'none' });
+        gsap.from(split.chars, {
+          yPercent: 115,
+          duration: motion.duration.slow,
+          stagger: 0.022,
           ease: motion.ease.standard,
+        });
+        if (aside) {
+          gsap.from(aside, {
+            opacity: 0,
+            y: 16,
+            duration: motion.duration.base,
+            delay: 0.35,
+            ease: motion.ease.standard,
+          });
         }
-      );
-    }, wordmarkRef);
-    return () => ctx.revert();
-  }, [reducedMotion, introResolved, showIntro]);
+      }, heroRef);
+    });
 
-  // Cursor-reactive depth (desktop only, very contained): nudge the video
-  // layer a few px opposite the pointer as it moves within the Hero, on top
-  // of (not instead of) the scroll-driven `yPercent` parallax above — GSAP
-  // composes `x`/`y` and `yPercent` on the same element into one transform,
-  // so both can drive the same node simultaneously without fighting.
-  // `gsap.quickTo` is used instead of `gsap.to` per pointermove because it's
-  // a cheap, pre-built interpolator (no new tween object allocated per
-  // event) and it never touches React state, so there's no re-render cost.
-  // Gated behind `!reducedMotion` AND a real `matchMedia('(hover: hover) and
-  // (pointer: fine)')` check, not just `!reducedMotion` alone: `pointermove`
-  // does fire on touch devices during a drag/scroll gesture, so the hover +
-  // fine-pointer check is what actually excludes touch-only visitors, sparing
-  // them a listener they'd never meaningfully trigger.
-  useEffect(() => {
-    if (reducedMotion || !heroRef.current || !imageRef.current) return;
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-
-    const hero = heroRef.current;
-    const image = imageRef.current;
-    // Peak-to-peak travel is capped at DEPTH_RANGE px total (i.e. +/- half
-    // that on each axis) — "parallax muy contenido", a few pixels, never a
-    // distracting swim.
-    const DEPTH_RANGE = 12;
-    const xTo = gsap.quickTo(image, 'x', { duration: 0.6, ease: motion.ease.standard });
-    const yTo = gsap.quickTo(image, 'y', { duration: 0.6, ease: motion.ease.standard });
-
-    const handlePointerMove = (event: PointerEvent) => {
-      const rect = hero.getBoundingClientRect();
-      // -0.5..0.5 across each axis, inverted so the video drifts opposite
-      // the cursor (a subtle "looking past the frame" depth cue).
-      const relX = (event.clientX - rect.left) / rect.width - 0.5;
-      const relY = (event.clientY - rect.top) / rect.height - 0.5;
-      xTo(relX * -DEPTH_RANGE);
-      yTo(relY * -DEPTH_RANGE);
-    };
-
-    hero.addEventListener('pointermove', handlePointerMove);
     return () => {
-      hero.removeEventListener('pointermove', handlePointerMove);
-      gsap.set(image, { x: 0, y: 0 });
+      cancelled = true;
+      split?.revert();
+      ctx?.revert();
     };
-  }, [reducedMotion]);
-
-  // Contained parallax on the hero background video: a very subtle
-  // translateY as the user scrolls past the section. Scoped to the Hero
-  // only (per the client's "parallax muy contenido" request), animates
-  // only `transform` (GSAP's `yPercent` compiles to a CSS transform), and
-  // is fully gated behind reduced motion — no ScrollTrigger is ever
-  // created when reducedMotion is true.
-  useEffect(() => {
-    if (reducedMotion || !heroRef.current || !imageRef.current) return;
-    const ctx = gsap.context(() => {
-      gsap.to(imageRef.current, {
-        yPercent: 12,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: heroRef.current,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: true,
-        },
-      });
-    }, heroRef);
-    return () => ctx.revert();
-  }, [reducedMotion]);
-
-  // Imperative autoplay for the hero footage — mirrors VideoPreview.tsx's
-  // pattern exactly: never rely on the native `autoPlay` attribute, drive
-  // `.play()`/`.pause()` from an effect gated on reduced motion. With
-  // reduced motion, `.play()` is never called and the `poster` frame is
-  // shown instead. Unlike VideoPreview (a below-the-fold thumbnail gated
-  // on IntersectionObserver visibility), the Hero is always visible on
-  // load, so it plays on mount rather than waiting to scroll into view.
-  useEffect(() => {
-    const el = videoRef.current;
-    if (!el) return;
-    // The `muted` JSX prop alone is unreliable for autoplay purposes —
-    // React assigns it as a DOM property, which can land after the
-    // browser has already evaluated the element for its autoplay policy
-    // (docs/PATRONES-AWWWARDS.md's video-best-practices section). Setting
-    // it imperatively here guarantees it's true before .play() is ever
-    // called, every time this effect runs.
-    el.muted = true;
-    if (reducedMotion) {
-      el.pause();
-      return;
-    }
-    el.play().catch(() => {});
-  }, [reducedMotion]);
+  }, [reducedMotion, introResolved, showIntro]);
 
   return (
     <section ref={heroRef} className={styles.hero} data-hero-fullbleed>
-      {showIntro && (
-        <div data-testid="intro-sequence" className={styles.intro}>
-          <span className={styles.introMark}>eme</span>
-        </div>
-      )}
-      <div ref={imageRef} className={styles.imageParallax}>
-        <video
-          ref={videoRef}
-          className={styles.video}
-          src="/videos/previews/real-boda-01-hero-drone.mp4"
-          poster="/videos/posters/real-boda-01-hero-drone.webp"
-          muted
-          loop
-          playsInline
-          // Reduced-motion users never call .play() (see the effect above) --
-          // don't make them download 7MB of video they'll never see play.
-          // 'metadata' still lets .play() work instantly for everyone else.
-          preload={reducedMotion ? 'none' : 'metadata'}
-          aria-label="Vista aérea de los novios de Eva y Rafa a la salida de la hacienda, con el velo ondeando al viento"
-        />
-      </div>
-      <div className={styles.overlay} aria-hidden="true" />
-      <div className={styles.content}>
-        {/* City + service-area statement lives INSIDE the H1 (not a sibling
-            <p>) so it carries real SEO weight as the page's single most
-            prominent heading, not a de-emphasized subtitle — matching this
-            session's Patrones-Awwwards audit (A2). The service-area phrase
-            ("Andalucía y donde haga falta") isn't a new claim: it compresses
-            the already-approved FAQ answer ("Sí, cubrimos bodas y eventos
-            fuera de Sevilla... según distancia", content/faq.ts) rather than
-            inventing a new one. It's a <span>, not a <p> -- <p> isn't valid
-            phrasing content inside <h1> -- and shares the wordmark reveal
-            timeline below (Array.from(wordmarkRef.current.children)) as its
-            first staggered line. */}
-        <h1 ref={wordmarkRef} className={styles.wordmark}>
-          <span className={styles.eyebrow}>
-            Fotografía y vídeo de bodas y eventos en {site.legalCity}, Andalucía y donde haga falta, con la mirada de un editorial de moda.
+      {showIntro && <CinematicIntro onComplete={finishIntro} />}
+
+      <div className={styles.masthead}>
+        {/* The service-area statement sits inside the H1 so it carries
+            heading weight for search, but it is set at label scale: the
+            wordmark is the only thing at display size. It is a <span>
+            because <p> is not valid phrasing content inside <h1>. */}
+        <h1 className={styles.heading}>
+          <span className="sr-only">EME Fotografía {site.legalCity}: fotógrafo y vídeo de bodas en Sevilla y Andalucía</span>
+          <span ref={wordmarkRef} className={styles.wordmark} aria-hidden="true">
+            EME Fotografía {site.legalCity}
           </span>
-          <span className={styles.wordmarkLine}>EME</span>{' '}
-          <span className={styles.wordmarkLine}>Fotografía {site.legalCity}</span>
         </h1>
+        {/* One line only, and it is the studio's own descriptor rather
+            than a sentence: bellephoto.com.au's masthead band carries the
+            wordmark and nothing else, and the positioning statement gets
+            its own centred section immediately below. */}
+        <p ref={asideRef} className={styles.aside}>
+          <span className={styles.asideText}>
+            Fotografía y vídeo de bodas en {site.legalCity}
+          </span>
+        </p>
+        {/* Four corner notes around the masthead (Agentura's hero sets
+            its claims in the corners of the frame). Real facts only. */}
+        <ul className={styles.corners} aria-label="En pocas palabras">
+          <li className={`${styles.corner} ${styles.cornerTL}`}>Reportaje, película y álbum impreso.</li>
+          <li className={`${styles.corner} ${styles.cornerTR}`}>Sevilla y toda Andalucía.</li>
+          {/* Esta esquina daba "+125 parejas", la misma cifra que Cifras
+              imprime a media pantalla de aquí. El argumento de Cifras es que
+              "el hero afirma y esto es el recibo": se anula solo si el hero ya
+              enseñó el recibo. Y "una boda por fecha" tampoco vale: es la frase
+              con la que cierra la página en CtaContacto. Queda la trayectoria,
+              que no se dice en ningún otro sitio de la home. */}
+          <li className={`${styles.corner} ${styles.cornerBL}`}>Quince años detrás de la cámara.</li>
+          <li className={`${styles.corner} ${styles.cornerBR}`}>Wedding Awards 2025 · Bodas.net</li>
+        </ul>
       </div>
-      <div className={styles.scrollIndicator} aria-hidden="true">
-        <span className={styles.scrollLine} />
+
+      <div className={styles.media}>
+        <HeroMosaic play={introResolved && !showIntro} />
       </div>
     </section>
   );

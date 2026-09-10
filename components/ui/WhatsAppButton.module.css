@@ -1,0 +1,108 @@
+/* A quiet, editorial pill: paper ground, hairline border, ink glyph --
+   the same material as the rest of the interface, not a green bubble.
+   The word appears only on hover on desktop; on phones it is a small
+   round mark tucked in the corner. */
+.button {
+  position: fixed;
+  right: var(--gutter);
+  bottom: var(--space-2);
+  z-index: 240; /* under the cookie banner (250) and the intro (300) */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* CÍRCULO, no óvalo. En reposo la etiqueta mide 0 de ancho, pero el `gap`
+     y el `padding` horizontal seguían contando: el botón salía 2,75rem de
+     alto por unos 4rem de ancho, o sea una cápsula aplastada con un icono
+     descentrado dentro. El ancho se fija igual que el alto y el aire lateral
+     lo pone la propia etiqueta al desplegarse. */
+  width: 2.75rem;
+  height: 2.75rem;
+  gap: 0;
+  padding: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-paper) 88%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--color-hairline);
+  color: var(--color-ink);
+  text-decoration: none;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  box-shadow: 0 6px 20px -8px rgba(0, 0, 0, 0.25);
+  opacity: 0.92;
+  transition: opacity var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard), width var(--duration-base) var(--ease-standard),
+    padding var(--duration-base) var(--ease-standard);
+  animation: waIn var(--duration-base) var(--ease-standard) 1.6s both;
+}
+.button:hover,
+.button:focus-visible {
+  opacity: 1;
+  border-color: var(--color-ink);
+  transform: translateY(-1px);
+}
+.button:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+.icon {
+  flex: none;
+  width: 1.05rem;
+  height: 1.05rem;
+}
+.label {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  transition: max-width var(--duration-base) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  /* Al desplegarse deja de ser un círculo y pasa a cápsula. El ancho de
+     destino es un número fijo y no `auto` porque `auto` no se puede animar:
+     con `auto` el botón daba un salto y la etiqueta aparecía a tirones. */
+  .button:hover,
+  .button:focus-visible {
+    width: 9.75rem;
+    padding-inline: var(--space-1);
+  }
+  .button:hover .label,
+  .button:focus-visible .label {
+    max-width: 8rem;
+    margin-inline-start: 0.55em;
+    opacity: 1;
+  }
+}
+/* En móvil no hay hover, así que el botón se queda siempre en su forma
+   circular y la etiqueta no existe. El `right` NO se sobreescribe aquí: el
+   banner de cookies (z-index 250) aparece justo encima y alinea su borde
+   derecho con --gutter; bajarlo a --space-2 dejaba los dos elementos
+   flotantes desalineados 4 px entre sí a 375. */
+@media (max-width: 899px) {
+  .label {
+    display: none;
+  }
+}
+@keyframes waIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 0.92;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    animation: none;
+    transition: none;
+  }
+}
+@media print {
+  .button {
+    display: none;
+  }
+}

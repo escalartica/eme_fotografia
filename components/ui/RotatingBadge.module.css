@@ -1,0 +1,58 @@
+.badge {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: clamp(6.5rem, 12vw, 9rem);
+  aspect-ratio: 1;
+  color: currentColor;
+  text-decoration: none;
+  border-radius: 50%;
+}
+.ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  animation: spin 28s linear infinite;
+}
+/* Aqui habia un `animation-duration: 10s` en :hover. Cambiar la duracion
+   de una animacion en curso no la acelera: reasigna el tiempo ya
+   transcurrido a la nueva duracion, asi que el anillo SALTA a otro angulo
+   en el fotograma del hover (a mitad de vuelta, de 180 a 144 grados) y
+   vuelve a saltar al salir. Un giro constante no tiene forma de acelerar
+   sin costura en CSS, y la insignia ya responde al puntero con la flecha
+   de debajo, asi que se retira en lugar de sustituirse. */
+.text {
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  fill: currentColor;
+}
+.arrow {
+  font-family: var(--font-display);
+  font-size: var(--type-h3);
+  line-height: 1;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.badge:focus-visible .arrow {
+  transform: translate(2px, -2px);
+}
+/* Con puerta: en tactil el :hover sintetico se queda pegado tras el toque
+   y la flecha se quedaba desplazada. Mismo criterio que .arrowLink en
+   styles/layout.css. */
+@media (hover: hover) and (pointer: fine) {
+  .badge:hover .arrow {
+    transform: translate(2px, -2px);
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ring {
+    animation: none;
+  }
+}

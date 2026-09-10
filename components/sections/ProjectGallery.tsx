@@ -6,6 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { VideoPreview } from '@/components/motion/VideoPreview';
 import { Lightbox } from '@/components/motion/Lightbox';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
+import { coverBoxStyle, focusStyle } from '@/lib/focal';
 import { motion } from '@/lib/motion-tokens';
 import type { Project, ProjectMedia } from '@/content/types';
 import styles from './ProjectGallery.module.css';
@@ -15,13 +16,6 @@ if (typeof window !== 'undefined') {
 }
 
 type Span = 'full' | 'wide' | 'half';
-
-// Deterministic fallback for gallery items with no curated `span` in
-// content/projects.ts (currently all real items -- see ProjectMedia.span's
-// doc comment in content/types.ts for why this data file doesn't invent
-// per-photo curatorial decisions). Cycling through all three values by
-// index still produces genuine visual variety rather than one rigid width.
-const SPAN_PATTERN: Span[] = ['full', 'wide', 'half'];
 
 const SPAN_CLASS: Record<Span, string> = {
   full: styles.full,
@@ -65,8 +59,13 @@ export function ProjectGallery({ project }: { project: Project }) {
           component on this page that already owns that Lightbox state —
           rather than lifted into Page.tsx, which can't hold React state. */}
       {project.cover.type === 'video' && (
-        <div className={styles.coverWrap}>
+        <div className={styles.coverWrap} style={coverBoxStyle(project.cover)}>
           <VideoPreview media={project.cover} onOpenFull={() => setOpenMedia(project.cover)} />
+          {project.cover.isPlaceholderMedia && (
+            <span className="sourceBadge">
+              Vídeo de muestra{project.cover.sourceCredit ? ` — ${project.cover.sourceCredit}` : ''}
+            </span>
+          )}
         </div>
       )}
       {/* Continuous, full-bleed editorial photo-essay flow (A3 pattern,
@@ -74,19 +73,38 @@ export function ProjectGallery({ project }: { project: Project }) {
           ratios, alternating full/wide/half widths -- not a uniform
           thumbnail grid. */}
       <div className={styles.flow}>
-        {project.gallery.map((media, i) => (
-          <GalleryFlowItem
-            key={i}
-            media={media}
-            span={media.span ?? SPAN_PATTERN[i % SPAN_PATTERN.length]}
-            priority={priorityFlags[i]}
-            onOpenMedia={setOpenMedia}
-          />
-        ))}
+        {buildFlow(project.gallery).map((row, r) =>
+          row.kind === 'duo' ? (
+            <div key={`duo-${r}`} className={styles.duo}>
+              {row.items.map(({ media, index }) => (
+                <GalleryFlowItem key={index} media={media} span="half" side={index % 2 === 0 ? 'left' : 'right'} priority={priorityFlags[index]} onOpenMedia={setOpenMedia} inDuo />
+              ))}
+            </div>
+          ) : (
+            <GalleryFlowItem
+              key={row.index}
+              media={row.media}
+              span={row.span}
+              side={row.index % 2 === 0 ? 'left' : 'right'}
+              priority={priorityFlags[row.index]}
+              onOpenMedia={setOpenMedia}
+            />
+          )
+        )}
       </div>
       <Lightbox isOpen={openMedia !== null} onClose={() => setOpenMedia(null)}>
         {openMedia?.type === 'video' && (
-          <video src={openMedia.src} controls autoPlay poster={openMedia.poster} aria-label={openMedia.alt} />
+          // Cinema letterbox: a fixed widescreen frame (~2.39:1, true
+          // "Cinemascope") in place of the video's own raw ratio. Real
+          // wedding footage here is 16:9, narrower than the frame, so
+          // object-fit: contain leaves genuine black bars above and below
+          // rather than cropping anything -- the same effect as watching a
+          // widescreen film, not a CSS trick played on the footage itself.
+          // Skipped below 700px (see .lightboxVideoWrap): at phone widths
+          // the fixed ratio squeezes the video down to a sliver.
+          <div className={styles.lightboxVideoWrap}>
+            <video src={openMedia.src} controls autoPlay poster={openMedia.poster} aria-label={openMedia.alt} />
+          </div>
         )}
         {openMedia?.type === 'image' && (
           <div className={styles.lightboxImageWrap}>
@@ -98,14 +116,62 @@ export function ProjectGallery({ project }: { project: Project }) {
   );
 }
 
+
+type FlowRow =
+  | { kind: 'single'; media: ProjectMedia; span: Span; index: number }
+  | { kind: 'duo'; items: { media: ProjectMedia; index: number }[] };
+
+const isPortrait = (m: ProjectMedia) => Boolean(m.width && m.height && m.height > m.width);
+
+/**
+ * Orientation-aware flow. Landscape frames alternate full-bleed and the
+ * 70% "wide" letterbox; a portrait never runs full width (a 2:3 frame at
+ * 100vw is two screens tall), so two consecutive portraits share one row
+ * as a pair of prints and a lone portrait takes the 46% "half" slot.
+ * A curated `span` on the media entry always wins.
+ */
+function buildFlow(gallery: ProjectMedia[]): FlowRow[] {
+  const rows: FlowRow[] = [];
+  let landscapeCount = 0;
+  for (let i = 0; i < gallery.length; i++) {
+    const media = gallery[i];
+    if (media.span) {
+      rows.push({ kind: 'single', media, span: media.span, index: i });
+      continue;
+    }
+    if (media.type === 'image' && isPortrait(media)) {
+      const next = gallery[i + 1];
+      if (next && next.type === 'image' && isPortrait(next) && !next.span) {
+        rows.push({ kind: 'duo', items: [{ media, index: i }, { media: next, index: i + 1 }] });
+        i++;
+      } else {
+        rows.push({ kind: 'single', media, span: 'half', index: i });
+      }
+      continue;
+    }
+    rows.push({ kind: 'single', media, span: landscapeCount % 2 === 0 ? 'full' : 'wide', index: i });
+    landscapeCount++;
+  }
+  return rows;
+}
+
 function GalleryFlowItem({
   media,
   span,
+  side,
   priority,
   onOpenMedia,
+  inDuo = false,
 }: {
   media: ProjectMedia;
   span: Span;
+  /** Rendered inside a two-up row: no side offset, no overlap. */
+  inDuo?: boolean;
+  // Which viewport edge a narrower (wide/half) item leans toward, and the
+  // direction its scroll-drift travels: alternates per item so consecutive
+  // frames stagger left/right and overlap the previous one at an angle
+  // instead of stacking dead-center (the "superpuestas" layering).
+  side: 'left' | 'right';
   priority: boolean;
   onOpenMedia: (media: ProjectMedia) => void;
 }) {
@@ -116,7 +182,14 @@ function GalleryFlowItem({
   useEffect(() => {
     if (reducedMotion || !itemRef.current) return;
     const ctx = gsap.context(() => {
-      // Entrance reveal: opacity-only, on itemRef -- the SAME element used
+      // ONE entrance, not two. There used to be an opacity fade at
+      // `top 90%` and this clip-path iris at `top 88%` on the same
+      // element: two reveals two percent apart, which the eye reads as a
+      // single reveal that stutters. The iris is the more distinctive of
+      // the two and it already hides the frame until it opens, so the
+      // fade was doing nothing the clip was not.
+      //
+      // Historical note on why it is clip-path and not translate: on itemRef -- the SAME element used
       // below as the ScrollTrigger `trigger` for the parallax tween.
       // Deliberately NOT a translateY reveal here: opacity never changes an
       // element's own layout/bounding rect the way a transform does, so it
@@ -129,22 +202,49 @@ function GalleryFlowItem({
       // Hero.tsx's heroRef (stable trigger) / imageRef (parallax target)
       // split: one element for measurement, a different one for the
       // scroll-scrubbed transform.
-      gsap.set(itemRef.current, { opacity: 0 });
-      gsap.to(itemRef.current, {
-        opacity: 1,
-        duration: motion.duration.slow,
-        ease: motion.ease.standard,
-        scrollTrigger: { trigger: itemRef.current, start: 'top 90%' },
-      });
+      // Cinematic reveal on the frame itself: the photo is unmasked from a
+      // narrower inset (a curtain/iris feel, like a shot fading up on a
+      // projector) while the picture inside settles from a slight push-in.
+      // clip-path never changes the element's bounding rect either, so the
+      // trigger measurement stays stable (same reasoning as the opacity
+      // reveal above).
+      gsap.fromTo(
+        itemRef.current,
+        { clipPath: 'inset(10% 6% 10% 6%)' },
+        {
+          clipPath: 'inset(0% 0% 0% 0%)',
+          duration: motion.duration.intro,
+          ease: motion.ease.standard,
+          scrollTrigger: { trigger: itemRef.current, start: 'top 88%' },
+        }
+      );
 
       if (parallaxRef.current) {
-        // Light per-image parallax: transform-only (`yPercent`), scrubbed
-        // directly to scroll position (no easing lag) rather than timed.
+        // Per-image parallax: a modest vertical travel, a sideways drift
+        // whose direction alternates per item (so neighbouring frames slide
+        // past each other) and a slow push-in from 1.04 to 1.0. Kept small
+        // on purpose -- and starting with the layer shifted DOWN, so the
+        // first thing revealed is the top of the photograph (the faces),
+        // never a crop that beheads the couple while the frame settles.
+        // The travel is covered by .parallaxInner's enlarged inset in the
+        // CSS module.
+        //
+        // The numbers are a head-room budget, not taste: every gallery item
+        // sizes its box to the photograph's own aspect ratio, so the image
+        // fills .parallaxInner's height exactly and `object-position` has
+        // nothing left to give. Whatever the inset plus the travel add up to
+        // is a band of the photograph the viewer never sees at the top --
+        // 7% + 5% used to be 12%, enough to take the top off a head in the
+        // frames where someone stands high. 3% + 2.5% keeps it under 6%,
+        // clear of every face measured across the published galleries.
+        const drift = side === 'left' ? -2 : 2;
         gsap.fromTo(
           parallaxRef.current,
-          { yPercent: -8 },
+          { yPercent: 2.5, xPercent: drift, scale: 1.04 },
           {
-            yPercent: 8,
+            yPercent: -2.5,
+            xPercent: -drift,
+            scale: 1,
             ease: 'none',
             scrollTrigger: {
               trigger: itemRef.current,
@@ -157,7 +257,7 @@ function GalleryFlowItem({
       }
     }, itemRef);
     return () => ctx.revert();
-  }, [reducedMotion]);
+  }, [reducedMotion, side]);
 
   // Real intrinsic aspect ratio when this media item has been measured
   // (content/types.ts's ProjectMedia.width/height doc comment -- currently
@@ -169,7 +269,7 @@ function GalleryFlowItem({
   const ratioStyle = media.width && media.height ? { aspectRatio: `${media.width} / ${media.height}` } : undefined;
 
   return (
-    <div ref={itemRef} className={`${styles.item} ${SPAN_CLASS[span]}`} style={ratioStyle} data-span={span}>
+    <div ref={itemRef} className={`${styles.item} ${SPAN_CLASS[span]}`} style={ratioStyle} data-span={span} data-side={side} data-duo={inDuo || undefined}>
       <div ref={parallaxRef} className={styles.parallaxInner}>
         {media.type === 'image' ? (
           <button
@@ -179,12 +279,18 @@ function GalleryFlowItem({
             aria-label={`Ver ${media.alt} en tamaño completo`}
             data-cursor="ver"
           >
-            <Image src={media.src} alt={media.alt} fill sizes={SPAN_SIZES[span]} priority={priority} />
+            <Image src={media.src} alt={media.alt} fill sizes={SPAN_SIZES[span]} priority={priority} style={focusStyle(media)} />
           </button>
         ) : (
           <VideoPreview media={media} onOpenFull={() => onOpenMedia(media)} />
         )}
       </div>
+      {media.isPlaceholderMedia && (
+        <span className="sourceBadge">
+          {media.type === 'video' ? 'Vídeo de muestra' : 'Imagen de muestra'}
+          {media.sourceCredit ? ` — ${media.sourceCredit}` : ''}
+        </span>
+      )}
     </div>
   );
 }

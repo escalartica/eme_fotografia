@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import { createFocusTrap } from 'focus-trap';
+import { CloseIcon } from '@/components/ui/Icon';
 import styles from './Lightbox.module.css';
 
 export function Lightbox({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) {
@@ -33,10 +34,23 @@ export function Lightbox({ isOpen, onClose, children }: { isOpen: boolean; onClo
   if (!isOpen) return null;
 
   return (
-    <div className={styles.backdrop} data-testid="lightbox-backdrop" onClick={onClose} role="dialog" aria-modal="true">
+    // aria-label gives the dialog an accessible name (WCAG 4.1.2) --
+    // without one, a screen reader announces only "dialog" on entry, with
+    // no indication of what just opened. Generic on purpose: this Lightbox
+    // renders either a photo or a letterboxed video (ProjectGallery.tsx),
+    // so a single label covers both rather than assuming one media type.
+    <div
+      className={styles.backdrop}
+      data-testid="lightbox-backdrop"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Vista ampliada"
+    >
       <div ref={contentRef} className={styles.content} tabIndex={-1} onClick={(e) => e.stopPropagation()}>
         {children}
-        <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Cerrar">
+        <button type="button" className={styles.closeButton} onClick={onClose}>
+          <CloseIcon size={14} />
           Cerrar
         </button>
       </div>

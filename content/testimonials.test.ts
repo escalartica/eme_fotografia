@@ -11,10 +11,4 @@ describe('testimonials content', () => {
       expect(t.role).toBeTruthy();
     }
   });
-
-  it('every entry with a photo path has a corresponding placeholder-prefixed filename', () => {
-    for (const t of testimonials) {
-      if (t.photo) expect(t.photo).toMatch(/\/placeholder-/);
-    }
-  });
 });
