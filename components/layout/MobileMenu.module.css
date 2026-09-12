@@ -118,14 +118,14 @@
   transition: transform var(--duration-fast) var(--ease-standard);
 }
 
-/* La flecha vive en la línea de base del rótulo y mide en em, así que sigue
-   al tamaño del texto sin un solo número mágico. Dibujada, no tipografiada:
-   ver el componente Flecha en MobileMenu.tsx. */
+/* La flecha la dibuja components/ui/ArrowGlyph.tsx, y su SVG se mide en `em`
+   (regla .arrowGlyph, styles/layout.css). Así que aquí el tamaño se pone
+   donde toca --el cuerpo de letra de la casilla-- y no con un ancho y un alto
+   a mano sobre un envoltorio que no es quien pinta. */
 .arrow {
   align-self: center;
-  width: 1.15rem;
-  height: 1.15rem;
-  flex: 0 0 auto;
+  font-size: 1.2rem;
+  line-height: 1;
   color: color-mix(in srgb, var(--color-night-text) 40%, transparent);
   transition:
     transform var(--duration-fast) var(--ease-standard),
@@ -245,8 +245,18 @@
 /* The global :focus-visible rule resolves to --color-ink, which in dark
    mode is a light color that would vanish against this always-dark
    panel. Override with the panel's own constant text color so the
-   keyboard ring stays visible in both themes. */
+   keyboard ring stays visible in both themes.
+
+   Y EL DESPLAZAMIENTO ES NEGATIVO, que es lo que arregla un fallo que llevaba
+   aquí desde antes de este trabajo: `.item` tiene `overflow: hidden` --la
+   ventana de recorte de la que vive la animación de entrada-- y la caja de
+   `.row` coincide exactamente con la suya, así que un anillo dibujado 4 px por
+   FUERA caía entero en la zona recortada y no se veía por ninguno de los
+   cuatro lados. Dibujado 3 px por dentro, se ve siempre.
+   Importa más desde que la fila de la página actual no lleva flecha (lleva el
+   punto): con `prefers-reduced-motion: reduce`, que anula el desplazamiento
+   del rótulo, esa fila se quedaba literalmente sin ninguna señal de foco. */
 .overlay :focus-visible {
   outline: 2px solid var(--color-night-text);
-  outline-offset: 4px;
+  outline-offset: -3px;
 }

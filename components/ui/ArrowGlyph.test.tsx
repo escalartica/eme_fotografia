@@ -38,16 +38,25 @@ describe('ArrowGlyph', () => {
  * EL GUARDIÁN, que es la mitad que de verdad importa.
  *
  * El defecto no era que faltara un componente: era que en dieciocho sitios
- * había un `↗` escrito a mano. Un componente nuevo no impide que mañana
- * alguien vuelva a teclear uno. Esto sí: recorre el código del sitio y falla
- * si aparece cualquiera de los cuatro caracteres de flecha en un fichero de
- * interfaz.
+ * había un carácter de flecha escrito a mano. Un componente nuevo no impide
+ * que mañana alguien vuelva a teclear uno. Esto sí: recorre el código del
+ * sitio y falla si aparece cualquier carácter de flecha.
  *
- * Los comentarios quedan fuera a propósito -- ArrowGlyph.tsx y RotatingBadge
- * .tsx explican el problema y para eso tienen que poder nombrar el carácter.
+ * MIRA TAMBIÉN LOS `.ts` Y LOS `.css`, y no sólo los `.tsx`, porque un rótulo
+ * de interfaz puede acabar perfectamente en `content/site.ts`, en los textos
+ * de un servicio o en un `content: '...'` de una hoja de estilos -- que es
+ * donde nadie iría a buscarlo.
+ *
+ * Y EL RANGO COGE LOS CUATRO BLOQUES de flechas de Unicode, no sólo el
+ * primero: en Miscellaneous Symbols and Arrows viven las que un teclado de
+ * emoji ofrece antes que ninguna otra.
+ *
+ * Los comentarios quedan fuera a propósito -- ArrowGlyph.tsx y
+ * RotatingBadge.tsx explican el problema y para eso tienen que poder nombrar
+ * el carácter.
  */
-const FLECHAS = /[←-⇿➔-➿]/;
-const CARPETAS = ['components', 'app'];
+const FLECHAS = /[\u2190-\u21FF\u2794-\u27BF\u27F0-\u27FF\u2900-\u297F\u2B00-\u2BFF]/;
+const CARPETAS = ['components', 'app', 'content', 'styles', 'lib'];
 
 function ficherosDeInterfaz(dir: string): string[] {
   const salida: string[] = [];
@@ -56,18 +65,17 @@ function ficherosDeInterfaz(dir: string): string[] {
     const ruta = join(dir, nombre);
     if (statSync(ruta).isDirectory()) {
       salida.push(...ficherosDeInterfaz(ruta));
-    } else if (nombre.endsWith('.tsx') && !nombre.endsWith('.test.tsx')) {
+    } else if (/\.(tsx|ts|css)$/.test(nombre) && !/\.test\.tsx?$/.test(nombre)) {
       salida.push(ruta);
     }
   }
   return salida;
 }
 
-/** Quita comentarios de bloque, de línea y los `{/* ... *\/}` de JSX. */
+/** Quita comentarios de bloque y de línea (los `{/* ... *\/}` de JSX caen con
+ *  los de bloque, que es lo que llevan dentro). */
 function sinComentarios(fuente: string): string {
-  return fuente
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/^\s*\/\/.*$/gm, '');
+  return fuente.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^[ \t]*\/\/.*$/gm, '');
 }
 
 describe('ninguna flecha escrita a mano en la interfaz', () => {
@@ -75,9 +83,10 @@ describe('ninguna flecha escrita a mano en la interfaz', () => {
     const culpables: string[] = [];
     for (const carpeta of CARPETAS) {
       for (const ruta of ficherosDeInterfaz(carpeta)) {
-        const limpio = sinComentarios(readFileSync(ruta, 'utf8'));
-        const m = limpio.match(FLECHAS);
-        if (m) culpables.push(`${ruta}: ${m[0]}`);
+        const m = sinComentarios(readFileSync(ruta, 'utf8')).match(FLECHAS);
+        if (m) {
+          culpables.push(`${ruta}: ${m[0]} (U+${m[0].codePointAt(0)!.toString(16).toUpperCase()})`);
+        }
       }
     }
     expect(culpables).toEqual([]);

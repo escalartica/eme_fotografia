@@ -102,6 +102,26 @@ export function QuienSoyBloques() {
   // forma de escritorio: la que lo lleva TODO en el HTML servido. Así el
   // capítulo entero se indexa y se puede buscar con Ctrl+F, y lo que hace la
   // hidratación en un teléfono es recoger, no revelar.
+  //
+  // Y ESO TIENE UN PRECIO, elegido a sabiendas. Como la forma la decide
+  // JavaScript, hay que servir una de las dos y corregir la otra: en un
+  // teléfono el HTML llega con los tres tramos abiertos y se recogen dos en
+  // cuanto hidrata. La ventana es el tiempo que tarda en llegar el bundle.
+  //
+  // Se sopesó darle la vuelta (servir el acordeón y abrirlo en escritorio) y
+  // se descartó por dos motivos: el HTML servido dejaría dos tramos dentro de
+  // un `<details>` cerrado --que Google indexa, pero el Ctrl+F de Safari y
+  // Firefox no abre--, y en escritorio aparecerían durante ese mismo rato los
+  // tres botones «+» que el estudio rechazó de plano. También se sopesó
+  // resolverlo sólo con CSS, forzando el desplegado en escritorio con
+  // `::details-content`; se descartó porque en un navegador que no lo soporte
+  // el capítulo se quedaría cerrado PARA SIEMPRE, que es el peor fallo
+  // posible de los tres.
+  //
+  // Lo que hace tolerable el precio es dónde está esta sección: detrás del
+  // encabezado y del párrafo de apertura, o sea fuera de la primera pantalla
+  // en los dos tamaños. Para cuando alguien baja hasta aquí, la hidratación
+  // terminó hace rato y no ve nada moverse.
   const esMovil = useMediaQuery('(max-width: 899px)');
   const [abierto, setAbierto] = useState<string>(BLOQUES[0].id);
 

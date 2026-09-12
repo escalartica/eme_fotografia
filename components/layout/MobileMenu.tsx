@@ -6,6 +6,7 @@ import { gsap } from 'gsap';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import { motion } from '@/lib/motion-tokens';
 import { site } from '@/content/site';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 import styles from './MobileMenu.module.css';
 
 // Numbered index, the device danieleandmarilia.com uses for its overlay
@@ -40,26 +41,6 @@ const REDES = [
  */
 const SALIDA_MS = 340;
 
-function Flecha({ className }: { className?: string }) {
-  // Dibujada, no tipografiada, por lo mismo que la insignia giratoria del
-  // CTA: los caracteres de flecha de Unicode no están en la fuente de texto
-  // del sistema en iOS y el teléfono los sustituye por el emoji a color.
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5 12h13" />
-      <path d="m12 5 7 7-7 7" />
-    </svg>
-  );
-}
 
 export function MobileMenu({
   isOpen,
@@ -259,11 +240,25 @@ export function MobileMenu({
       role="dialog"
       aria-modal="true"
       aria-label="Menú de navegación"
-      /* Mientras se va ya no es un diálogo con el que se pueda hacer nada:
-         se saca del árbol de accesibilidad y deja de recibir toques, para
-         que un dedo rápido no abra un enlace de un panel que ya está medio
-         transparente. */
-      aria-hidden={closing || undefined}
+      /* Mientras se va ya no es un diálogo con el que se pueda hacer nada.
+         `inert` y no `aria-hidden`, que fue la primera versión y estaba mal:
+         `aria-hidden` saca el contenedor del árbol de accesibilidad pero dentro
+         se quedan NUEVE enlaces enfocables (las cinco filas más el correo, el
+         teléfono y las tres redes del pie), y eso es la infracción clásica
+         «aria-hidden no puede contener elementos enfocables». Y no era teórica:
+         el foco vuelve al botón de la cabecera, que está ANTES del panel en el
+         documento, así que un tabulador dentro de esos 340 ms metía a quien
+         navega con teclado en una región anunciada como oculta y ya sorda al
+         puntero.
+         `inert` hace las tres cosas de golpe --árbol de accesibilidad, orden de
+         tabulación y eventos de puntero-- y deja de haber dos listas que
+         mantener a la vez.
+         Y ojo con el alcance: el aviso de cookies vigila `body > [inert]` para
+         esconderse cuando algo tapa la página (components/consent/
+         CookieConsent.tsx). Este panel vive dentro del <header>, no colgando
+         del <body>, así que ese selector no lo ve y el aviso no parpadea cada
+         vez que se cierra el menú. */
+      inert={closing || undefined}
     >
       <nav aria-label="Menú principal" className={styles.nav}>
         <ol className={styles.list}>
@@ -276,7 +271,6 @@ export function MobileMenu({
                   onClick={onClose}
                   className={`${styles.row}${actual ? ` ${styles.current}` : ''}`}
                   aria-current={actual ? 'page' : undefined}
-                  tabIndex={closing ? -1 : undefined}
                 >
                   <span className={styles.index} aria-hidden="true">
                     {String(i + 1).padStart(2, '0')}
@@ -288,7 +282,7 @@ export function MobileMenu({
                       <span className="sr-only">(estás aquí)</span>
                     </span>
                   ) : (
-                    <Flecha className={styles.arrow} />
+                    <ArrowGlyph dir="right" className={styles.arrow} />
                   )}
                 </Link>
               </li>

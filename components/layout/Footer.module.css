@@ -208,7 +208,11 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0 var(--space-3);
+  /* Con hueco tambien entre renglones: a 320 px y con el cuerpo de letra del
+     sistema subido los tres enlaces envuelven, y dos dianas tactiles de
+     2,75 rem pegadas una encima de otra sin holgura es lo que WCAG 2.5.8
+     cuenta como objetivos contiguos. */
+  gap: var(--space-0) var(--space-3);
 }
 .legal a {
   /* Mínimo táctil: son tres enlaces a --type-label uno detrás de otro al pie
@@ -254,10 +258,18 @@
   margin: 0;
   font-size: var(--type-label);
   line-height: 1.6;
-  /* SUBIDO DE 50 % A 62 %. Al 50 %, #F8F7F2 sobre este negro mide 4,4:1
-     contra el 4,5:1 que la norma pide para texto pequeño --y --type-label
-     ronda los 12 px, muy por debajo de la excepción de texto grande--. Con
-     62 % pasa con margen y sigue siendo, visiblemente, letra pequeña. */
+}
+/* LOS DOS GRISES, medidos y no elegidos a ojo. #F8F7F2 sobre el #060606 de
+   este pie da 5,0:1 al 50 % y 6,6:1 al 62 %; la norma pide 4,5:1 para texto
+   de este cuerpo, así que los dos pasan. La diferencia es jerarquía, no
+   accesibilidad: el copyright es del estudio y se lee, el crédito de quien
+   hizo la web va un paso por detrás.
+   (Aquí hubo un comentario que decía que el 50 % medía 4,4:1 y que por eso
+   se subía a 62 %. Estaba mal calculado, y encima la regla que lo aplicaba
+   quedaba anulada dos líneas más abajo por este mismo `.credito`: el efecto
+   real era cero. Queda escrito porque un comentario que miente sobre lo que
+   hace el fichero cuesta más que no tenerlo.) */
+.copy {
   color: color-mix(in srgb, var(--color-night-text) 62%, transparent);
 }
 .credito {

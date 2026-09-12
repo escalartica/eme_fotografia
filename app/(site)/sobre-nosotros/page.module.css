@@ -324,7 +324,12 @@
    condiciones, y si falla cualquiera el tramo sigue abriendo, sólo que de
    golpe. `interpolate-size` se declara en el bloque, no en :root, para no
    cambiar el comportamiento de ningún otro sitio del proyecto. */
-@media (prefers-reduced-motion: no-preference) {
+@media (max-width: 899px) and (prefers-reduced-motion: no-preference) {
+  /* DENTRO del media del teléfono, y a propósito: de 900 px para arriba aquí
+     no hay un solo `<details>`, así que `interpolate-size` --que se hereda--
+     se quedaba activo sobre todo el subárbol de los tres bloques sin que
+     nadie lo usara. Hoy es inocuo, pero el comentario de al lado promete
+     justo lo contrario. */
   @supports (interpolate-size: allow-keywords) and (selector(::details-content)) {
     .bloques {
       interpolate-size: allow-keywords;
@@ -336,8 +341,8 @@
       overflow: hidden;
       overflow: clip;
       transition:
-        block-size var(--duration-fast) var(--ease-standard),
-        content-visibility var(--duration-fast) allow-discrete;
+        block-size var(--duration-base) var(--ease-standard),
+        content-visibility var(--duration-base) allow-discrete;
     }
     .bloqueDetalle[open]::details-content {
       block-size: auto;

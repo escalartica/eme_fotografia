@@ -39,7 +39,7 @@ export function AdminGalleryView({ slug, clientName, weddingDate, username, shar
   return (
     <div className={styles.page}>
       <Link href="/admin" className={styles.back}>
-        <ArrowGlyph dir="left" />
+        <ArrowGlyph dir="left" />{' '}
         Volver al panel
       </Link>
 
