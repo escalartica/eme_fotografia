@@ -513,13 +513,14 @@ export default function Page() {
               </li>
             ))}
           </ol>
-          {/* ⚠️ TODO(cliente): este bloque promete algo. Está escrito en
-              deliberadamente vago —no nombra formato, fecha ni precio— para
-              crear expectativa sin comprometer al estudio a una entrega
-              concreta, que es lo que pedía el brief. Aun así, es una promesa
-              pública: confirmad que efectivamente hay algo en camino antes de
-              publicarlo, o quitadlo. Una novedad anunciada que no llega hace
-              más daño que no haberla anunciado. */}
+          {/* CONFIRMADO POR EL ESTUDIO el 12/09/2026: los formatos existen y
+              están en preparación, así que el bloque se publica.
+              Está escrito a propósito sin nombrar formato, fecha ni precio,
+              para crear expectativa sin comprometer una entrega concreta. Lo
+              que NO puede hacer es sobrevivir a la novedad: el día que los
+              formatos salgan, esto deja de ser un adelanto y pasa a ser una
+              promesa vieja sin cumplir a la vista de quien está decidiendo.
+              Entonces se sustituye por lo que ya se ofrece, o se quita. */}
           <aside className={styles.upcoming}>
             <p className={styles.upcomingLabel}>Próximamente</p>
             <p className={styles.upcomingText}>

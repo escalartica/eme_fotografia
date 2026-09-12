@@ -5,22 +5,15 @@ Todo lo que se ha ido dejando para después, en un solo sitio. Cada punto dice
 
 Última revisión: 12 de septiembre de 2026.
 
+> El bloque «Próximamente» de /sobre-nosotros lo confirmó el estudio ese
+> mismo día: los formatos existen y se publica tal cual. Queda una nota en el
+> código para retirarlo cuando dejen de ser una novedad.
+
 ---
 
 ## Antes de publicar
 
-### 1. El bloque «Próximamente» de /sobre-nosotros — decisión del estudio
-
-`app/(site)/sobre-nosotros/page.tsx`, capítulo 04. Dice que hay formatos
-nuevos en camino: piezas para el móvil el mismo fin de semana, y «una forma
-distinta de volver al reportaje pasado el tiempo». Está escrito a propósito sin
-nombrar formato, fecha ni precio, para crear expectativa sin comprometerse.
-
-Aun así es una promesa pública. **Confirmad que hay algo realmente en camino, o
-se quita.** Una novedad anunciada que no llega hace más daño que no haberla
-anunciado, y esto lo van a leer parejas que están decidiendo.
-
-### 2. `emebodas.com` se renueva solo — IONOS, y no depende de nada
+### 1. `emebodas.com` se renueva solo — IONOS, y no depende de nada
 
 Caduca el **20/07/2027** y la renovación automática está desactivada. Un
 dominio que expira lo puede registrar cualquiera al día siguiente, incluido
@@ -28,12 +21,12 @@ alguien que quiera aprovechar el nombre. Es un clic en el panel y conviene
 darlo hoy, aunque el dominio vaya a dejar de usarse: mientras siga apuntando a
 cosas del estudio, perderlo es peor que mantenerlo.
 
-### 3. Protección de dominio — IONOS
+### 2. Protección de dominio — IONOS
 
 Está **contratada** en el 97181010 (01/09/2026 – 02/09/2027) y **desactivada**
 en los dos dominios. Se paga y no se usa.
 
-### 4. Pasar los tests y el pentest — en el Mac
+### 3. Pasar los tests y el pentest — en el Mac
 
 ```bash
 npx vitest run
@@ -44,7 +37,7 @@ npm run pentest        # contra localhost, y otra vez contra el dominio ya publi
 No se pueden lanzar desde la sesión de Claude: su shell es Linux ARM64 y
 `node_modules` tiene los binarios de macOS.
 
-### 5. Faltan fotos en tres reportajes — estudio
+### 4. Faltan fotos en tres reportajes — estudio
 
 La mediana de los 30 reportajes publicados es de **18 fotos**. Estos tres se
 quedan muy por debajo y se nota al abrirlos:
@@ -58,12 +51,12 @@ quedan muy por debajo y se nota al abrirlos:
 Salen de «BODAS DEFINITIVAS» en el DISCO DURO. No hace falta llegar a 18: con
 doce ya dejan de parecer fichas a medio hacer.
 
-### 6. Retratos del equipo — estudio
+### 5. Retratos del equipo — estudio
 
 Los de `public/images/equipo/` están a 900×1200, que es poco para un retrato a
 tamaño grande. Si existen los originales, se rehacen.
 
-### 7. Cuatro preguntas del FAQ sin confirmar — estudio
+### 6. Cuatro preguntas del FAQ sin confirmar — estudio
 
 Llevan `isPendingConfirmation: true` en `content/faq.ts`. **Se muestran en la
 web**, pero quedan fuera de los datos estructurados y de `/llms.txt`: un
@@ -78,13 +71,13 @@ penalización manual.
 
 Confirmadas, se les quita la marca y pasan a aparecer también en Google.
 
-### 8. Maite y Nerea: qué sesión es — estudio
+### 7. Maite y Nerea: qué sesión es — estudio
 
 La ficha no dice «preboda» ni «postboda» porque nadie lo sabe, y decir
 cualquiera de las dos sería inventarlo. Con la respuesta, la descripción gana
 la palabra que le falta y la página, una búsqueda más por la que aparecer.
 
-### 9. La música de los vídeos — estudio
+### 8. La música de los vídeos — estudio
 
 Confirmar que la licencia cubre el uso en la web. No es una formalidad: una
 reclamación de derechos sobre la música de un reportaje publicado se resuelve
@@ -109,7 +102,7 @@ Está todo en `DESPLIEGUE.md`. Los tres fallos que no avisan:
 
 ## Después de publicar
 
-### 10. El peso del repositorio — ⚠️ esto es lo que no se puede pasar por alto
+### 9. El peso del repositorio — ⚠️ esto es lo que no se puede pasar por alto
 
 Hoy: **`.git` son 811 MB** y el árbol de trabajo otros 575. Un clon nuevo
 descarga 811 MB. GitHub avisa a partir del giga y ya se está rozando.
@@ -140,18 +133,18 @@ pantalla. El de 2560 es el máster del que salen las demás. Encogerlo solo
 rebaja el techo de calidad en pantallas retina, que en un portafolio de
 fotografía es el escaparate.
 
-### 11. Borrar el proyecto WordPress — IONOS
+### 10. Borrar el proyecto WordPress — IONOS
 
 Corre sobre **PHP 8.0, sin soporte de seguridad desde finales de 2023**. En
 cuanto la web nueva esté comprobada, sobra. **El contrato se queda**, que de él
 cuelgan los tres buzones.
 
-### 12. Comprar `emefotografiasevilla.es`
+### 11. Comprar `emefotografiasevilla.es`
 
 `next.config.mjs` ya lo redirige con un 308 al `.com` conservando la ruta. Solo
 hay que registrarlo y apuntarlo a la misma IP.
 
-### 13. La fecha real de publicación de cada vídeo — estudio
+### 12. La fecha real de publicación de cada vídeo — estudio
 
 `videoUploadDate` en `content/types.ts`. Sin ella, la ficha de cada reportaje
 se marca como `CreativeWork` en vez de `VideoObject` y el vídeo se descubre
