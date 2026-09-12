@@ -397,7 +397,13 @@ configurado no debe quedarse en pie fingiendo que todo va bien.
 
 ```bash
 npm run build
+npm prune --omit=dev
 ```
+
+El `prune` va DESPUÉS y no antes: `next build` comprueba los tipos y pasa el
+linter, o sea que necesita `typescript`, `eslint` y los `@types`, que son
+dependencias de desarrollo (§3). Una vez compilado ya no hacen falta, y
+quitarlas deja `node_modules` en algo más de un tercio.
 
 ## 6. Dejarlo levantado (systemd)
 
@@ -541,9 +547,32 @@ de miniaturas y se regenera sola con la siguiente visita.
 ## 11. Actualizar la web
 
 ```bash
-sudo -u eme -H bash -c 'cd /var/www/eme/app && git pull && npm ci --omit=dev && npm run build'
+sudo -u eme -H bash -c 'cd /var/www/eme/app \
+  && git fetch --depth 1 origin worktree-eme-fotografia-build \
+  && git reset --hard FETCH_HEAD \
+  && npm ci \
+  && npm run build \
+  && npm prune --omit=dev'
 systemctl restart eme
 ```
+
+**Dos cosas de este bloque que aquí estaban mal escritas y rompen el
+despliegue si se copian:**
+
+1. **`git fetch --depth 1` + `reset --hard`, no `git pull`.** El clon del
+   servidor es superficial (§3): no tiene historia con la que fusionar, y
+   `git pull` a secas se queja o se trae los 130 commits que precisamente se
+   evitaron. `reset --hard FETCH_HEAD` deja el árbol exactamente en lo que hay
+   en GitHub, que es lo que se quiere en un servidor -- allí nadie edita nada.
+2. **`npm ci` COMPLETO y el `prune` al final.** Aquí ponía `npm ci --omit=dev`
+   y el build falla, por lo mismo que explica §3: `next build` necesita
+   `typescript` y `eslint`.
+
+Y el orden importa: si el `build` falla, el `systemctl restart` NO llega a
+ejecutarse (van encadenados con `&&` dentro del `bash -c`, y el `restart` está
+fuera), así que el proceso viejo sigue sirviendo la versión anterior en vez de
+dejar la web caída. Es la red de seguridad de este despliegue: comprobar
+siempre que el bloque de arriba terminó sin error antes de reiniciar.
 
 Hay unos segundos de corte al reiniciar. Para un estudio es asumible; si algún
 día molesta, se levantan dos procesos en puertos distintos y se alterna cuál
