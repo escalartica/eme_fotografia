@@ -164,6 +164,70 @@ apt-get install -y nodejs nginx git
 adduser --system --group --home /var/www/eme eme
 ```
 
+
+## 2 bis. Cerrar el servidor antes de poner nada dentro
+
+Un VPS recién creado tiene una IP pública y acepta entrar por contraseña. Los
+escaneos automáticos lo encuentran en cuestión de horas y empiezan a probar
+contraseñas de root a miles por minuto. Esto se hace **antes** de subir el
+código, no después.
+
+### Clave SSH en vez de contraseña
+
+**En el Mac**, si no tienes clave todavía:
+
+```bash
+ssh-keygen -t ed25519 -C "eme"       # Enter en todo; pon una frase de paso
+ssh-copy-id root@IP_DEL_SERVIDOR     # pide la contraseña de root una última vez
+```
+
+Ahora, **sin cerrar esa sesión**, abre una segunda terminal y comprueba que
+entras sin contraseña:
+
+```bash
+ssh root@IP_DEL_SERVIDOR
+```
+
+Solo cuando la segunda entre sola, en el servidor:
+
+```bash
+sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+systemctl restart ssh
+```
+
+El orden importa y la sesión abierta es el seguro: si te equivocas al copiar la
+clave y ya has desactivado la contraseña, te quedas fuera de tu propio servidor
+y hay que reinstalarlo entero desde el panel de IONOS. Mientras la primera
+sesión siga abierta, siempre puedes deshacerlo.
+
+### Cortafuegos
+
+Tres puertos y ni uno más. El 3000 **no** se abre: a Next se llega por el
+nginx del §7, nunca desde fuera.
+
+```bash
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow OpenSSH
+ufw allow 'Nginx Full'    # 80 y 443
+ufw --force enable
+ufw status                # comprobar que 22, 80 y 443 son los únicos
+```
+
+### Lo que se mantiene solo
+
+```bash
+apt-get install -y fail2ban unattended-upgrades
+systemctl enable --now fail2ban
+dpkg-reconfigure -plow unattended-upgrades   # responder "Sí"
+```
+
+`fail2ban` bloquea la IP que falla varias veces seguidas al entrar;
+`unattended-upgrades` instala los parches de seguridad de Ubuntu sin que nadie
+se acuerde de hacerlo. Los dos existen precisamente porque un servidor de un
+estudio pequeño no tiene a nadie mirándolo a diario.
+
 ## 3. Traer el código
 
 ```bash
