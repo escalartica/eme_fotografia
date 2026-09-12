@@ -83,6 +83,66 @@ momento.** En la última revisión se descartaron cuatro candidatas por eso
 mismo --eran el mismo encuadre movido unos centímetros de fotos que ya
 estaban publicadas--, que es justo lo que el estudio pidió quitar.
 
+### 4 bis. Lo que dejaron las dos auditorías del 12/09/2026 — desarrollo
+
+Se pasaron dos auditorías completas sobre el código ya publicado: una de
+seguridad y backend y otra de responsive y accesibilidad. Lo que se arregló
+ese mismo día está en el historial; esto es lo que queda, por orden.
+
+**Disponibilidad (lo más serio que queda):**
+
+1. `/api/galeria/[slug]/seleccion` no limita CUÁNTOS elementos acepta ni
+   deduplica, y es la única ruta que cambia estado sin limitador de
+   peticiones. Quien tenga la contraseña de una galería --o a quien la pareja
+   le haya reenviado el enlace-- puede escribir un `selection.json` de cientos
+   de MB en bucle, y el panel lee esos ficheros para pintar el listado.
+   Además `saveSelection` escribe sin el patrón temporal+rename que sí usa
+   `escribirMetaAtomico` doce líneas más arriba: si el proceso muere a media
+   escritura, la selección entera de la pareja desaparece EN SILENCIO --el
+   panel dice «El cliente todavía no ha enviado su selección».
+2. Cualquiera puede dejar al estudio sin poder entrar en `/admin` durante
+   quince minutos, en bucle, saturando el cubo global con contraseñas
+   equivocadas. El cubo global existe justamente para no fiarse de la IP, así
+   que el remedio no es de código: una celda de **fail2ban** que banee a quien
+   machaca `/api/admin/login`. fail2ban ya está instalado en el servidor.
+3. Lo mismo con el formulario de contacto: sesenta envíos dejan a todas las
+   parejas reales sin poder escribir durante una hora. Subir bastante el techo
+   global (600/hora sigue frenando el llenado de disco).
+4. `data/analytics/` crece sin rotación ni purga, y `/admin/estadisticas`
+   carga noventa ficheros enteros en memoria en cada visita. Falta un borrado
+   de lo que pase de 90 días, y una frase en el §3 de `/privacidad` diciendo
+   cuánto se conserva.
+
+**Servidor:**
+
+5. La copia de seguridad diaria (`docs/DESPLIEGUE.md` §10) genera el tar como
+   root con umask 022, o sea **0644, legible por cualquier cuenta de la
+   máquina**, y dentro van los hashes de contraseña de cada galería, las fotos
+   y los datos de las parejas. Poner `umask 077` al principio del script. De
+   paso, excluir `data/galleries/*/derivados/`, que es caché regenerable.
+6. `client_max_body_size` de nginx (64 MB) contradice lo que la aplicación
+   anuncia (400 MB por galería): el fotógrafo recibe un 413 de nginx en vez
+   del mensaje cuidado de la aplicación. Decidir un número y ponerlo en los
+   dos sitios. Y añadir `proxy_set_header X-Forwarded-Host $host;`.
+
+**Maquetación (nadie se ha quejado todavía, pero está medido):**
+
+7. **Dos bandas de anchura donde la página queda a medias.** A 700 px exactos
+   conviven reglas `max-width: 700` y `min-width: 700` de módulos distintos.
+   Y entre 900 y 959 px la cabecera ya es de escritorio mientras `/trabajos` y
+   `/contacto` siguen pintando la versión de teléfono, porque esos dos cambian
+   en 960 y todo lo demás en 900. Se ve en un iPad en apaisado con Split View.
+   Arreglo: bajar los nueve `960` a `900` y pasar los `max-width: 700` a
+   `699.98px`.
+8. Los nombres del equipo en `/sobre-nosotros` se pintan al 42 % de opacidad
+   en REPOSO, que sobre papel da 2,8:1 contra los 4,5:1 que pide la norma. Es
+   sólo escritorio. 0,62 da 4,6:1.
+9. El aviso de cookies tapa los dos botones flotantes en un teléfono: mide
+   unos 170 px de alto y ocupa justo su franja. Sólo en la primera visita.
+10. El único indicador de foco de los campos del formulario es un filete que
+    pasa de 1 px a 2 px, y el `:hover` pinta ese mismo filete: con ratón,
+    «encima» y «enfocado» no se distinguen.
+
 ### 5. Retratos del equipo — estudio
 
 Los de `public/images/equipo/` están a 900×1200, que es poco para un retrato a

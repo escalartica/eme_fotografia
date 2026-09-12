@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     return Response.json({ error: 'El cuerpo de la petición no es JSON válido.' }, { status: 400 });
   }
 
-  let saved: { id: string; receivedAt: string };
+  let saved: Awaited<ReturnType<typeof saveContactSubmission>>;
   try {
     saved = await saveContactSubmission(payload as Parameters<typeof saveContactSubmission>[0]);
   } catch (err) {
@@ -68,8 +68,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const submission = payload as Parameters<typeof sendContactEmail>[0];
-    const { id: messageId } = await sendContactEmail(submission, saved);
+    // `saved.clean`, NO `payload`: el crudo se salta todos los topes de
+    // longitud que `saveContactSubmission` sí aplica a lo que va a disco.
+    const { id: messageId } = await sendContactEmail(saved.clean, saved);
     return Response.json({ id: saved.id, delivered: true, messageId }, { status: 200 });
   } catch (err) {
     const detail = err instanceof MailError ? err.message : 'error desconocido';

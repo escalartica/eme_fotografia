@@ -153,7 +153,19 @@
   border-inline-start: 1px solid var(--color-muted);
   padding-inline-start: var(--space-2);
 }
-.tab:hover {
+/* TRAS LA PUERTA DEL RATÓN, y aquí no es un detalle: esta regla pinta
+   EXACTAMENTE el mismo color que marca el filtro seleccionado
+   (`[aria-pressed='true']`, dos reglas más abajo). En un teléfono, iOS deja
+   el :hover puesto tras el toque, así que después de tocar «Bodas» y luego
+   «Preboda» quedaban dos de los tres filtros en tinta plena y la distinción
+   colgaba sólo del subrayado. El color contradecía al estado real en vez de
+   reforzarlo. El vecino `.viewButton` ya lo hacía bien; ésta se quedó fuera. */
+@media (hover: hover) and (pointer: fine) {
+  .tab:hover {
+    color: var(--color-ink);
+  }
+}
+.tab:focus-visible {
   color: var(--color-ink);
 }
 .tab[aria-pressed='true'] {

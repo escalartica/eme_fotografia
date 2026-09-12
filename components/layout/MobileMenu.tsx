@@ -1,11 +1,13 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { createFocusTrap } from 'focus-trap';
 import { gsap } from 'gsap';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import { motion } from '@/lib/motion-tokens';
 import { site } from '@/content/site';
+import { ATRIBUTO_CAPA } from '@/lib/hooks/useCapaCompleta';
 import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 import styles from './MobileMenu.module.css';
 
@@ -168,6 +170,19 @@ export function MobileMenu({
     };
   }, [montado]);
 
+  // AVISA AL RESTO DEL SITIO DE QUE HAY UNA CAPA A PANTALLA COMPLETA.
+  // Lo leen el botón de WhatsApp, el de volver arriba y el aviso de cookies
+  // (lib/hooks/useCapaCompleta.ts) para apartarse: los tres flotan por encima
+  // de todo y sin esto se pintaban por delante de la navegación.
+  //
+  // Un atributo en el documento y no un contexto de React porque quien tapa y
+  // quien se aparta viven en ramas distintas del árbol y no se conocen.
+  useEffect(() => {
+    if (!montado) return;
+    document.body.setAttribute(ATRIBUTO_CAPA, 'menu');
+    return () => document.body.removeAttribute(ATRIBUTO_CAPA);
+  }, [montado]);
+
   // Staggered entry. Motivation: the overlay replaces the whole page, so
   // the sequence tells the reader the list is the new content and gives
   // the eye an order to read it in. transform + opacity only.
@@ -229,7 +244,24 @@ export function MobileMenu({
   const esActual = (href: string) =>
     currentPath === href || (href !== '/' && (currentPath?.startsWith(`${href}/`) ?? false));
 
-  return (
+  // EL PANEL SE CUELGA DEL <body>, NO DE LA CABECERA, y es la diferencia
+  // entre que funcione y que no.
+  //
+  // Vive dentro de <header> en el marcado, y la cabecera se vuelve un cristal
+  // esmerilado en cuanto se baja un poco: `backdrop-filter: blur(12px)`
+  // (Header.module.css, `[data-scrolled='true']`). Un `backdrop-filter` crea
+  // BLOQUE CONTENEDOR para los descendientes `position: fixed` -- igual que
+  // `filter` o `transform` --, así que el `inset: 0` de este panel dejaba de
+  // medirse contra la ventana y pasaba a medirse contra la barra. Resultado
+  // en un teléfono: abrir el menú con la página bajada encogía la capa entera
+  // al alto de la cabecera, con las cinco filas y el pie amontonados dentro y
+  // la página asomando debajo. Desde arriba del todo abría bien, porque ahí
+  // la barra todavía no tiene cristal: por eso tardó en aparecer.
+  //
+  // `createPortal` lo saca de esa jaula. No cambia nada del árbol de React
+  // --props, estado, contexto y eventos siguen viniendo de la cabecera-- y
+  // sólo cambia dónde se pinta, que es justo el problema.
+  return createPortal(
     <div
       className={`${styles.overlay}${closing ? ` ${styles.closing}` : ''}`}
       ref={panelRef}
@@ -313,6 +345,7 @@ export function MobileMenu({
           ))}
         </ul>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

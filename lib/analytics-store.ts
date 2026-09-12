@@ -40,12 +40,34 @@ export function deviceFromWidth(width: number | undefined): Hit['d'] {
   return 'escritorio';
 }
 
+/**
+ * EL ÚNICO CAMPO DEL BEACON QUE NO TENÍA TOPE, y por ahí se llenaba el disco.
+ *
+ * Todos los demás lo tenían: `p` se recorta a 200 en `normalisePath`, `u` a
+ * 120 en la ruta, `d` es un enumerado de tres valores. Éste devolvía
+ * `new URL(referrer).hostname` tal cual, y un `hostname` puede medir lo que
+ * quiera quien envía la petición: con `http://` + 60.000 letras + `.com` se
+ * escribía una línea de 60 KB en el NDJSON del día. El cupo de esta ruta son
+ * 5.000 peticiones por hora y nginx acepta cuerpos de hasta 64 MB: son
+ * centenares de gigas por hora contra un VPS con 115 GB de disco.
+ *
+ * Y llenar el disco no tira sólo la analítica: deja de poder escribirse
+ * `data/sessions/` (nadie entra en el panel), `data/contact-submissions/`
+ * (se pierden los mensajes de las parejas) y las subidas de galerías.
+ *
+ * Dos topes, no uno. El de dentro (100) porque un host real no pasa de 253
+ * bytes y para una estadística sobran cien. El de fuera, en la ruta, porque
+ * si el propio `referrer` es una cadena de 60 MB, `new URL()` ya ha tenido
+ * que construirla en memoria antes de que aquí se pueda recortar nada.
+ */
+const MAX_HOST = 100;
+
 export function referrerHost(referrer: string | undefined, ownHost: string): string {
   if (!referrer) return 'directo';
   try {
     const host = new URL(referrer).hostname.replace(/^www\./, '');
     if (!host || host === ownHost.replace(/^www\./, '') || host === 'localhost') return 'directo';
-    return host;
+    return host.length > MAX_HOST ? host.slice(0, MAX_HOST) : host;
   } catch {
     return 'directo';
   }

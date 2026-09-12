@@ -49,19 +49,30 @@
   align-items: baseline;
   gap: var(--space-2);
   padding-block: var(--space-3);
-  transition: padding-inline-start var(--duration-base) var(--ease-standard);
+  /* `transform` y no `padding-inline-start`, que es lo que había: el relleno
+     recalcula la maquetación en cada fotograma y el propio proyecto tiene
+     escrito que aquí sólo se animan `transform` y `opacity`. */
+  transition: transform var(--duration-base) var(--ease-standard);
 }
 /* The row steps to the right under the cursor. It is the only motion in
    this list, and it says "this row is the one you are pointing at" more
-   plainly than a colour change can in a monochrome palette. */
-.link:hover,
+   plainly than a colour change can in a monochrome palette.
+   TRAS LA PUERTA DEL RATÓN: sin ella, iOS dejaba la fila tocada desplazada y
+   con su flecha encendida al volver atrás desde la página del servicio --las
+   otras dos no--, así que parecía que esa fila estaba seleccionada. Es el
+   mismo defecto que este proyecto ya documenta haber sufrido dos veces. */
+@media (hover: hover) and (pointer: fine) {
+  .link:hover {
+    transform: translateX(var(--space-2));
+  }
+}
 .link:focus-visible {
-  padding-inline-start: var(--space-2);
+  transform: translateX(var(--space-2));
 }
 @media (prefers-reduced-motion: reduce) {
   .link { transition: none; }
   .link:hover,
-  .link:focus-visible { padding-inline-start: 0; }
+  .link:focus-visible { transform: none; }
 }
 
 .number {
@@ -109,7 +120,12 @@
     opacity var(--duration-fast) var(--ease-standard),
     transform var(--duration-fast) var(--ease-standard);
 }
-.link:hover .arrow,
+@media (hover: hover) and (pointer: fine) {
+  .link:hover .arrow {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
 .link:focus-visible .arrow {
   opacity: 1;
   transform: translate(0, 0);

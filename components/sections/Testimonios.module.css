@@ -95,7 +95,15 @@
 .controls {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  /* ENVUELVE, y no es decorativo: a 320 px la fila sumaba unos 299 px
+     (44 + 28 + 58 + 28 + 44 + 28 + 16 + 53) dentro de los 280 que deja el
+     margen, y como la sección centra su contenido y el `body` lleva
+     `overflow-x: clip`, lo que sobraba se recortaba por los dos lados SIN
+     barra de scroll que lo delatara: la flecha de «anterior» y el botón de
+     pausa salían cortados y nadie se enteraba. */
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1) var(--space-3);
   /* Pegados a la cita: son SUS controles. Antes estaban a la misma distancia
      de la cita que del enlace de abajo, y tres bloques equidistantes se leen
      como tres cosas sin relación entre sí. */
@@ -137,13 +145,21 @@
   display: block;
   transition: transform var(--duration-fast) var(--ease-standard);
 }
-.controlButton:hover span {
+/* Tras la puerta: en iOS el :hover sintético se queda puesto tras el toque y
+   la flecha se quedaba agrandada hasta que se tocaba otra cosa. */
+@media (hover: hover) and (pointer: fine) {
+  .controlButton:hover span {
+    transform: scale(1.15);
+  }
+}
+.controlButton:focus-visible span {
   transform: scale(1.15);
 }
 @media (prefers-reduced-motion: reduce) {
   .controls button,
   .controlButton span { transition: none; }
-  .controlButton:hover span { transform: none; }
+  .controlButton:hover span,
+  .controlButton:focus-visible span { transform: none; }
 }
 
 .counter {
@@ -157,8 +173,18 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
+/* LA MISMA DIANA QUE SUS DOS HERMANOS. Heredaba `padding: 0` de
+   `.controls button` y su caja era la del texto: --type-label (~11 px) por
+   1.5 de interlineado, o sea 17 px de alto entre dos botones de 44. Y es el
+   único control que existe para parar un carrusel que avanza solo, así que
+   además de WCAG 2.5.8 comprometía el 2.2.2, que es la razón por la que el
+   botón está aquí. */
 .pauseButton {
-  margin-inline-start: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding-inline: var(--space-1);
+  margin-inline-start: var(--space-1);
 }
 
 /* Live stat line, same small-caps caption treatment as .counter/.citeRole

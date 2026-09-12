@@ -1,5 +1,7 @@
+'use client';
 import { site } from '@/content/site';
 import { WhatsAppIcon } from './Icon';
+import { useCapaCompleta } from '@/lib/hooks/useCapaCompleta';
 import styles from './WhatsAppButton.module.css';
 
 const MESSAGE = 'Hola, me gustaría informarme sobre vuestra cobertura de boda.';
@@ -12,6 +14,9 @@ const MESSAGE = 'Hola, me gustaría informarme sobre vuestra cobertura de boda.'
  * icon shows so it never covers content.
  */
 export function WhatsAppButton() {
+  // Se retira mientras el menú del teléfono (o la secuencia de apertura) tapa
+  // la pantalla: está a z-index 240 y flotaba por delante de la navegación.
+  const tapado = useCapaCompleta();
   const href = `https://wa.me/${site.whatsappNumber}?text=${encodeURIComponent(MESSAGE)}`;
   return (
     <a
@@ -20,7 +25,9 @@ export function WhatsAppButton() {
       rel="noopener noreferrer"
       className={styles.button}
       aria-label={`Escribir por WhatsApp al ${site.phoneDisplay} (se abre en una pestaña nueva)`}
-     
+      // `hidden` y no `display: none` por CSS: además de no verse, deja de
+      // ser enfocable, que es lo que importa con una capa modal abierta.
+      hidden={tapado || undefined}
     >
       <WhatsAppIcon size={17} className={styles.icon} />
       <span className={styles.label}>WhatsApp</span>

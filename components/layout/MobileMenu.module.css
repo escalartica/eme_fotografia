@@ -230,10 +230,19 @@
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--space-0) var(--space-3);
 }
+/* DIANA DE VERDAD. `composes: eyebrow` trae `line-height: 1` sobre
+   --type-label, así que la caja del enlace medía unos 11 px de alto, con
+   16 px de separación entre uno y otro: fallaba WCAG 2.5.8 por tamaño Y por
+   separación, y lo hacía en el panel que es, por definición, la interfaz
+   táctil del sitio. Es el mismo arreglo que ya llevan los enlaces legales
+   del pie. */
 .footLink {
   composes: eyebrow from global;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
   color: color-mix(in srgb, var(--color-night-text) 65%, transparent);
   transition: color var(--duration-fast) var(--ease-standard);
 }

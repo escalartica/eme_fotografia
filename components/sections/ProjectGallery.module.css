@@ -88,6 +88,19 @@
   background: none;
   cursor: pointer;
 }
+/* EL ANILLO, HACIA DENTRO. Este botón está dentro de `.parallaxInner`, que ya
+   sobresale del recuadro (`inset: -3% -2%`), y ese recuadro es `.item` con
+   `overflow: hidden`. El anillo global se dibuja 4 px por FUERA
+   (styles/globals.css), o sea entero dentro de la zona recortada: las
+   veinticinco fotos de cada uno de los veintiocho reportajes no tenían
+   ninguna señal de foco. Es el mismo remedio que ya usan
+   SelectedReel.module.css y MobileMenu.module.css para este mismo caso.
+   Color constante y no `currentColor`: esto se dibuja sobre fotografía, no
+   sobre papel, y tiene que verse en los dos temas. */
+.imageButton:focus-visible {
+  outline: 2px solid var(--color-night-text);
+  outline-offset: -4px;
+}
 .imageButton img { object-fit: cover; filter: var(--photo-grade); }
 
 /* Width/aspect-ratio tiers driven by the `span` field -- genuine variety,

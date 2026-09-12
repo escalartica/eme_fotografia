@@ -72,6 +72,53 @@ describe('MobileMenu', () => {
   });
 
   /**
+   * EL PANEL CUELGA DEL <body>, NO DE LA CABECERA. Es la prueba de la
+   * regresión que el estudio vio en su teléfono.
+   *
+   * En el marcado, <MobileMenu> vive dentro de <header>. Y la cabecera se
+   * vuelve un cristal esmerilado en cuanto se baja un poco:
+   * `backdrop-filter: blur(12px)`. Un `backdrop-filter` crea BLOQUE
+   * CONTENEDOR para los descendientes `position: fixed` --igual que `filter`
+   * o `transform`--, así que el `inset: 0` del panel dejaba de medirse contra
+   * la ventana y pasaba a medirse contra la barra: el menú se encogía al alto
+   * de la cabecera, con las cinco filas y el pie amontonados dentro y la
+   * página asomando debajo. Desde arriba del todo abría bien --ahí la barra
+   * aún no tiene cristal--, y por eso tardó meses en salir.
+   *
+   * CSS no se ejecuta en jsdom, así que esto no puede comprobar el síntoma;
+   * comprueba la causa, que es lo único que hay que conservar: que el panel
+   * no esté dentro de su padre de React.
+   */
+  it('se pinta colgando del <body> y no dentro de la cabecera', () => {
+    const { container } = render(
+      <header data-cabecera>
+        <MobileMenu isOpen onClose={vi.fn()} />
+      </header>
+    );
+    const panel = screen.getByRole('dialog');
+    expect(panel.parentElement).toBe(document.body);
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
+    expect(panel.closest('[data-cabecera]')).toBeNull();
+  });
+
+  /**
+   * Y avisa al resto del sitio de que hay una capa tapando la pantalla, que
+   * es de lo que viven el botón de WhatsApp, el de volver arriba y el aviso
+   * de cookies para apartarse: los tres flotan por encima de todo y se
+   * pintaban por delante de la navegación.
+   */
+  it('marca el documento mientras está abierto, y lo desmarca al cerrarse', () => {
+    const { rerender, unmount } = render(<MobileMenu isOpen onClose={vi.fn()} />);
+    expect(document.body.getAttribute('data-capa-completa')).toBe('menu');
+
+    rerender(<MobileMenu isOpen={false} onClose={vi.fn()} />);
+    expect(document.body.hasAttribute('data-capa-completa')).toBe(false);
+
+    unmount();
+    expect(document.body.hasAttribute('data-capa-completa')).toBe(false);
+  });
+
+  /**
    * LA PÁGINA EN LA QUE YA SE ESTÁ. Abrir el menú y no saber dónde estás era
    * la mitad del problema de orientación de este panel; lo pide además la
    * pauta de navegación (WCAG 2.4.8).

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useLenis } from '@/lib/hooks/useLenis';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
+import { useCapaCompleta } from '@/lib/hooks/useCapaCompleta';
 import styles from './BackToTop.module.css';
 import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
@@ -28,6 +29,8 @@ const BLOQUE_LEGAL = '[data-pie-legal]';
 export function BackToTop() {
   const [visible, setVisible] = useState(false);
   const [sobreElPie, setSobreElPie] = useState(false);
+  // Igual que el de WhatsApp: fuera mientras haya una capa a pantalla completa.
+  const tapado = useCapaCompleta();
   const lenis = useLenis();
   const reducedMotion = useReducedMotion();
 
@@ -82,7 +85,7 @@ export function BackToTop() {
       onClick={toTop}
       // `hidden` en lugar de desmontar: así el botón conserva su transición de
       // entrada y no salta al aparecer. Cuando está oculto no es enfocable.
-      hidden={!visible || sobreElPie}
+      hidden={!visible || sobreElPie || tapado}
       aria-label="Volver al principio de la página"
     >
       <ArrowGlyph dir="up" className={styles.arrow} />

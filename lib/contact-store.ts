@@ -136,7 +136,7 @@ function sanitise(payload: ContactSubmission): ContactSubmission {
 export async function saveContactSubmission(
   payload: ContactSubmission,
   dir: string = DEFAULT_CONTACT_SUBMISSIONS_DIR
-): Promise<{ id: string; receivedAt: string }> {
+): Promise<{ id: string; receivedAt: string; clean: ContactSubmission }> {
   // `comoNosConociste` ya NO es obligatorio: es dato de atribución para el
   // estudio y bloqueaba a la pareja antes de que hubiera contado nada. `fecha`
   // y `lugar` SÍ lo son ahora, porque son lo único que hace falta para cumplir
@@ -186,7 +186,14 @@ export async function saveContactSubmission(
     receivedAt,
   };
   await fs.writeFile(path.join(dir, `${id}.json`), JSON.stringify(record, null, 2), { mode: 0o600 });
-  return { id, receivedAt };
+  // SE DEVUELVE TAMBIÉN EL REGISTRO SANEADO, y no es comodidad: la ruta
+  // volvía a coger el `payload` crudo para componer el correo al estudio, así
+  // que NINGUNO de los topes de MAX_LENGTHS llegaba a aplicarse ahí. Un
+  // `mensaje` de 64 MB se serializaba entero hacia Resend. Peor todavía, el
+  // test «recorta un mensaje enorme en vez de escribirlo entero en disco»
+  // pasaba y sonaba a que el problema estaba cubierto, cuando sólo cubría la
+  // mitad que va a disco.
+  return { id, receivedAt, clean };
 }
 
 /** Un mensaje tal y como queda guardado en disco. */

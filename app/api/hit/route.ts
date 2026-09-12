@@ -62,7 +62,11 @@ export async function POST(request: Request) {
     await recordHit({
       t: now.toISOString(),
       p: path,
-      r: referrerHost(body.r, ownHost),
+      // Recortado ANTES de llegar a `referrerHost`: ahí dentro el recorte ya
+      // llegaría tarde, porque `new URL()` habría construido la cadena entera
+      // en memoria. 2.048 es holgado para cualquier referrer real y cierra la
+      // amplificación (ver el comentario de MAX_HOST en analytics-store.ts).
+      r: referrerHost(typeof body.r === 'string' ? body.r.slice(0, 2048) : undefined, ownHost),
       v: await visitorHash(ip, ua ?? '', day),
       d: deviceFromWidth(typeof body.w === 'number' ? body.w : undefined),
       ...(body.u ? { u: String(body.u).slice(0, 120) } : {}),

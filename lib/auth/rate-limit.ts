@@ -102,6 +102,19 @@ export function clientKeyFrom(request: Request): string {
   return fwd?.split(',')[0]?.trim() || request.headers.get('x-real-ip')?.trim() || 'unknown';
 }
 
+/**
+ * Devuelve una clave a cero. Se llama tras un login CORRECTO.
+ *
+ * Sin esto, el cubo global de `/api/admin/login` contaba también los aciertos,
+ * así que las entradas legítimas del estudio gastaban el mismo presupuesto que
+ * los intentos de un atacante. Un acierto no es un indicio de ataque: es
+ * exactamente lo contrario, y devolver el contador a cero no regala nada a
+ * quien no sabe la contraseña.
+ */
+export function resetRateLimit(key: string): void {
+  buckets.delete(key);
+}
+
 /** Solo para los tests: cada fichero de test empieza con los contadores a
  * cero, si no el orden de ejecución decidiría qué test se come el límite. */
 export function __resetRateLimits(): void {

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Script from 'next/script';
 import styles from './CookieConsent.module.css';
+import { useCapaCompleta } from '@/lib/hooks/useCapaCompleta';
 
 export type Consent = 'accepted' | 'rejected';
 const KEY = 'eme-consent';
@@ -42,43 +43,33 @@ function writeConsent(value: Consent) {
 export function CookieConsent() {
   const [consent, setConsent] = useState<Consent | null>(null);
   const [ready, setReady] = useState(false);
-  const [tapado, setTapado] = useState(false);
 
   /**
-   * NO APARECER MIENTRAS LA PÁGINA ESTÁ INERTE.
+   * NO APARECER MIENTRAS HAY UNA CAPA TAPANDO LA PÁGINA.
    *
-   * La secuencia de apertura (components/motion/CinematicIntro.tsx) marca
-   * con `inert` todo lo que hay fuera de ella mientras se reproduce, para
-   * que nadie tabule por una web que no ve. `inert` alcanza a todo el
-   * subárbol, y este aviso vive dentro de uno de esos hermanos: durante esos
-   * 2,25 s los botones se pintan pero no responden.
+   * Dos capas distintas, un solo gancho (lib/hooks/useCapaCompleta.ts):
    *
-   * Y se veía: a partir del fotograma 1,5 el telón ya se ha levantado y el
-   * aviso está a la vista, todavía inerte. Quien lo pulsaba ahí no obtenía
-   * nada, volvía a pulsar, y a la tercera --ya con la secuencia desmontada--
-   * funcionaba. Parecía un botón que falla, no una web que aún no ha llegado.
+   * 1. LA SECUENCIA DE APERTURA (components/motion/CinematicIntro.tsx) marca
+   *    con `inert` todo lo que hay fuera de ella mientras se reproduce, para
+   *    que nadie tabule por una web que no ve. `inert` alcanza a todo el
+   *    subárbol, y este aviso vive dentro de uno de esos hermanos: durante
+   *    esos 2,25 s los botones se pintaban pero no respondían. Y se veía: a
+   *    partir del fotograma 1,5 el telón ya se ha levantado y el aviso está a
+   *    la vista, todavía inerte. Quien lo pulsaba ahí no obtenía nada, volvía
+   *    a pulsar, y a la tercera --ya con la secuencia desmontada-- funcionaba.
+   *    Parecía un botón que falla, no una web que aún no ha llegado.
+   *
+   * 2. EL MENÚ DEL TELÉFONO, que se cuelga del <body> y tapa la pantalla
+   *    entera. Este aviso va a z-index 250 y el menú a 100, así que se
+   *    pintaba por delante de la navegación.
    *
    * Comprobarlo al montar no sirve: la secuencia decide si se reproduce
    * leyendo sessionStorage DESPUÉS del primer render (no puede hacerlo
    * durante, o el servidor y el cliente no coincidirían), así que se monta un
-   * instante después que esto. Por eso se vigila el atributo en vez de
-   * leerlo una vez.
-   *
-   * Vale además para cualquier capa futura que inertice la página: mira si
-   * hay algún hijo de <body> inerte, no si hay una secuencia de apertura.
+   * instante después que esto. Por eso el gancho vigila el documento en vez
+   * de leerlo una vez.
    */
-  useEffect(() => {
-    const mirar = () => setTapado(document.querySelector('body > [inert]') !== null);
-    mirar();
-    const observador = new MutationObserver(mirar);
-    observador.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['inert'],
-      subtree: true,
-      childList: true,
-    });
-    return () => observador.disconnect();
-  }, []);
+  const tapado = useCapaCompleta();
 
   useEffect(() => {
     // Read after mount so the server render matches the client's first frame.

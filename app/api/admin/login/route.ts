@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { verifyAdminLogin, getAdminCredentials, AdminConfigError } from '@/lib/admin-store';
 import { createSession } from '@/lib/auth/session';
 import { ADMIN_COOKIE, cookieOptions } from '@/lib/auth/cookies';
-import { checkRateLimit, recordAttempt, clientKeyFrom } from '@/lib/auth/rate-limit';
+import { checkRateLimit, recordAttempt, clientKeyFrom, resetRateLimit } from '@/lib/auth/rate-limit';
 import { isSameOriginRequest } from '@/lib/auth/origin-check';
 
 const GENERIC_ERROR = 'Usuario o contraseña incorrectos.';
@@ -75,6 +75,25 @@ export async function POST(request: Request) {
   if (!ok) {
     return NextResponse.json({ error: GENERIC_ERROR }, { status: 401 });
   }
+
+  // LOS DOS CUBOS A CERO TRAS UN ACIERTO.
+  //
+  // Contaban también las entradas correctas, o sea que el estudio gastaba el
+  // mismo presupuesto que un atacante cada vez que entraba en su propio panel:
+  // quince entradas legítimas en quince minutos --un día de trabajo con el
+  // portátil que se suspende-- y se quedaba fuera con un «Demasiados
+  // intentos» que no explica nada. Un acierto no es indicio de ataque, y
+  // ponerlo a cero no le regala nada a quien no sabe la contraseña: quien
+  // falla sigue sumando y sigue topado en GLOBAL_MAX.
+  //
+  // LO QUE ESTO NO ARREGLA, y queda anotado en docs/PENDIENTE.md: cualquiera
+  // puede saturar el cubo global a base de contraseñas equivocadas y dejar al
+  // estudio sin poder entrar durante quince minutos, repetible en bucle. El
+  // remedio de verdad para eso no es de código sino del servidor --una celda
+  // de fail2ban que banee la IP que machaca esta ruta--, porque el cubo global
+  // existe justamente para no fiarse de la IP.
+  resetRateLimit(ipKey);
+  resetRateLimit(GLOBAL_KEY);
 
   const { username: adminUsername } = await getAdminCredentials();
   const { token, maxAgeSeconds } = await createSession('admin', adminUsername, adminUsername);
