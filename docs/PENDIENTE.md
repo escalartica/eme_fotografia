@@ -5,6 +5,11 @@ Todo lo que se ha ido dejando para después, en un solo sitio. Cada punto dice
 
 Última revisión: 12 de septiembre de 2026.
 
+> **La web se publicó el 12/09/2026** en un VPS Linux M+ de IONOS (Ubuntu 24.04,
+> centro de datos de España), con certificado de Let's Encrypt y renovación
+> automática. El pentest contra el dominio publicado pasó **61 de 61, sin
+> pendientes**. El paso a paso quedó en `DESPLIEGUE.md`.
+
 > El bloque «Próximamente» de /sobre-nosotros lo confirmó el estudio ese
 > mismo día: los formatos existen y se publica tal cual. Queda una nota en el
 > código para retirarlo cuando dejen de ser una novedad.
@@ -26,16 +31,19 @@ cosas del estudio, perderlo es peor que mantenerlo.
 Está **contratada** en el 97181010 (01/09/2026 – 02/09/2027) y **desactivada**
 en los dos dominios. Se paga y no se usa.
 
-### 3. Pasar los tests y el pentest — en el Mac
+### 3. ~~Pasar los tests y el pentest~~ — HECHO
+
+564 tests en verde y el pentest contra el dominio publicado: **61 bien, 0 mal,
+0 por comprobar**. Las cuatro comprobaciones que en desarrollo se quedaban
+pendientes (CSP, HSTS y las dos cabeceras de caché del panel) están confirmadas
+contra el servidor real.
+
+Conviene repetirlo después de cada despliegue:
 
 ```bash
 npx vitest run
-npm run dev            # en otra terminal
-npm run pentest        # contra localhost, y otra vez contra el dominio ya publicado
+npm run pentest -- https://www.emefotografiasevilla.com
 ```
-
-No se pueden lanzar desde la sesión de Claude: su shell es Linux ARM64 y
-`node_modules` tiene los binarios de macOS.
 
 ### 4. Faltan fotos en tres reportajes — estudio
 
