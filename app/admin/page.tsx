@@ -8,7 +8,12 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AdminLogoutButton } from './AdminLogoutButton';
 import styles from './AdminDashboard.module.css';
 
+// El título de la pestaña. Sin él, estas pantallas heredaban el de la portada
+// --«Fotógrafo y vídeo de bodas en Sevilla»-- y el estudio, que trabaja con
+// varias pestañas abiertas a la vez, no distinguía el panel de la web pública.
+// `/admin/mensajes` y `/admin/estadisticas` sí lo tenían; estas cuatro no.
 export const metadata = {
+  title: 'Panel',
   robots: { index: false, follow: false },
 };
 
