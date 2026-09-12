@@ -68,6 +68,24 @@ export class ContactValidationError extends Error {}
  * (2.000 caracteres son ~350 palabras) y ridículos comparados con lo que hace
  * falta para hacer daño.
  */
+/**
+ * Los campos que el formulario pide HOY, y los que ya no pide pero siguen
+ * apareciendo en mensajes guardados antes de retirarlos.
+ *
+ * Esta separación no es cosmética: el art. 13 del RGPD obliga a declarar en
+ * /privacidad qué datos se recogen, y esa página llegó a enumerar «número de
+ * invitados» y «presupuesto» meses después de que el formulario dejara de
+ * pedirlos. Hay un test que compara las dos listas con lo que dice la página,
+ * así que añadir un campo aquí obliga a declararlo allí.
+ */
+export const CAMPOS_ACTUALES = [
+  'nombre', 'email', 'telefono', 'fecha', 'lugar',
+  'tipoEvento', 'mensaje', 'comoNosConociste', 'consentimiento',
+] as const;
+
+/** Retirados del formulario. Se siguen leyendo para no romper lo ya guardado. */
+export const CAMPOS_HISTORICOS = ['numeroInvitados', 'presupuesto', 'queEsperas'] as const;
+
 const MAX_LENGTHS: Record<string, number> = {
   nombre: 120,
   email: 254, // el máximo real de una dirección de correo (RFC 5321)
