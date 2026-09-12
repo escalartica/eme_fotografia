@@ -186,6 +186,18 @@
   row-gap: var(--space-2);
   padding-top: var(--space-2);
   border-top: 1px solid color-mix(in srgb, var(--color-night-text) 16%, transparent);
+  /* EL SITIO DE LOS BOTONES FLOTANTES, QUE NO ES NEGOCIABLE. El de WhatsApp
+     está fijo a `right: var(--gutter)` y `bottom: var(--space-2)`, o sea
+     exactamente en el borde derecho del contenido y en el último palmo de la
+     ventana -- que al final del scroll es este bloque. Medido en producción a
+     1440 px: la cifra de seguidores llegaba hasta 1378 y el botón empieza en
+     1334, así que las últimas letras quedaban debajo del círculo.
+     Aquí se le reserva su columna en vez de esconderlo: es una llamada a la
+     acción y tiene que seguir ahí. (El botón de «volver arriba», que se
+     apilaba encima, sí se retira: lleva su propia lógica en
+     components/ui/BackToTop.tsx, porque además duplicaba el rótulo que este
+     mismo bloque ya tiene escrito.) */
+  padding-right: calc(2.75rem + var(--space-2));
 }
 @media (max-width: 899px) {
   .bottom {
@@ -197,6 +209,10 @@
       'volver';
     row-gap: var(--space-2);
     padding-top: var(--space-2);
+    /* En una columna el último renglón va a todo el ancho, así que el hueco
+       que hay que reservar ya no es a la derecha sino abajo. */
+    padding-right: 0;
+    padding-bottom: calc(2.75rem + var(--space-2));
   }
 }
 

@@ -19,8 +19,15 @@ import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
  */
 const REVEAL_AFTER_SCREENS = 2;
 
+/**
+ * El bloque legal del pie, que lleva su propio «Volver arriba» escrito.
+ * Footer.tsx pone este atributo justo ahí.
+ */
+const BLOQUE_LEGAL = '[data-pie-legal]';
+
 export function BackToTop() {
   const [visible, setVisible] = useState(false);
+  const [sobreElPie, setSobreElPie] = useState(false);
   const lenis = useLenis();
   const reducedMotion = useReducedMotion();
 
@@ -33,6 +40,29 @@ export function BackToTop() {
     // navegador le permite pintar el scroll sin esperar a que termine.
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // SE APARTA AL LLEGAR AL PIE, y no es cortesía: estos dos botones están
+  // fijos a `right: var(--gutter)`, que es exactamente el borde derecho del
+  // contenido, y `bottom` los deja en el último palmo de la ventana. Al final
+  // del scroll ese rincón ya no está vacío: ahí abajo está el bloque legal, y
+  // este botón se sentaba encima de las últimas letras de su propio «Volver
+  // arriba» y de la cifra de seguidores. Medido en producción a 1440: el
+  // rótulo del pie ocupa de 1239 a 1378 y este botón, de 1334 a 1378.
+  //
+  // Y de paso quita una duplicación: con el pie a la vista había DOS «volver
+  // arriba» en pantalla a la vez, uno encima del otro.
+  useEffect(() => {
+    const bloque = document.querySelector(BLOQUE_LEGAL);
+    if (!bloque) return;
+    const observador = new IntersectionObserver(
+      ([entrada]) => setSobreElPie(entrada.isIntersecting),
+      // Un pelo de margen para que se retire ANTES de tocarlo, no justo
+      // cuando ya está encima.
+      { rootMargin: '0px 0px 24px 0px' }
+    );
+    observador.observe(bloque);
+    return () => observador.disconnect();
   }, []);
 
   const toTop = () => {
@@ -52,7 +82,7 @@ export function BackToTop() {
       onClick={toTop}
       // `hidden` en lugar de desmontar: así el botón conserva su transición de
       // entrada y no salta al aparecer. Cuando está oculto no es enfocable.
-      hidden={!visible}
+      hidden={!visible || sobreElPie}
       aria-label="Volver al principio de la página"
     >
       <ArrowGlyph dir="up" className={styles.arrow} />

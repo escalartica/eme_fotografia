@@ -116,7 +116,7 @@ export function Footer() {
           verdad), después los números, después la letra pequeña y al final el
           botón de volver. Y la letra pequeña sube de 50 % a 62 %, que es lo
           que hace falta para pasar el 4,5:1 de la norma a este cuerpo. */}
-      <div className={styles.bottom}>
+      <div className={styles.bottom} data-pie-legal>
         {/* Un `nav` propio, no tres enlaces sueltos dentro de la frase de
             copyright: son navegación, y meterlos dentro de una oración
             obligaba a un lector de pantalla a atravesar el crédito entero
