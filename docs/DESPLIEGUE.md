@@ -117,8 +117,14 @@ De la oferta de IONOS:
 
 Los 4 GB son por el `next build`: con 2 GB el build se queda sin memoria a
 mitad. Si el plan contratado tiene menos, se compila en el Mac y se sube el
-resultado (ver §8). Los 40 GB son porque `public/` ya pesa 577 MB y el
-repositorio con su historia otros 341 MB.
+resultado (ver §9). Con 4 GB justos, añadir swap (§2).
+
+**El disco es lo único que crece.** El código, `public/` y el repositorio suman
+unos 4 GB y ahí se quedan. Lo que sube es `data/galleries/`: cada galería
+privada son las fotos originales de una boda más sus copias reducidas, entre 1
+y 2 GB. Con 120 GB caben del orden de setenta bodas, y una galería se puede
+borrar desde el panel en cuanto la pareja ha enviado su selección. Vigilar con
+`df -h` una vez al año.
 
 > **Alternativa sin administrar servidor:** Vercel ejecuta esta web tal cual,
 > sin tocar una línea, y el plan gratuito da para el tráfico de un estudio.
@@ -131,6 +137,22 @@ repositorio con su historia otros 341 MB.
 ## 2. Preparar el servidor
 
 Conectado por SSH como root:
+
+**Al crear el VPS, elegir Ubuntu**, no AlmaLinux ni Rocky: el configurador de
+IONOS viene con «Alma 9 (latest)» puesto por defecto y todos los comandos de
+esta guía son de Debian/Ubuntu. Ubicación del centro de datos: **UE**.
+
+Lo primero, **espacio de intercambio**. Es el fallo clásico de una máquina de
+4 GB: `next build` se come casi toda la memoria y, si además está el servidor
+corriendo, el kernel mata la compilación a la mitad con un mensaje que no
+explica nada. Cuatro gigas de swap lo evitan y cuestan cuatro líneas:
+
+```bash
+fallocate -l 4G /swapfile && chmod 600 /swapfile
+mkswap /swapfile && swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+free -h   # debe mostrar 4,0Gi en la fila Swap
+```
 
 ```bash
 # Node 22 LTS. Next 16 exige >= 20.9; el proyecto se desarrolla y compila
