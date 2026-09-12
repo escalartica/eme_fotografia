@@ -71,7 +71,19 @@ export default function Page() {
         configuración de tu navegador.
       </p>
 
-      <h2>3. Más información</h2>
+      <h2>3. Si rechazas las cookies, ¿no medimos nada?</h2>
+      <p>
+        Medimos, pero sin cookies y sin saber quién eres. Guardamos qué página se ha visto, desde dónde se llegó y si
+        fue desde un móvil, una tableta o un ordenador. Para no contar diez veces a la misma persona usamos un
+        identificador que se calcula en el momento, no se puede deshacer y cambia todos los días: no se guarda tu
+        dirección IP ni se deja nada en tu navegador, así que al día siguiente eres alguien nuevo para nosotros.
+      </p>
+      <p>
+        Te lo contamos porque nos parece más honesto decirlo que dejar que lo supongas. Esto funciona rechaces o
+        aceptes, y es lo único que sabemos de ti si rechazas.
+      </p>
+
+      <h2>4. Más información</h2>
       <p>
         Consulta la <Link href="/privacidad">política de privacidad</Link> para saber cómo tratamos tus datos, o
         escríbenos a <a href={`mailto:${site.email}`}>{site.email}</a>.
