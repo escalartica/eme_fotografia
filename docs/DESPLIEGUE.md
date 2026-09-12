@@ -437,6 +437,69 @@ Y a mano, en el navegador:
 - [ ] Modo oscuro y modo claro en móvil
 - [ ] `npm run pentest -- https://www.emefotografiasevilla.com` desde el Mac
 
+
+## 12 bis. La revisión del día después
+
+El §12 comprueba que la web responde. Esto comprueba que está **bien**. Son
+cosas que solo se pueden medir contra el dominio publicado: hasta que existe,
+no hay nada que mirar.
+
+### Lo primero, el pentest completo
+
+```bash
+npm run pentest -- https://www.emefotografiasevilla.com
+```
+
+Las 55 comprobaciones otra vez, pero ahora contra el servidor de verdad, más
+las cuatro que en desarrollo quedaban pendientes: la CSP, el HSTS y las dos
+cabeceras de caché del panel. **Esta pasada es la que cuenta.** Las otras eran
+un ensayo.
+
+### Herramientas externas, una vez cada una
+
+Ninguna hace falta para que la web funcione. Hacen falta para saber si está a
+la altura, que es otra cosa.
+
+| Qué | Dónde | Qué pilla |
+|---|---|---|
+| Configuración TLS | ssllabs.com/ssltest | Protocolos viejos, cadena de certificados incompleta. Objetivo: **A** |
+| Cabeceras | securityheaders.com | Lo mismo que el pentest, con otros ojos |
+| Rendimiento real | PageSpeed Insights | Core Web Vitals medidos en móviles de verdad, no en tu Mac |
+| Datos estructurados | Prueba de resultados enriquecidos de Google | Si el JSON-LD se entiende y qué ficha saldría |
+| Entregabilidad del correo | mail-tester.com | **El más importante y el que más se olvida** |
+| Indexación | Google Search Console | Qué páginas entran, cuáles se descartan y por qué |
+
+Sobre el correo: un formulario de contacto que aterriza en la carpeta de spam
+es un formulario roto, y no da ningún error. Se envía una consulta de prueba a
+la dirección que da mail-tester y se mira la nota. Por debajo de 8/10 hay que
+revisar los registros SPF, DKIM y DMARC del dominio, que es lo que Resend pide
+configurar en el DNS.
+
+### El recorrido a mano
+
+Lo que ninguna herramienta ve:
+
+- [ ] Crear una galería de prueba, subir tres fotos, abrirla como cliente,
+      marcar favoritas, escribir un comentario y enviarlo. Comprobar que la
+      selección aparece en el panel.
+- [ ] Salir de la sesión y comprobar que la galería vuelve a pedir contraseña.
+      Y que el botón «atrás» del navegador **no** repinta lo que había dentro.
+- [ ] Enviar el formulario de verdad y comprobar que llega a los dos buzones.
+- [ ] Rechazar las cookies y confirmar, en la pestaña de red del navegador, que
+      no se carga nada de Google.
+- [ ] Recorrer la web entera en un móvil real, no en el simulador: la portada,
+      un reportaje, el formulario y el pie.
+- [ ] Modo oscuro y modo claro.
+- [ ] Borrar un mensaje desde el panel y comprobar que desaparece de verdad.
+
+### Cada tanto, para siempre
+
+- `npm audit` y actualizar. Next.js publica parches de seguridad y no avisan
+  solos.
+- `df -h` en el servidor una vez al año: lo que crece es `data/galleries/`.
+- Comprobar que las copias de `data/` se están haciendo **y que se pueden
+  restaurar**. Una copia que nadie ha probado a restaurar no es una copia.
+
 ## 13. Lo que queda fuera de esta guía
 
 - **Correo del dominio.** Los buzones `info@` y `contratos@` los sirve IONOS,
