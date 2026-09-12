@@ -63,7 +63,7 @@ export async function POST(request: Request) {
   }
 
   if (!isMailConfigured()) {
-    console.warn(`[contacto] RESEND_API_KEY no configurada: el mensaje ${saved.id} se ha guardado pero no se ha enviado por correo.`);
+    console.warn(`[contacto] correo de salida sin configurar (SMTP_HOST/SMTP_USER/SMTP_PASS): el mensaje ${saved.id} se ha guardado pero no se ha avisado por correo.`);
     return Response.json({ id: saved.id, delivered: false }, { status: 200 });
   }
 

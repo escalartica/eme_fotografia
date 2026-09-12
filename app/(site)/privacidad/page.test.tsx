@@ -62,17 +62,21 @@ describe('/privacidad', () => {
   it('nombra a los encargados del tratamiento, uno por uno', () => {
     const texto = textoRenderizado();
     expect(texto).toMatch(/IONOS/);
-    expect(texto).toMatch(/Resend/);
     expect(texto).toMatch(/Google/);
+    // Resend se retiró el 13/09/2026 al pasar el correo al SMTP de IONOS. Si
+    // alguien vuelve a nombrarlo aquí sin que el código lo use, esto lo dice.
+    expect(texto).not.toMatch(/Resend/);
   });
 
-  /* Art. 13.1.f: la transferencia internacional y su garantía. Resend está en
-     Estados Unidos; si algún día deja de usarse, este test recuerda que la
-     frase sobra. */
+  /* Art. 13.1.f: la transferencia internacional y su garantía.
+     Desde que el correo va por el SMTP de IONOS, la ÚNICA salida posible del
+     EEE es Google Analytics, y solo si la visitante acepta las cookies. La
+     página tiene que decir las dos cosas: qué sale y con qué amparo. */
   it('dice qué sale del Espacio Económico Europeo y con qué garantía', () => {
     const texto = textoRenderizado();
     expect(texto).toMatch(/Espacio Económico Europeo/i);
-    expect(texto).toMatch(/cláusulas contractuales tipo/i);
+    expect(texto).toMatch(/Marco de Privacidad de Datos/i);
+    expect(texto).toMatch(/si rechazas las cookies, no hay ninguna transferencia internacional/i);
   });
 
   it('mantiene los apartados que la hacen accionable', () => {

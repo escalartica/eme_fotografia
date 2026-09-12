@@ -98,8 +98,10 @@ if (typeof window !== 'undefined' && typeof Element !== 'undefined') {
 }
 
 // No mail provider during tests, ever. app/api/contacto/route.ts branches on
-// isMailConfigured(); on a machine where the real RESEND_API_KEY happens to be
+// isMailConfigured(); on a machine where the real SMTP credentials happen to be
 // exported, the contact-route suite would otherwise send genuine email to the
 // studio inbox on every run. Pinning it empty makes that impossible and makes
 // the `delivered: false` branch deterministic.
-process.env.RESEND_API_KEY = '';
+process.env.SMTP_HOST = '';
+process.env.SMTP_USER = '';
+process.env.SMTP_PASS = '';

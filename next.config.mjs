@@ -82,6 +82,11 @@ const csp = [
 ].join('; ');
 
 const nextConfig = {
+  /* nodemailer NO se empaqueta: es una librería de servidor con `require`
+     dinámicos y binarios opcionales, y Turbopack la resuelve mal al meterla
+     dentro del bundle. Se carga en tiempo de ejecución desde node_modules,
+     que es lo que `serverExternalPackages` pide. */
+  serverExternalPackages: ['nodemailer'],
   images: {
     // AVIF first (smaller, ~20%), WebP as the fallback for browsers that
     // don't support it yet -- both served from the same source files

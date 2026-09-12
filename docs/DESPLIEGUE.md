@@ -347,7 +347,12 @@ valores que no pueden quedarse vacíos:
 NEXT_PUBLIC_SITE_URL=https://www.emefotografiasevilla.com
 ADMIN_USERNAME=...
 ADMIN_PASSWORD_HASH=...
-RESEND_API_KEY=...
+SMTP_HOST=smtp.ionos.es
+SMTP_PORT=465
+SMTP_USER=info@emefotografiasevilla.com
+SMTP_PASS=...
+CONTACT_TO=info@emefotografiasevilla.com
+CONTACT_FROM="EME Fotografía Sevilla <info@emefotografiasevilla.com>"
 ```
 
 El hash del panel se genera **pidiendo la contraseña UNA sola vez** y usándola

@@ -1,40 +1,63 @@
+import nodemailer from 'nodemailer';
 import type { ContactSubmission } from '@/lib/contact-store';
 
 /**
- * Outgoing email for the contact form. Sends through Resend's REST API
- * (https://resend.com/docs/api-reference/emails/send-email) with plain
- * `fetch`, so it needs no SDK and no extra dependency.
+ * EL AVISO POR CORREO DE CADA SOLICITUD DEL FORMULARIO.
  *
- * Configuration (see .env.example):
- *   RESEND_API_KEY  -- required to actually send. Without it, `isMailConfigured()`
- *                      is false and the route only keeps the on-disk copy.
- *   CONTACT_TO      -- inbox that receives the leads. Defaults to the studio's
- *                      address, info@emefotografiasevilla.com.
- *   CONTACT_FROM    -- sender shown to the studio. Must belong to a domain
- *                      verified in Resend (e.g. "EME Web <web@emefotografiasevilla.com>").
+ * VA POR EL SMTP DE IONOS, y antes iba por la API de Resend. El cambio no es
+ * capricho: los tres buzones del estudio están en IONOS y el destinatario
+ * (info@emefotografiasevilla.com) también, así que esto es un correo de IONOS
+ * a IONOS -- prácticamente entrega local. Con Resend había que meter en el
+ * DNS del dominio los registros de SPF y DKIM que pide, y el DNS de este
+ * dominio es exactamente donde una edición anterior se llevó por delante un
+ * grupo entero de registros; ahí lo que está en juego son los buzones del
+ * estudio.
+ *
+ * Y de paso desaparece la única transferencia de datos personales fuera del
+ * Espacio Económico Europeo que tenía esta web -- Resend está en Estados
+ * Unidos --, con lo que el §4 de /privacidad se queda con un encargado menos y
+ * sin cláusulas contractuales tipo que justificar.
+ *
+ * EL REMITENTE TIENE QUE SER UN BUZÓN QUE EXISTA. Aquí ponía
+ * `web@emefotografiasevilla.com`, que NO está creado en IONOS: con Resend el
+ * correo habría salido igual (firma el dominio entero), pero cualquiera que
+ * respondiera al aviso escribiría a un buzón inexistente. Por SMTP, además, el
+ * servidor exige autenticarse como ese buzón, así que un remitente que no
+ * existe es directamente un envío que no sale.
+ *
+ * Configuración (ver .env.example):
+ *   SMTP_HOST  -- servidor de salida. IONOS: smtp.ionos.es
+ *   SMTP_PORT  -- 465 (TLS directo, el de por defecto) o 587 (STARTTLS)
+ *   SMTP_USER  -- la dirección completa del buzón desde el que se envía
+ *   SMTP_PASS  -- su contraseña
+ *   CONTACT_TO -- buzón que recibe las solicitudes
+ *   CONTACT_FROM -- remitente que ve el estudio; su dirección tiene que ser
+ *                   la misma que SMTP_USER
+ *
+ * Sin SMTP_HOST/USER/PASS, `isMailConfigured()` es falso y la ruta se limita a
+ * guardar el mensaje en disco -- que es lo que llevaba pasando desde que la
+ * web se publicó, porque la clave nunca llegó a ponerse.
  */
 
 /**
- * Buzones que reciben las solicitudes, separados por coma.
+ * Buzón que recibe las solicitudes. Se pueden poner varios separados por coma.
  *
- * Dos a propósito: `contratos@` es donde el estudio lleva la gestión de cada
- * boda e `info@` es la dirección pública que aparece en la web, de modo que un
- * mensaje no se pierde si alguien está de viaje. Se puede cambiar sin tocar
- * código con la variable CONTACT_TO.
+ * UNO, `info@`, porque es lo que pidió el estudio. Aquí había dos --`info@` y
+ * `contratos@`-- con el razonamiento de que un mensaje no se perdiera si
+ * alguien estaba de viaje; el estudio prefiere una sola bandeja. Los dos
+ * buzones existen en IONOS, así que volver a los dos es añadir una coma.
  *
- * Los dos van en emefotografiasevilla.com, que es el dominio que se verifica
- * en Resend. Si el estudio quiere recibir además en otro dominio suyo, se
- * añade aquí separado por coma: es el destinatario, no el remitente, así que
- * no necesita verificación, pero sí tiene que existir de verdad — un buzón
- * inexistente rebota y en un envío con varios destinatarios puede tumbar el
+ * Cualquier dirección que se ponga aquí tiene que EXISTIR de verdad: un buzón
+ * inexistente rebota, y en un envío con varios destinatarios puede tumbar el
  * envío entero.
  */
-export const DEFAULT_CONTACT_TO = 'contratos@emefotografiasevilla.com,info@emefotografiasevilla.com';
-const DEFAULT_CONTACT_FROM = 'EME Fotografía Sevilla <web@emefotografiasevilla.com>';
-const RESEND_ENDPOINT = 'https://api.resend.com/emails';
+export const DEFAULT_CONTACT_TO = 'info@emefotografiasevilla.com';
+const DEFAULT_CONTACT_FROM = 'EME Fotografía Sevilla <info@emefotografiasevilla.com>';
 
 export function isMailConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
-  return Boolean(env.RESEND_API_KEY && env.RESEND_API_KEY.trim().length > 0);
+  return Boolean(
+    env.SMTP_HOST?.trim() && env.SMTP_USER?.trim() && env.SMTP_PASS?.trim()
+  );
 }
 
 export class MailError extends Error {
@@ -120,43 +143,73 @@ export interface SendResult {
  * Sends the lead to the studio inbox. Throws `MailError` when the provider
  * rejects the request; the caller decides whether that is fatal.
  */
+/** Lo único que esta función necesita de un transporte. Inyectable para que
+ *  las pruebas no abran un socket ni manden un correo de verdad. */
+export type EnviarCorreo = (mensaje: {
+  from: string;
+  to: string[];
+  replyTo: string;
+  subject: string;
+  text: string;
+  html: string;
+}) => Promise<{ messageId?: string }>;
+
+function transportePorDefecto(env: NodeJS.ProcessEnv): EnviarCorreo {
+  const port = Number(env.SMTP_PORT ?? 465);
+  const transporte = nodemailer.createTransport({
+    host: env.SMTP_HOST,
+    port,
+    // 465 es TLS desde el primer byte; 587 empieza en claro y sube con
+    // STARTTLS. IONOS admite los dos y recomienda 465, que es el que se usa
+    // por defecto: una conexión que nunca está en claro no depende de que el
+    // servidor anuncie bien sus capacidades.
+    secure: port === 465,
+    auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
+    // Si el servidor de correo no responde, la pareja no puede quedarse
+    // esperando: el mensaje YA está guardado en disco y la ruta sabe
+    // contestar `delivered: false`.
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
+  });
+  return (mensaje) => transporte.sendMail(mensaje);
+}
+
+/**
+ * Manda la solicitud al buzón del estudio. Lanza `MailError` cuando el
+ * servidor de correo la rechaza; quien llama decide si eso es fatal (y no lo
+ * es: el mensaje ya está guardado antes de llegar aquí).
+ */
 export async function sendContactEmail(
   submission: ContactSubmission,
   meta: { id: string; receivedAt: string },
   env: NodeJS.ProcessEnv = process.env,
-  fetchImpl: typeof fetch = fetch
+  enviar?: EnviarCorreo
 ): Promise<SendResult> {
   if (!isMailConfigured(env)) {
-    throw new MailError('RESEND_API_KEY no está configurada; el correo no se ha enviado.');
+    throw new MailError('El correo de salida no está configurado (SMTP_HOST/SMTP_USER/SMTP_PASS).');
   }
   const { subject, text, html } = renderContactEmail(submission, meta.id, meta.receivedAt);
   const to = (env.CONTACT_TO ?? DEFAULT_CONTACT_TO).split(',').map((s) => s.trim()).filter(Boolean);
   const from = env.CONTACT_FROM ?? DEFAULT_CONTACT_FROM;
 
-  const res = await fetchImpl(RESEND_ENDPOINT, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+  try {
+    const resultado = await (enviar ?? transportePorDefecto(env))({
       from,
       to,
-      reply_to: submission.email,
+      // La respuesta del estudio va a la pareja, no a su propio buzón. Es la
+      // línea que hace que «Responder» en el correo funcione sin pensar.
+      replyTo: submission.email,
       subject,
       text,
       html,
-      tags: [{ name: 'source', value: 'contact-form' }],
-    }),
-  });
-
-  if (!res.ok) {
-    let detail = '';
-    try {
-      const body = (await res.json()) as { message?: string };
-      detail = body.message ?? '';
-    } catch {
-      /* body not JSON */
-    }
-    throw new MailError(`Resend respondió ${res.status}${detail ? `: ${detail}` : ''}`, res.status);
+    });
+    return { id: resultado.messageId ?? '' };
+  } catch (err) {
+    // El detalle va al log del servidor; al cliente le llega el mensaje
+    // genérico que compone la ruta.
+    throw new MailError(
+      `El servidor de correo rechazó el envío: ${err instanceof Error ? err.message : 'error desconocido'}`
+    );
   }
-  const body = (await res.json()) as { id?: string };
-  return { id: body.id ?? '' };
 }

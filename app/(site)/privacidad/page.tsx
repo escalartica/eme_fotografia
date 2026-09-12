@@ -100,12 +100,9 @@ export default function Page() {
       </p>
       <ul>
         <li>
-          <strong>IONOS SE</strong> (Alemania) — servidor donde vive esta web y donde se guardan tus mensajes y las
-          galerías privadas, y buzones de correo del estudio. Los datos no salen de la Unión Europea.
-        </li>
-        <li>
-          <strong>Resend</strong> (Estados Unidos) — nos hace llegar por correo el mensaje que escribes en el
-          formulario.
+          <strong>IONOS SE</strong> (Alemania) — servidor donde vive esta web, donde se guardan tus mensajes y las
+          galerías privadas, y buzones de correo del estudio. También es quien transporta el aviso por correo de
+          cada solicitud del formulario. Los datos no salen de la Unión Europea.
         </li>
         <li>
           <strong>Google Ireland Ltd.</strong> — Google Analytics, que <strong>solo se carga si aceptas las
@@ -113,9 +110,12 @@ export default function Page() {
         </li>
       </ul>
       <p>
-        La única transferencia fuera del Espacio Económico Europeo es la de Resend, y se ampara en las cláusulas
-        contractuales tipo aprobadas por la Comisión Europea. Fuera de esto, solo entregaríamos datos si nos lo
-        exigiera una obligación legal.
+        Lo que escribes en el formulario no sale del Espacio Económico Europeo: se guarda en un servidor de IONOS en
+        Alemania y el aviso viaja por los buzones del propio estudio, también en IONOS. La única salida posible es la
+        de Google Analytics —que <strong>solo se carga si aceptas las cookies</strong>—: Google puede tratar esos
+        datos en Estados Unidos al amparo del Marco de Privacidad de Datos UE-EE. UU. Si rechazas las cookies, no hay
+        ninguna transferencia internacional. Fuera de esto, solo entregaríamos datos si nos lo exigiera una
+        obligación legal.
       </p>
 
       <h2>5. Tus derechos</h2>
