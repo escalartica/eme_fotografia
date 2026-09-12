@@ -177,9 +177,41 @@ código, no después.
 **En el Mac**, si no tienes clave todavía:
 
 ```bash
-ssh-keygen -t ed25519 -C "eme"       # Enter en todo; pon una frase de paso
-ssh-copy-id root@IP_DEL_SERVIDOR     # pide la contraseña de root una última vez
+ssh-keygen -t ed25519 -f ~/.ssh/eme -C "eme" -N ""
+ssh-copy-id -i ~/.ssh/eme.pub root@IP_DEL_SERVIDOR   # la contraseña de root, una única vez
 ```
+
+El `-N ""` fija «sin frase de paso» y hace que no pregunte nada. Es deliberado,
+y va contra el consejo de manual. La primera vez se hizo con frase de paso y
+pasó lo siguiente: `ssh-keygen` pregunta la ruta y, si en vez de pulsar Enter se
+escribe un nombre, deja la clave en el directorio actual --que era el
+repositorio--; y la frase de paso se olvidó a los diez minutos, dejando una
+clave válida e inservible en el servidor. Una frase que no se recuerda no
+protege: deja fuera. El fichero queda en `~/.ssh` con permisos 600, dentro de un
+Mac con su propia contraseña y el disco cifrado.
+
+**EL SERVIDOR CONCEDE DOS MINUTOS** para completar el acceso (`LoginGraceTime`).
+Buscar la contraseña de root mientras el reloj corre acaba en
+`Connection closed by <IP> port 22`, sin ninguna explicación y sin que sea un
+rechazo. Hay que tener la contraseña copiada en el portapapeles ANTES de lanzar
+`ssh-copy-id`, y pegarla de golpe.
+
+Tres contraseñas distintas que conviene no cruzar: la de la cuenta de IONOS
+(entrar en ionos.es), la de root (entrar en esta máquina; sale del panel, en
+«Contraseña inicial → Mostrar contraseña», y se puede restablecer desde ahí), y
+la del panel de la web, que se crea en el §4.
+
+Un atajo que ahorra errores, en `~/.ssh/config` del Mac:
+
+```
+Host eme
+  HostName IP_DEL_SERVIDOR
+  User root
+  IdentityFile ~/.ssh/eme
+  IdentitiesOnly yes
+```
+
+A partir de ahí se entra con `ssh eme`.
 
 Ahora, **sin cerrar esa sesión**, abre una segunda terminal y comprueba que
 entras sin contraseña:
@@ -191,10 +223,30 @@ ssh root@IP_DEL_SERVIDOR
 Solo cuando la segunda entre sola, en el servidor:
 
 ```bash
-sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
-sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
-systemctl restart ssh
+cat > /etc/ssh/sshd_config.d/01-eme-hardening.conf <<'EOF'
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin prohibit-password
+EOF
+sshd -t && systemctl restart ssh          # -t valida ANTES de reiniciar
+sshd -T | grep -E "^(passwordauthentication|permitrootlogin)"
 ```
+
+**En un fichero propio, y con el prefijo `01`.** La imagen de IONOS trae dos
+ficheros que se contradicen:
+
+```
+/etc/ssh/sshd_config.d/50-cloud-init.conf:        PasswordAuthentication yes
+/etc/ssh/sshd_config.d/60-cloudimg-settings.conf: PasswordAuthentication no
+```
+
+En SSH **gana el primer valor que se lee**, y `50` va antes que `60`, así que
+manda el `yes`. Un fichero `01` se lee antes que los dos y gana sin tocar
+ninguno, que importa porque `cloud-init` reescribe los suyos por su cuenta.
+
+`sshd -T` no lee ficheros: le pregunta a SSH qué está aplicando de verdad. Debe
+responder `passwordauthentication no` y `permitrootlogin without-password`
+--este último es el nombre antiguo de `prohibit-password`, lo mismo.
 
 El orden importa y la sesión abierta es el seguro: si te equivocas al copiar la
 clave y ya has desactivado la contraseña, te quedas fuera de tu propio servidor
@@ -209,18 +261,52 @@ nginx del §7, nunca desde fuera.
 ```bash
 ufw default deny incoming
 ufw default allow outgoing
-ufw allow OpenSSH
-ufw allow 'Nginx Full'    # 80 y 443
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
 ufw --force enable
-ufw status                # comprobar que 22, 80 y 443 son los únicos
+ufw status verbose        # comprobar que 22, 80 y 443 son los únicos
 ```
+
+Los puertos a mano, no `ufw allow 'Nginx Full'`: ese perfil lo instala nginx, y
+aquí nginx todavía no está.
+
+**El orden no es negociable.** Abrir el 22 ANTES de activar el cortafuegos. Al
+revés, la sesión se corta en el acto y hay que entrar por la consola web del
+panel de IONOS.
 
 ### Lo que se mantiene solo
 
 ```bash
-apt-get install -y fail2ban unattended-upgrades
+apt-get install -y fail2ban
 systemctl enable --now fail2ban
-dpkg-reconfigure -plow unattended-upgrades   # responder "Sí"
+fail2ban-client status        # debe listar la jaula "sshd"
+
+cat > /etc/apt/apt.conf.d/20auto-upgrades <<'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+EOF
+```
+
+Y las actualizaciones pendientes, **antes de instalar nada encima**:
+
+```bash
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get full-upgrade -y
+ls /var/run/reboot-required >/dev/null 2>&1 && reboot
+```
+
+`full-upgrade`, no `upgrade`: el segundo deja fuera («kept back») los paquetes
+que arrastran dependencias nuevas, y un kernel nuevo siempre las arrastra. O
+sea que `upgrade` se salta justo los parches de kernel. Con el servidor todavía
+vacío, reiniciar no cuesta nada; dentro de un mes, con la web publicada, sí.
+
+Al volver del reinicio conviene comprobar que todo persiste solo -- si algo se
+configuró sin persistencia, se ve aquí y no dentro de tres meses en el peor
+momento:
+
+```bash
+ufw status | head -2; systemctl is-active fail2ban; swapon --show
 ```
 
 `fail2ban` bloquea la IP que falla varias veces seguidas al entrar;
