@@ -84,3 +84,23 @@ _incoming-media/
 _incoming_badges/
 _entrada-*
 _revision*.txt
+
+# ---------------------------------------------------------------- claves
+# NINGUNA clave privada entra aquí. Esto es una red de seguridad, no el
+# método: el método es no generarlas nunca dentro del repositorio. Pasó una
+# vez -- `ssh-keygen` pregunta dónde guardar la clave y, si en vez de pulsar
+# Enter se escribe un nombre, la deja en el directorio actual. Acabaron un
+# `eme` y un `eme.pub` en la raíz del proyecto, a un `git add -A` de estar
+# publicados en GitHub.
+#
+# Estos patrones cubren los nombres habituales. Un nombre inventado NO lo
+# cubre ninguno, así que la regla de verdad sigue siendo: las claves se
+# generan y viven en ~/.ssh, y nunca en una carpeta que sea un repositorio.
+id_rsa*
+id_ecdsa*
+id_ed25519*
+*.pem
+*.key
+*.ppk
+*_rsa
+*_ed25519
