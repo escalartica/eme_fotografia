@@ -25,9 +25,21 @@ en el panel es para gestionar ficheros y ejecutar WP-CLI, no para dejar un
 proceso Node escuchando en un puerto con un proxy delante. Sirve el §1 entero.
 
 **Lo que hay que añadir:** un VPS. Con los requisitos del §1 (2 vCPU, 4 GB,
-40 GB) el que encaja es el **VPS M** de IONOS — 4 vCPU, 4 GB, 120 GB NVMe,
-Ubuntu y acceso root. Ronda los 5-10 €/mes según promoción y permanencia;
-mirar el precio del día en ionos.es.
+40 GB) el que encaja exactamente es el **VPS Linux M+** de IONOS: 4 vCPU, 4 GB
+de RAM, 120 GB NVMe, tráfico ilimitado, Ubuntu y acceso root.
+
+Precio a fecha de septiembre de 2026, **sin IVA**: 3 €/mes los tres primeros
+meses, **9 €/mes después**, más 10 € de alta. Con el 21% son unos **10,90 €/mes**
+reales. Hay 30 días de prueba gratis, que dan de sobra para montarlo y
+comprobarlo antes de pagar nada.
+
+El siguiente escalón, **L+** (6 vCPU, 8 GB, 240 GB), cuesta 18 €/mes sin IVA:
+el doble por recursos que esta web no usa. El sitio son 56 rutas y unos cientos
+de visitas al mes; el cuello de botella nunca va a ser la CPU.
+
+Las copias de seguridad de IONOS (Acronis) van aparte, a 0,05 €/GB al mes sin
+IVA. Son una alternativa al tar del §10, no un sustituto: lo que hay que
+proteger de verdad es `data/`, y ésa es una carpeta pequeña.
 
 **Lo que NO hay que tocar ni cancelar:**
 
