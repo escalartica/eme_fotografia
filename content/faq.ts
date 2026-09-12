@@ -71,7 +71,7 @@ export const faqs: FaqEntry[] = [
     id: 'sonido-video',
     question: '¿La película lleva el sonido de la ceremonia?',
     answer:
-      'La película se monta sobre hilo musical, con música con licencia elegida para vuestra boda. No entregamos las voces ni el sonido directo del día: ni los votos, ni los discursos, ni el ambiente. Es una decisión de montaje, no un extra que se pueda añadir, así que preferimos que lo sepáis antes de contratar y no al abrir el enlace.',
+      'Por defecto la película se monta sobre hilo musical, con música con licencia elegida para vuestra boda. Si queréis que se oigan los votos, los discursos o el ambiente del día, se puede añadir como extra: solo hay que pedirlo antes de la boda, porque condiciona cómo grabamos el sonido durante la ceremonia. Decidirlo después ya no es posible, así que es de las primeras cosas que conviene hablar.',
   },
   {
     id: 'desplazamiento',

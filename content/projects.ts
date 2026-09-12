@@ -489,7 +489,6 @@ export const projects: Project[] = [
       { type: 'image', src: '/images/trabajos/angelica-y-jesus/13.webp', alt: 'La carretera vacía y los novios diminutos, desde el aire', isPlaceholderMedia: false, width: 2148, height: 1381 },
       { type: 'image', src: '/images/trabajos/angelica-y-jesus/14.webp', alt: 'Los novios en la carretera de montaña, en blanco y negro', isPlaceholderMedia: false, width: 2145, height: 1357 },
       { type: 'image', src: '/images/trabajos/angelica-y-jesus/15.webp', alt: 'Primer baile bajo las luces del escenario', isPlaceholderMedia: false, width: 2560, height: 1707 },
-      { type: 'image', src: '/images/trabajos/angelica-y-jesus/16.webp', alt: 'El novio vistiéndose, reflejado en un espejo redondo de la habitación, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/angelica-y-jesus/17.webp', alt: 'El novio riéndose junto a la persiana, con la luz rayándole la cara', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/angelica-y-jesus/18.webp', alt: 'La novia en bata junto a la ventana, antes de vestirse', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/angelica-y-jesus/19.webp', alt: 'Los novios junto al coche en mitad del campo, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
@@ -532,7 +531,6 @@ export const projects: Project[] = [
       { type: 'image', src: '/images/trabajos/reyes-y-francisco/15.webp', alt: 'Primer baile entre bengalas frías', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/reyes-y-francisco/16.webp', alt: 'El primer baile al aire libre, con la novia inclinada hacia atrás', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/reyes-y-francisco/17.webp', alt: 'Retoque de labios a la novia durante los preparativos', isPlaceholderMedia: false, width: 2560, height: 1707 },
-      { type: 'image', src: '/images/trabajos/reyes-y-francisco/13.webp', alt: 'Los novios de la mano junto al muro de piedra, con el ramo', isPlaceholderMedia: false, width: 1707, height: 2560 },
     ],
   },
   {
@@ -831,7 +829,6 @@ export const projects: Project[] = [
       { type: 'image', src: '/images/trabajos/preboda-en-la-playa/10.webp', alt: 'Los dos abrazados frente al mar', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/preboda-en-la-playa/11.webp', alt: 'La pareja sentada en el muro con el faro detrás', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/preboda-en-la-playa/12.webp', alt: 'La pareja frente a frente junto a un muro pintado, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
-      { type: 'image', src: '/images/trabajos/preboda-en-la-playa/06.webp', alt: 'La pareja besándose bajo el túnel de vegetación de la pasarela', isPlaceholderMedia: false, width: 1707, height: 2560 },
     ],
   },
   {
@@ -953,7 +950,6 @@ export const projects: Project[] = [
       { type: 'image', src: '/images/trabajos/silvia-y-david/12.webp', alt: 'La novia con el velo levantado ante los faros encendidos del coche, al anochecer', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/silvia-y-david/13.webp', alt: 'Rematándole el nudo de la corbata al novio antes de salir de casa', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/silvia-y-david/14.webp', alt: 'Colocándole la peineta a la novia durante los preparativos', isPlaceholderMedia: false, width: 2560, height: 1707 },
-      { type: 'image', src: '/images/trabajos/silvia-y-david/09.webp', alt: 'El velo levantándose sobre el coche clásico, con las farolas ya encendidas', isPlaceholderMedia: false, width: 1707, height: 2560 },
     ],
   },
   {
@@ -989,7 +985,6 @@ export const projects: Project[] = [
       { type: 'image', src: '/images/trabajos/silvia-y-jordi/12.webp', alt: 'El novio bailando entre chispas', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/silvia-y-jordi/13.webp', alt: 'Los novios con los brazos en alto en la pista', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/silvia-y-jordi/14.webp', alt: 'La novia a oscuras durante la fiesta, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
-      { type: 'image', src: '/images/trabajos/silvia-y-jordi/06.webp', alt: 'La novia bajando la escalera de azulejos con el ramo de colores', isPlaceholderMedia: false, width: 1707, height: 2560 },
     ],
   },
   {
@@ -1108,7 +1103,6 @@ export const projects: Project[] = [
       { type: 'image', src: '/images/trabajos/eva-y-jose/13.webp', alt: 'La novia bailando con las invitadas, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/eva-y-jose/14.webp', alt: 'La novia con sables de luz en la fiesta', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/eva-y-jose/15.webp', alt: 'Primer baile entre bengalas frías', isPlaceholderMedia: false, width: 2560, height: 1707 },
-      { type: 'image', src: '/images/trabajos/eva-y-jose/11.webp', alt: 'El novio sosteniéndole la cola del vestido en el patio de la hacienda, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
     ],
   },
   {
@@ -1154,7 +1148,6 @@ export const projects: Project[] = [
       { type: 'image', src: '/images/trabajos/soledad-y-alejandro/13.webp', alt: 'La novia con el ramo en alto desde el descapotable al anochecer', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/soledad-y-alejandro/14.webp', alt: 'Primer baile entre el humo de la pista', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/soledad-y-alejandro/15.webp', alt: 'La fiesta con luces moradas', isPlaceholderMedia: false, width: 2560, height: 1707 },
-      { type: 'image', src: '/images/trabajos/soledad-y-alejandro/12.webp', alt: 'Los novios abrazados bajo el árbol, con el velo extendido, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
     ],
   },
   {
@@ -1201,7 +1194,6 @@ export const projects: Project[] = [
       { type: 'image', src: '/images/trabajos/raquel-y-fran/06.webp', alt: 'Los novios entre el humo verde de la fiesta', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/raquel-y-fran/07.webp', alt: 'La novia junto al piano de cola, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/raquel-y-fran/08.webp', alt: 'Los novios junto al escarabajo blanco, con el velo al viento, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
-      { type: 'image', src: '/images/trabajos/raquel-y-fran/09.webp', alt: 'Los novios de pie en el descapotable, con los brazos en alto, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
     ],
   },
   {
@@ -1315,6 +1307,8 @@ export const projects: Project[] = [
       { type: 'image', src: '/images/trabajos/andrea-y-jesus/06.webp', alt: 'Los novios saliendo de la capilla encalada', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/andrea-y-jesus/07.webp', alt: 'Dos invitadas besando al novio en las mejillas, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/andrea-y-jesus/08.webp', alt: 'La novia bailando con un abanico luminoso en la fiesta', isPlaceholderMedia: false, width: 2560, height: 1707 },
+      { type: 'image', src: '/images/trabajos/andrea-y-jesus/preparativos.webp', alt: 'La novia reflejada en un espejo durante los preparativos', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/andrea-y-jesus/fiesta.webp', alt: 'Invitadas bailando y celebrando en la fiesta', isPlaceholderMedia: false, width: 2560, height: 1707 },
     ],
   },
   {
@@ -1349,10 +1343,8 @@ export const projects: Project[] = [
       { type: 'image', src: '/images/trabajos/andrea-y-enrique/preparativos-novia.webp', alt: 'La novia con su ramo bajo una lámpara de araña durante los preparativos', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/andrea-y-enrique/fiesta.webp', alt: 'Invitados celebrando y agitando servilletas en la fiesta', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/andrea-y-enrique/01.webp', alt: 'El chaqué del novio colgado, con los zapatos y un retrato enmarcado debajo', isPlaceholderMedia: false, width: 1707, height: 2560 },
-      { type: 'image', src: '/images/trabajos/andrea-y-enrique/02.webp', alt: 'El novio y un amigo riéndose mientras se visten, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/andrea-y-enrique/03.webp', alt: 'Maquillando a la novia, que sostiene su sombrero, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/andrea-y-enrique/04.webp', alt: 'La novia con el ramo, de pie ante la puerta de la casa', isPlaceholderMedia: false, width: 1707, height: 2560 },
-      { type: 'image', src: '/images/trabajos/andrea-y-enrique/05.webp', alt: 'La novia asomada a la ventana con el ramo en las manos', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/andrea-y-enrique/06.webp', alt: 'La salida bajo la lluvia de arroz, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/andrea-y-enrique/07.webp', alt: 'Los novios rodeados de invitados en plena fiesta, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/andrea-y-enrique/08.webp', alt: 'Los novios frente a frente bajo una palmera', isPlaceholderMedia: false, width: 1707, height: 2560 },
@@ -1387,7 +1379,6 @@ export const projects: Project[] = [
       { type: 'image', src: '/images/trabajos/marta-y-alvaro/ceremonia.webp', alt: 'Los novios y los pajes durante la ceremonia al aire libre', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/marta-y-alvaro/detalle.webp', alt: 'Detalle de la corbata y los gemelos del novio', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/marta-y-alvaro/01.webp', alt: 'Abrochándole el vestido a la novia junto a la ventana', isPlaceholderMedia: false, width: 2560, height: 1707 },
-      { type: 'image', src: '/images/trabajos/marta-y-alvaro/02.webp', alt: 'Los novios en el cóctel, entre las mesas altas, en blanco y negro', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/marta-y-alvaro/03.webp', alt: 'Los novios bajo la cúpula del cenador, en blanco y negro', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/marta-y-alvaro/04.webp', alt: 'El beso entre las palmeras, en blanco y negro', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/marta-y-alvaro/05.webp', alt: 'Los novios abrazados, ella con el velo al viento, en blanco y negro', isPlaceholderMedia: false, width: 1707, height: 2560 },
@@ -1419,7 +1410,6 @@ export const projects: Project[] = [
       { type: 'image', src: '/images/trabajos/maria-y-francisco-manuel/llegada.webp', alt: 'La novia llegando en un coche clásico rojo junto a su padre', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/maria-y-francisco-manuel/pareja.webp', alt: 'Los novios abrazados con la cola del vestido extendida sobre el suelo', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/maria-y-francisco-manuel/01.webp', alt: 'La novia entrando del brazo de sus padres, con los niños delante', isPlaceholderMedia: false, width: 1707, height: 2560 },
-      { type: 'image', src: '/images/trabajos/maria-y-francisco-manuel/02.webp', alt: 'Los novios con la cola del vestido extendida sobre el suelo', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/maria-y-francisco-manuel/03.webp', alt: 'El novio levantando en volandas a la novia entre los invitados', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/maria-y-francisco-manuel/04.webp', alt: 'Los fuegos artificiales sobre la fiesta', isPlaceholderMedia: false, width: 2560, height: 1707 },
     ],
@@ -1452,8 +1442,6 @@ export const projects: Project[] = [
       { type: 'image', src: '/images/trabajos/rocio-y-juanje/detalle.webp', alt: 'El novio mostrando un anillo con un guiño personal', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/rocio-y-juanje/llegada.webp', alt: 'El novio esperando junto a un coche clásico mientras llega la novia', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/rocio-y-juanje/fiesta.webp', alt: 'El novio levantado en volandas por sus amigos durante la fiesta', isPlaceholderMedia: false, width: 1707, height: 2560 },
-      { type: 'image', src: '/images/trabajos/rocio-y-juanje/01.webp', alt: 'Retrato de la novia con el vestido de manga larga', isPlaceholderMedia: false, width: 1707, height: 2560 },
-      { type: 'image', src: '/images/trabajos/rocio-y-juanje/02.webp', alt: 'Los amigos levantando al novio en volandas, en blanco y negro', isPlaceholderMedia: false, width: 1707, height: 2560 },
     ],
   },
 ];

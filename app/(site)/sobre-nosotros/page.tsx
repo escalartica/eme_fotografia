@@ -317,9 +317,15 @@ export default function Page() {
                 <RevealWords segments={[{ text: '¿Dónde estamos?' }]} />
               </h3>
               <p className={styles.bloqueTexto}>
-                Partimos de {site.addressLocality}, a las afueras de Sevilla, y recorremos toda
-                Andalucía. Más de {site.coupleCount} parejas, cinco Wedding Awards y ser la imagen
-                de Saal Digital en ferias confirman que este enfoque funciona.
+                {/* Aquí ponía el pueblo, sacado de site.addressLocality. Esa
+                    localidad es el domicilio fiscal y su sitio son las páginas
+                    legales, donde la LSSI obliga a publicarla. En el relato no
+                    aporta: a una pareja que busca fotógrafo le dice menos que
+                    «Sevilla», y de paso mete un municipio que no es donde se
+                    trabaja. */}
+                Partimos de Sevilla y recorremos toda Andalucía. Más de {site.coupleCount} parejas,
+                cinco Wedding Awards y ser la imagen de Saal Digital en ferias confirman que este
+                enfoque funciona.
               </p>
             </li>
           </ol>
