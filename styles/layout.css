@@ -160,14 +160,87 @@
   height: 1px;
   background: currentColor;
   transform: scaleX(0);
-  transform-origin: left;
+  /* EN REPOSO EL ORIGEN ES LA DERECHA, en el hover pasa a ser la izquierda.
+     `transform-origin` no se interpola, cambia de golpe, y ese salto es
+     justo lo que produce el gesto: al entrar el puntero la regla se DIBUJA
+     desde la izquierda, y al salir se RETIRA hacia la derecha en vez de
+     desdibujarse hacia el mismo lado por el que vino. Es la diferencia
+     entre un subrayado que aparece y uno que está escrito por alguien.
+     Una línea de CSS, y la llevan las catorce llamadas a la acción del
+     sitio. */
+  transform-origin: right;
   transition: transform var(--duration-fast) var(--ease-standard);
 }
 .arrowLink:focus-visible::after {
   transform: scaleX(1);
+  transform-origin: left;
 }
+
+/* LA FLECHA DA LA VUELTA POR DETRÁS DE SU PROPIA VENTANA.
+   ---------------------------------------------------------------------
+   Al pasar por encima, la flecha sale del encuadre por la esquina a la que
+   apunta y vuelve a entrar por la contraria: el mismo cuerpo, un solo
+   recorrido, sin que aparezca ni desaparezca nada. Es el gesto que el
+   cliente pidió para los enlaces ("el rótulo se desliza detrás de una
+   máscara y entra su copia"), resuelto sobre el único elemento que TODAS
+   las llamadas a la acción del sitio ya tienen en el marcado -- el
+   `<span class="arrow">` --, de modo que se escribe una vez aquí y aparece
+   en las diecinueve, incluidas las de los ficheros que este trabajo no
+   toca. Duplicar el rótulo habría exigido un segundo nodo de texto en cada
+   una de esas diecinueve llamadas.
+
+   Por qué una `animation` y no una `transition`: el recorrido es de ida y
+   vuelta y pasa por un punto intermedio (fuera del encuadre) que no es ni
+   el estado de reposo ni el de hover, y eso una transición entre dos
+   estados no lo puede describir.
+
+   Por qué la opacidad se apaga en los fotogramas 40% y 41%: sin ventana
+   real (no hay un contenedor que recortar sin cambiar la línea base del
+   enlace, que en varias llamadas va en línea con texto), el salto de una
+   esquina a la contraria se tapa con el único recurso que no cuesta
+   diseño: hacerlo con la flecha ya invisible. El ojo lee un bucle, no un
+   teletransporte.
+
+   0.9em de recorrido, y EN VERTICAL. Vertical y no en diagonal porque este
+   rótulo no siempre apunta al mismo sitio: el sitio usa `↗` en catorce
+   llamadas, `→` en dos y `↓` en las dos del ancla de /contacto, y una
+   diagonal hacia arriba y a la derecha contradice a una flecha que dice
+   "baja". Subir y volver a entrar por abajo es correcto para las tres, y es
+   además la dirección canónica de este gesto (el rótulo se va por arriba y
+   su relevo entra por abajo). El sesgo diagonal que pide `↗` lo pone el
+   propio enlace, que se desplaza 0.15em a la derecha mientras dura el
+   hover. 0.9em porque la flecha mide algo menos de 1em: a esa distancia ya
+   ha salido entera de su sitio y el hueco que deja no llega a leerse como
+   un agujero en la línea.
+
+   Un solo `--ease-standard` para todo el bucle, no dos curvas: con una
+   salida rápida y una cola lenta, la flecha se va de golpe y vuelve
+   planeando, que es exactamente el orden correcto (el sistema responde al
+   instante, el adorno se toma su tiempo). Nada de `back`, `elastic` ni
+   rebote: el sitio no tiene ni uno. */
 .arrowLink .arrow {
-  transition: transform var(--duration-fast) var(--ease-standard);
+  display: inline-block;
+  /* Sin `will-change`: son enlaces que están en todas las páginas y en
+     reposo no se mueven; promocionarlos a capa de compositor para siempre
+     cuesta memoria en todas las visitas a cambio de nada. */
+}
+@keyframes arrowLoop {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  40% {
+    transform: translate3d(0, -0.9em, 0);
+    opacity: 0;
+  }
+  41% {
+    transform: translate3d(0, 0.9em, 0);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
 }
 /* El hover, tras `(hover: hover) and (pointer: fine)`. En un movil iOS
    sintetiza :hover en el toque y lo DEJA puesto hasta que se toca otra
@@ -178,9 +251,18 @@
 @media (hover: hover) and (pointer: fine) {
   .arrowLink:hover::after {
     transform: scaleX(1);
+    transform-origin: left;
   }
   .arrowLink:hover .arrow {
-    transform: translate(0.2em, -0.2em);
+    animation: arrowLoop 0.5s var(--ease-standard);
+  }
+  /* El sesgo diagonal, y el acuse de recibo con ratón: el enlace entero se
+     adelanta un pelo hacia donde apunta. 0.15em -- unos 2 px al tamaño de
+     etiqueta al que se pone esta clase -- porque a partir de ahí el enlace
+     se despega de la columna a la que está alineado y se nota como un
+     desajuste de maquetación, no como una respuesta. */
+  .arrowLink:hover {
+    transform: translate3d(0.15em, 0, 0);
   }
 }
 /* ...y con el hover fuera del alcance del dedo, el toque necesitaba su
@@ -194,7 +276,8 @@
   .arrowLink,
   .arrowLink::after,
   .arrowLink .arrow { transition: none; }
-  .arrowLink:hover .arrow { transform: none; }
+  .arrowLink:hover { transform: none; }
+  .arrowLink:hover .arrow { animation: none; transform: none; }
   .arrowLink:active { transform: none; }
 }
 

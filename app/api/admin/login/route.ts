@@ -13,12 +13,22 @@ const TOO_MANY = 'Demasiados intentos. Inténtalo de nuevo más tarde.';
 // X-Forwarded-For, que cualquiera puede falsificar poniendo una IP distinta en
 // cada petición, y con eso el límite por IP no frena absolutamente nada. El
 // cubo global no depende de ninguna cabecera, así que pone un techo absoluto
-// de intentos contra la única cuenta que existe: 40 cada 15 minutos son de
-// sobra para el estudio (que se equivoque cinco veces al teclear) y ridículos
-// para probar un diccionario.
-const IP_MAX = 8;
+// de intentos contra la única cuenta que existe.
+//
+// BAJADO DE 40 A 15. Cuarenta cada quince minutos son 3.840 al día contra un
+// único usuario conocido, que para un diccionario no es ridículo: es un
+// presupuesto. Quince siguen siendo de sobra para la única persona que entra
+// aquí -- si se equivoca quince veces seguidas al teclear, el problema no es
+// el limitador --, y bajan el presupuesto del atacante a 1.440 al día.
+// El precio de bajarlo: quien pase scripts/pentest.mjs contra el sitio deja la
+// cuenta bloqueada quince minutos. Está avisado en el propio script.
+export const IP_MAX = 8;
 const GLOBAL_KEY = 'admin:cuenta';
-const GLOBAL_MAX = 40;
+/** Exportado a propósito: la prueba de fuerza bruta lo importa en vez de
+ *  repetir el número. Cuando se movió de 40 a 15, la prueba seguía contando
+ *  40 intentos y empezó a fallar -- un número copiado en dos sitios es un
+ *  número que se va a desincronizar. */
+export const GLOBAL_MAX = 15;
 
 export async function POST(request: Request) {
   if (!isSameOriginRequest(request)) {

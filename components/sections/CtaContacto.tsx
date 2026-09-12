@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
+import { RevealWords } from '@/components/motion/RevealWords';
 import { ScrollParallax } from '@/components/motion/ScrollParallax';
+import { Magnetic } from '@/components/motion/Magnetic';
 import { RotatingBadge } from '@/components/ui/RotatingBadge';
 import { focusOf } from '@/lib/focal';
 import styles from './CtaContacto.module.css';
@@ -38,22 +40,30 @@ import styles from './CtaContacto.module.css';
  * is a non-positioned grid item, not `position:absolute`) — see
  * `ScrollParallax`'s own doc comment on that `className` prop.
  */
+const CIERRE = 'Vuestra boda merece toda nuestra atención.';
+
 export function CtaContacto() {
   return (
     <section className={styles.section} aria-labelledby="cta-heading">
       <ScrollParallax className={styles.parallaxLayer} strength={6}>
         <Image
-          src="/images/trabajos/rocio-y-juanje/fiesta.webp"
+          /* APAISADA, Y DE 2560 px. Aquí había un retrato vertical de
+             1707x2560: en una banda de 2,31:1 el navegador se queda con una
+             franja horizontal de toda su anchura -- 1707 px -- y la estira a
+             los 2880 que pide un portátil de 1440 a 2x, casi el doble. Esta
+             es la misma fiesta contada en apaisado, reexportada del original
+             a 2560x1707, y el recorte ahora es vertical: se aprovecha el
+             ancho entero del fichero. */
+          src="/images/trabajos/eva-y-rafa/fiesta.webp"
           alt=""
           fill
           className={styles.background}
           sizes="100vw"
           aria-hidden="true"
-          /* Measured focus (content/focus-points.ts). This is a portrait
-             frame in a wide band, so only about a third of its height is ever
-             on screen; 33% centres that band on the groom in mid-air with the
-             raised arms complete above him. */
-          style={focusOf('/images/trabajos/rocio-y-juanje/fiesta.webp')}
+          /* Foco medido (content/focus-points.ts): 15% sube el recorte a la
+             altura de los invitados con las bengalas, que en esta toma están
+             en el tercio superior. */
+          style={focusOf('/images/trabajos/eva-y-rafa/fiesta.webp')}
         />
       </ScrollParallax>
       {/* The scrim exists here, unlike the hero, because the type sits
@@ -62,25 +72,45 @@ export function CtaContacto() {
       <div className={styles.scrim} aria-hidden="true" />
 
       <ScrollReveal className={styles.content}>
-        {/* "Hagamos algo / que se recuerde" podía estar en la web de
-            cualquier agencia, y "empezar un proyecto" es vocabulario de
-            agencia para una boda. Esto dice un hecho del estudio que da una
-            razón real para escribir hoy sin inventar urgencia, y es
-            comprobable: sale literal de content/faq.ts ("Solo cubrimos una
-            boda por fecha, así que en cuanto la reservéis es vuestra").
-            También cierra en vosotros: la línea anterior tuteaba en medio de
-            una web que trata a la pareja en plural. */}
-        <p className={styles.lead}>Solo cubrimos</p>
+        {/* «Una boda por fecha» estuvo aquí hasta que el estudio aclaró que
+            ya cubren varias: era el argumento de cierre de la home y era
+            falso. Lo que lo sustituye no es otro argumento, es una
+            instrucción -- lo único que la pareja tiene que hacer para que
+            esto avance, y lo mismo que pide el párrafo de debajo y el primer
+            campo del formulario. */}
+        <p className={styles.lead}>Con la fecha y el lugar basta</p>
+        {/* Palabra a palabra, con `RevealWords`.
+            Esto era una COPIA A MANO de ese componente: el mismo bucle sobre
+            las palabras, las mismas dos ventanas anidadas, el mismo tramo
+            `entry 8% -> entry 58%` con escalón del 5% y el mismo fotograma de
+            108% de subida. La copia venía de antes de que el gesto se
+            extrajera, y llevaba ya dos diferencias silenciosas: compensaba
+            0,12em de descendente en vez de 0,16 --la cursiva del Didone baja
+            más, y esta frase la usa-- y declaraba un `will-change: transform`
+            por palabra que el componente quitó a propósito (una animación
+            guiada por el scroll con `fill: both` ya está promocionada, y
+            declararlo a mano sólo deja una capa de compositor viva para
+            siempre por cada palabra).
+            El gesto no cambia: cambia que ahora hay un solo sitio donde
+            vive. */}
         <h2 id="cta-heading" className={styles.heading}>
-          una boda por fecha
+          <RevealWords segments={[{ text: CIERRE }]} />
         </h2>
         <p className={styles.body}>
-          Decidnos cuándo y dónde es la vuestra y os confirmamos si la tenemos libre.
+          Contadnos qué día es, dónde lo celebráis y qué os gustaría llevar —fotografía, vídeo o
+          las dos cosas— y os decimos si seguimos libres y qué pack encaja. Si ninguno encaja,
+          os preparamos un presupuesto a medida.
         </p>
-        <Link href="/contacto" className={styles.cta} data-cursor="abrir">
-          Consultar nuestra disponibilidad
-          <span className="arrow" aria-hidden="true">↗</span>
-        </Link>
+        {/* La única llamada a la acción del cierre de la web, y la última
+            cosa que se ve antes del pie: se inclina hacia el puntero cuando
+            éste se acerca. El envoltorio lleva el margen y la alineación
+            para que la caja que atrae sea exactamente la del enlace. */}
+        <Magnetic className={styles.ctaMagnet}>
+          <Link href="/contacto" className={styles.cta} data-cursor="abrir">
+            Consultar vuestra fecha
+            <span className="arrow" aria-hidden="true">↗</span>
+          </Link>
+        </Magnetic>
       </ScrollReveal>
       <RotatingBadge className={styles.badge} />
     </section>

@@ -25,11 +25,23 @@ const INTRO_KEY = 'eme-intro-shown';
  */
 export function Hero() {
   const [showIntro, setShowIntro] = useState(false);
-  // Distinguishes "no intro is coming" from "the intro has not been
-  // decided yet" - both look identical as `showIntro === false` on the
-  // first render, and the wordmark reveal must not fire behind an opaque
-  // overlay that is about to appear.
-  const [introResolved, setIntroResolved] = useState(false);
+  // "Ya se puede empezar a montar la portada."
+  //
+  // Distingue "no va a haber secuencia de apertura" de "todavía no se ha
+  // decidido si la hay": las dos cosas son `showIntro === false` en el primer
+  // render, y el revelado del masthead no puede dispararse detrás de una
+  // pantalla opaca que está a punto de aparecer.
+  //
+  // Y se enciende en el momento correcto, que NO es el final de la secuencia
+  // de apertura. Ésta avisa dos veces: cuando las barras empiezan a separarse
+  // (`onReveal`, fotograma 1,5) y cuando la pantalla ya se ha ido del todo
+  // (`onComplete`, 2,25). El masthead y el mosaico arrancan con el PRIMER
+  // aviso, así que el nombre del estudio se está escribiendo mientras el
+  // telón sube: una sola coreografía encadenada en lugar de secuencia, pausa
+  // en blanco, y otra animación. Cuando no hay secuencia -- visita repetida
+  // dentro de la misma sesión, o movimiento reducido -- los dos avisos
+  // coinciden y esto es simplemente "ya".
+  const [revealReady, setRevealReady] = useState(false);
   const reducedMotion = useReducedMotion();
   const heroRef = useRef<HTMLElement>(null);
   const wordmarkRef = useRef<HTMLSpanElement>(null);
@@ -43,13 +55,13 @@ export function Hero() {
       // the intro plays, and React would throw a hydration mismatch on the
       // hero of every page. After mount is the only safe moment.
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIntroResolved(true);
+      setRevealReady(true);
       return;
     }
     if (reducedMotion) {
       setShowIntro(false);
       sessionStorage.setItem(INTRO_KEY, 'true');
-      setIntroResolved(true);
+      setRevealReady(true);
       return;
     }
     setShowIntro(true);
@@ -60,22 +72,29 @@ export function Hero() {
   const finishIntro = useCallback(() => {
     setShowIntro(false);
     sessionStorage.setItem(INTRO_KEY, 'true');
-    setIntroResolved(true);
+    setRevealReady(true);
   }, []);
+
+  // Called by CinematicIntro the moment its bars start to open, roughly 0,75s
+  // before the overlay is gone. Everything on the page below it starts moving
+  // now.
+  const startReveal = useCallback(() => setRevealReady(true), []);
 
   // Masthead reveal, per character, rising inside a per-line mask.
   //
   // Motivation (not decoration): the wordmark IS the hero. Letting it
   // assemble left to right makes the studio's name the first thing the eye
   // tracks, and the mask means characters never overlap the media band
-  // while they travel. Runs only once the intro overlay has resolved, so a
-  // first-time visitor never spends the animation behind an opaque screen.
+  // while they travel. Arranca con `revealReady`, es decir en el fotograma en
+  // que la secuencia de apertura empieza a levantar el telón -- ni antes (el
+  // rótulo se montaría detrás de una pantalla opaca y nadie lo vería) ni
+  // después (habría medio segundo de papel quieto entre las dos cosas).
   //
   // Split happens after `document.fonts.ready`: splitting before the Didone
   // has loaded measures fallback metrics and the lines re-wrap underneath
   // the finished split, leaving characters stranded mid-air.
   useEffect(() => {
-    if (reducedMotion || !introResolved || showIntro) return;
+    if (reducedMotion || !revealReady) return;
     const word = wordmarkRef.current;
     const aside = asideRef.current;
     if (!word) return;
@@ -90,18 +109,30 @@ export function Hero() {
         // aria: 'none' -- the split must not put aria-label on a <span>
         // (prohibited on a generic); the h1's name comes from the sr-only copy.
         split = SplitText.create(word, { type: 'chars,lines', mask: 'lines', aria: 'none' });
+        // EL PRESUPUESTO DE LA COREOGRAFÍA ES 1,2 s DE PUNTA A PUNTA, y estos
+        // números salen de repartirlo, no de gustos:
+        //   letras   0,00 -> 1,15  (0,85 s cada una, escalón de 0,014)
+        //   descriptor 0,30 -> 0,75
+        //   esquinas 0,48 -> 1,11  (Hero.module.css)
+        //   mosaico  0,16 -> 1,16  (HeroMosaic)
+        // El escalón bajó de 0,022 a 0,014 porque el rótulo tiene 22 signos:
+        // a 0,022 la última letra ARRANCA en el 0,46 y no se posa hasta el
+        // 1,56, y una portada que sigue montándose pasado el segundo y medio
+        // se lee como una página que no ha terminado de cargar. A 0,014 la
+        // cascada se sigue viendo -- 0,31 s entre la primera letra y la
+        // última -- y cierra dentro del presupuesto.
         gsap.from(split.chars, {
           yPercent: 115,
-          duration: motion.duration.slow,
-          stagger: 0.022,
+          duration: 0.85,
+          stagger: 0.014,
           ease: motion.ease.standard,
         });
         if (aside) {
           gsap.from(aside, {
             opacity: 0,
             y: 16,
-            duration: motion.duration.base,
-            delay: 0.35,
+            duration: 0.45,
+            delay: 0.3,
             ease: motion.ease.standard,
           });
         }
@@ -113,11 +144,11 @@ export function Hero() {
       split?.revert();
       ctx?.revert();
     };
-  }, [reducedMotion, introResolved, showIntro]);
+  }, [reducedMotion, revealReady]);
 
   return (
     <section ref={heroRef} className={styles.hero} data-hero-fullbleed>
-      {showIntro && <CinematicIntro onComplete={finishIntro} />}
+      {showIntro && <CinematicIntro onComplete={finishIntro} onReveal={startReveal} />}
 
       <div className={styles.masthead}>
         {/* The service-area statement sits inside the H1 so it carries
@@ -142,21 +173,26 @@ export function Hero() {
         {/* Four corner notes around the masthead (Agentura's hero sets
             its claims in the corners of the frame). Real facts only. */}
         <ul className={styles.corners} aria-label="En pocas palabras">
-          <li className={`${styles.corner} ${styles.cornerTL}`}>Reportaje, película y álbum impreso.</li>
+          {/* El álbum salió de aquí cuando el estudio aclaró que depende del
+              pack: una esquina del masthead es una promesa demasiado visible
+              para algo que no va en todos los reportajes. */}
+          <li className={`${styles.corner} ${styles.cornerTL}`}>Reportaje fotográfico y película.</li>
           <li className={`${styles.corner} ${styles.cornerTR}`}>Sevilla y toda Andalucía.</li>
           {/* Esta esquina daba "+125 parejas", la misma cifra que Cifras
               imprime a media pantalla de aquí. El argumento de Cifras es que
               "el hero afirma y esto es el recibo": se anula solo si el hero ya
-              enseñó el recibo. Y "una boda por fecha" tampoco vale: es la frase
-              con la que cierra la página en CtaContacto. Queda la trayectoria,
-              que no se dice en ningún otro sitio de la home. */}
+              enseñó el recibo. Queda la trayectoria, que no se dice en ningún
+              otro sitio de la home. */}
           <li className={`${styles.corner} ${styles.cornerBL}`}>Quince años detrás de la cámara.</li>
           <li className={`${styles.corner} ${styles.cornerBR}`}>Wedding Awards 2025 · Bodas.net</li>
         </ul>
       </div>
 
       <div className={styles.media}>
-        <HeroMosaic play={introResolved && !showIntro} />
+        {/* El mosaico abre su cortina con el mismo aviso que el masthead, no
+            cuando la secuencia ya ha terminado: la fotografía y el nombre del
+            estudio llegan juntos. */}
+        <HeroMosaic play={revealReady} />
       </div>
     </section>
   );

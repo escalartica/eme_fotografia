@@ -1,0 +1,40 @@
+/* EL LOGOTIPO QUE SOBREVIVE AL MODO NOCHE.
+   =====================================================================
+   El fichero original es trazo de tinta oscura sobre transparente, y las
+   cinco pantallas privadas --las dos de acceso y las tres del panel--
+   pintan su fondo con `var(--color-paper)`, que en modo noche pasa de
+   crema a casi negro. Ahí el logotipo desaparecía del todo. Y no era un
+   caso remoto: esas pantallas montan el conmutador de tema, así que la
+   pareja podía apagar la luz dentro de su propia galería y quedarse sin
+   la marca delante.
+
+   LAS DOS VERSIONES VAN EN EL HTML, no un `src` condicional. Con `src` el
+   navegador tendría que pedir el otro fichero al pulsar el interruptor y
+   el logotipo parpadearía en cada clic. Es el mismo patrón que la
+   cabecera pública ya usaba; esto lo saca a un componente para que no
+   haya una sexta pantalla que se olvide de copiarlo.
+
+   Y NO SE RESUELVE CON `invert()`: el trazo tiene medios tonos y salen
+   grises apagados. La versión clara es un fichero aparte que conserva la
+   forma. */
+.marca {
+  display: inline-flex;
+  align-items: center;
+}
+
+.logo {
+  width: auto;
+  height: var(--marca-alto, 2.25rem);
+}
+
+/* El intercambio va por atributo y no por clase de módulo: ver el comentario
+   del componente. `:global` porque `data-marca` es un contrato entre hojas. */
+.logo:global([data-marca='claro']) {
+  display: none;
+}
+:global([data-theme='dark']) .logo:global([data-marca='tinta']) {
+  display: none;
+}
+:global([data-theme='dark']) .logo:global([data-marca='claro']) {
+  display: block;
+}

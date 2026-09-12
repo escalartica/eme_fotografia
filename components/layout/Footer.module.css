@@ -1,10 +1,9 @@
-/* Fills the sticky-positioned <footer> box (height set on the bare `footer`
-   tag selector in styles/globals.css, alongside the reveal mechanics) and
-   lays its three bands -- nav/contact, the big closing mark, copyright --
-   out top-to-bottom-to-baseline inside it. `nightBlock` (applied alongside
-   this module class in Footer.tsx) supplies the dark background/ink and the
-   inverted focus ring; this file only handles structure and the pieces
-   nightBlock's own selectors don't reach (plain <a>/<button>/<li> text). */
+/* Fills the <footer> box and lays its three bands -- the quiet contact bar,
+   the big closing mark, the copyright line -- out top-to-bottom-to-baseline
+   inside it. `nightBlock` (applied alongside this module class in
+   Footer.tsx) supplies the dark background/ink and the inverted focus ring;
+   this file only handles structure and the pieces nightBlock's own
+   selectors don't reach (plain <a>/<button>/<li> text). */
 /* A plain full-viewport-height dark section in normal document flow --
    not a sticky/overlap "curtain" trick (see styles/globals.css's own
    comment on --footer-reveal-height for why that was reverted). The
@@ -18,71 +17,117 @@
   padding: var(--space-3) var(--gutter) var(--space-2);
   font-family: var(--font-sans);
 }
+@media (max-width: 899px) {
+  /* El pie se aprieta según se estrecha la ventana, que es lo que pidió el
+     estudio: «que no haya que hacer scroll en el footer». El suelo de altura
+     lo baja --footer-reveal-height (styles/globals.css); esto baja lo otro
+     que lo hacía alto, que era su propio relleno y el aire entre bandas. */
+  .footer {
+    gap: var(--space-1);
+    padding-block: var(--space-2);
+  }
+  /* Las de `.top` y `.bottom` NO van aquí: sus reglas base están más abajo
+     en el fichero y, a igual especificidad, gana la posterior. Estaban
+     escritas aquí sin efecto ninguno. Viven cada una detrás de la suya. */
+}
 
+/* Una barra de servicio, no un segundo menú. El pie repetía las seis
+   entradas de la cabecera en tipografía de titular, y la cabecera es fija:
+   eran los mismos seis rótulos dos veces en la misma pantalla. Lo que queda
+   es lo único que el menú de arriba no da —cómo escribir y dónde seguirnos—
+   en una sola fila y a peso de nota, para que la marca de abajo sea lo que
+   pesa en este bloque. */
 .top {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--space-2) var(--space-4);
+  gap: var(--space-1) var(--space-3);
+  padding-block-end: var(--space-2);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-night-text) 14%, transparent);
+}
+@media (max-width: 899px) {
+  /* Detrás de la base: a igual especificidad manda el orden del fichero. */
+  .top {
+    padding-block-end: var(--space-1);
+  }
 }
 
-.navList {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-3);
-  padding: 0;
-  margin: 0;
-}
-/* WCAG 2.5.8 (24x24 px). `.eyebrow` fija line-height: 1, así que la caja de
-   estos seis enlaces medía exactamente lo que mide la letra a --type-label:
-   11 px en móvil, 13 en escritorio. El alto lo pone un min-height y no un
-   padding suelto, para que el texto siga sentado en la misma línea que el
-   resto de la fila y el bloque no se descuadre. */
-.navLink {
-  composes: eyebrow from global;
+/* El correo, discreto. Estaba a --type-h3 y en tipografía con remates, del
+   tamaño de un titular de sección, y una dirección de 29 caracteres a ese
+   cuerpo se comía la esquina entera. Aquí es lo que es: un dato de
+   contacto. Subrayado fino permanente para que se lea como enlace sin
+   necesidad de tamaño. */
+.email {
+  font-family: var(--font-sans);
+  font-size: var(--type-small);
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--color-night-text) 62%, transparent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--color-night-text) 28%, transparent);
+  text-underline-offset: 0.25em;
+  /* La dirección es una sola palabra de 29 caracteres: sin esto desborda en
+     un móvil estrecho. */
+  overflow-wrap: anywhere;
+  /* WCAG 2.5.8 (24x24 px): a este cuerpo la caja del texto se queda corta. */
   display: inline-flex;
   align-items: center;
   min-height: 1.5rem;
-  color: color-mix(in srgb, var(--color-night-text) 72%, transparent);
-  text-decoration: none;
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    text-decoration-color var(--duration-fast) var(--ease-standard);
 }
-.navLink:hover,
-.navLink:focus-visible {
-  /* Constant: the footer is always the dark nightBlock register (see
-     styles/layout.css), never the page's own paper. */
+.email:hover,
+.email:focus-visible {
+  /* Constante, no var(--color-paper): ese token se vuelve casi negro en modo
+     oscuro y aquí el fondo es siempre el panel de tinta. */
   color: var(--color-night-text);
+  text-decoration-color: currentColor;
+}
+@media (prefers-reduced-motion: reduce) {
+  .email {
+    transition: none;
+  }
 }
 
-.contact {
+/* Las tres redes, como pastillas con borde y no como tres rótulos sueltos.
+   Ganan superficie, área táctil de sobra y un estado de hover que se ve. */
+.social {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  flex-wrap: wrap;
   gap: var(--space-1);
 }
 .link {
-  color: color-mix(in srgb, var(--color-night-text) 72%, transparent);
-  font-size: var(--type-body);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
   text-decoration: none;
+  color: color-mix(in srgb, var(--color-night-text) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-night-text) 26%, transparent);
+  border-radius: 999px;
+  padding: 0.6em 1em;
+  min-height: 2.25rem;
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
 }
 .link:hover,
 .link:focus-visible {
-  /* Bug fix: was var(--color-paper), the theme-reactive token -- in dark
-     mode --color-paper flips to a near-black (#141412), which went
-     unreadable against this always-dark footer the instant the hover/focus
-     state fired. Constant, same reasoning as .navLink:hover above and
-     .mark below. */
-  color: var(--color-night-text);
-  text-decoration: underline;
+  color: var(--color-scrim);
+  background: var(--color-night-text);
+  border-color: var(--color-night-text);
+  text-decoration: none;
 }
-.social {
-  display: flex;
-  gap: var(--space-2);
-}
-.social .link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45em;
+@media (prefers-reduced-motion: reduce) {
+  .link {
+    transition: none;
+  }
 }
 .socialIcon {
   flex: 0 0 auto;
@@ -101,22 +146,26 @@
   align-items: center;
   justify-content: center;
 }
-/* `composes: display from global` pulls the Didone family/weight/tracking/
-   uppercase treatment (styles/layout.css); the size and colour overrides
-   below win over the composed rule (CSS Modules always emits the composed
-   class's rules before the local module's own, so same-specificity local
-   declarations take it -- already relied on by SobreEmePreview.module.css's
-   .heading). Sized to comfortably clear two lines under the top/bottom
-   bands even at the shortest supported viewport, unlike Hero's own
-   `--type-display` (tuned for a hero with nothing above or below it). */
+/* Ancho, no alto: la marca es el cierre y `height: auto` con la proporción
+   del fichero evita el salto de maquetación al cargar.
+   BAJADA DE 46rem A 21rem, EN DOS PASOS. De lado a lado de la página era el
+   tamaño que necesitaba el nombre compuesto en tipografía, que tenía que
+   leerse como una palabra; el logotipo no lo necesita, se reconoce de un
+   vistazo. A 736 px era una valla publicitaria dentro de su propio pie, y a
+   512 px seguía siendo lo único que se veía en la pantalla. A 336 px es un
+   remate: lo más grande de la sección sin ser lo único que hay en ella. */
 .mark {
-  composes: display from global;
-  /* Constant, same reasoning as .navLink:hover above. */
-  color: var(--color-night-text);
-  font-size: var(--type-mega);
-  line-height: 0.92;
-  text-align: center;
+  width: min(34vw, 21rem);
+  height: auto;
   margin: 0;
+}
+@media (max-width: 899px) {
+  /* 54vw eran 210 px en un teléfono y el remate seguía siendo la banda más
+     alta del pie. A 40vw sigue reconociéndose de un vistazo, que es todo lo
+     que tiene que hacer un cierre de marca. */
+  .mark {
+    width: 40vw;
+  }
 }
 
 .bottom {
@@ -128,10 +177,29 @@
   padding-top: var(--space-2);
   border-top: 1px solid color-mix(in srgb, var(--color-night-text) 16%, transparent);
 }
+@media (max-width: 899px) {
+  .bottom {
+    padding-top: var(--space-1);
+  }
+}
 .copy {
   font-size: var(--type-label);
   color: color-mix(in srgb, var(--color-night-text) 50%, transparent);
+  /* TEXTO CORRIENTE, NO FLEX, y merece la nota porque es tentador volver a
+     ponerlo: esta línea lleva tres tramos sueltos de texto, un separador y
+     los enlaces legales, y en flex cada tramo de texto se convierte en un
+     ÍTEM ANÓNIMO. En cuanto el crédito parte en dos renglones --una pantalla
+     de 320 px, o alguien con el cuerpo de letra subido-- el segundo renglón
+     del primer tramo salta por debajo del tramo siguiente y el orden visual
+     deja de ser el de lectura. El interlineado lo resuelve el `line-height`,
+     que es lo único que aquí hacía falta. */
+  display: block;
+  line-height: 1.7;
 }
+.separador {
+  color: color-mix(in srgb, var(--color-night-text) 28%, transparent);
+}
+
 /* Two items, not one dot-joined string (same reasoning as the retired
    light-mode Footer's own .stats comment): a real gap does the separating
    job a middle dot was doing, and it stacks cleanly on a narrow screen. */
@@ -156,11 +224,6 @@
   color: color-mix(in srgb, var(--color-night-text) 85%, transparent);
 }
 
-@media (min-width: 700px) {
-  .top { flex-wrap: nowrap; }
-  .contact { align-items: flex-end; text-align: right; }
-}
-
 /* Legal links, inline after the copyright at the same secondary weight. */
 .legal {
   display: inline-flex;
@@ -168,9 +231,18 @@
   gap: 0 var(--space-2);
   margin-inline-start: var(--space-2);
 }
+@media (max-width: 599px) {
+  /* En un teléfono los tres enlaces legales pasan a su propia línea: detrás
+     del crédito dejaban una línea de cinco palabras huérfana. */
+  .legal {
+    display: flex;
+    margin-inline-start: 0;
+    margin-block-start: var(--space-1);
+  }
+}
 .legal a {
-  /* Mismo mínimo táctil que .navLink: son tres enlaces a --type-label
-     apretados uno detrás de otro al pie de la página. */
+  /* Mínimo táctil: son tres enlaces a --type-label apretados uno detrás de
+     otro al pie de la página. */
   display: inline-flex;
   align-items: center;
   min-height: 1.5rem;

@@ -32,6 +32,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...salvo la PLANTILLA, que no lleva ningún valor y es lo único que le dice a
+# quien despliega qué variables hacen falta. Sin esta excepción, `.env*` se la
+# lleva también y un clon nuevo se queda sin ninguna pista: el servidor no
+# arranca (instrumentation.ts exige las del panel) y no hay dónde mirar por qué.
+!.env.example
 
 # vercel
 .vercel
@@ -68,3 +73,14 @@ CLAUDE.backup.md
 
 # Cache de Python de los scripts de etalonaje (scripts/grade-photos.py).
 __pycache__/
+
+# Material que las sesiones de trabajo han apartado para revisar o borrar, y
+# entradas de medios sin procesar. 19 MB de código muerto, vídeos sin uso y
+# hojas de cálculo que estaban dentro del repositorio y sin ignorar: tal cual
+# entraban en el commit y se desplegaban. Los ficheros siguen en el disco
+# para que el estudio los revise; lo que se corta es que viajen.
+_to_delete/
+_incoming-media/
+_incoming_badges/
+_entrada-*
+_revision*.txt

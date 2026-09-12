@@ -46,7 +46,11 @@
   }
 }
 @keyframes sobreEmeSettle {
-  from { transform: scale(1.1); }
+  /* El token, no el 1.1 que había escrito a mano: este gesto lo hacen ahora
+     dos fotografías de la home (esta y cada fotograma del carrete) y tienen
+     que asentarse desde el mismo sitio, o son dos efectos parecidos en vez
+     de uno solo. Ver --photo-zoom-from en styles/tokens.css. */
+  from { transform: scale(var(--photo-zoom-from)); }
   to { transform: scale(1); }
 }
 
@@ -61,7 +65,10 @@
   font-size: var(--type-h2-sm);
   text-transform: none;
   letter-spacing: -0.01em;
-  max-width: 22ch;
+  /* 26ch, no 22: el titular pasó de 34 caracteres a 63 y a la medida anterior
+     caía en cuatro líneas cortas, con "cámara." sola en la última. */
+  max-width: 26ch;
+  text-wrap: balance;
   margin-bottom: var(--space-1);
 }
 
@@ -83,6 +90,13 @@
   composes: arrowLink from global;
   margin-top: var(--space-2);
   justify-self: start;
+  /* La etiqueta pasó de dos palabras a seis. En versalitas y con el tracking
+     de arrowLink, a 375 px parte en dos líneas y la regla del subrayado se
+     dibujaba solo bajo la última: se equilibran las dos líneas y el subrayado
+     se aparta del texto para que no corte las letras con descendente. */
+  max-width: 22ch;
+  text-wrap: balance;
+  text-underline-offset: 0.35em;
 }
 
 @media (min-width: 900px) {

@@ -25,95 +25,311 @@
   width: 100%;
 }
 
-/* Each service gets a generous, near-full-viewport "moment" via min-height
-   + vertical padding (not scroll-snap — this project has no precedent for
-   combining scroll-snap with Lenis's smooth-scroll and the risk of the two
-   fighting isn't worth it for this task). */
-.service {
-  min-height: 92svh;
+/* ====================================================================
+   LA PÁGINA DE UN SERVICIO, POR CAPÍTULOS
+   ====================================================================
+   Esto era un único bloque de 92svh con una columna de texto de 34rem a la
+   izquierda y la fotografía a la derecha. Dentro de esa columna cabía TODO:
+   titular, texto, lo que incluye, los extras, los cuatro pasos del proceso y
+   los dos enlaces. Media página era tipografía estrecha con un hueco al lado,
+   y las dos listas numeradas se leían como la misma cosa repetida porque
+   ninguna tenía rótulo visible.
+
+   Ahora la página tiene una apertura y tres capítulos, cada uno con su
+   título. La caja común es la misma que /trabajos y que cada ficha (75rem),
+   así que las tres secciones del sitio alinean por el mismo sitio. */
+.servicio {
+  max-width: 75rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  padding-block-start: var(--space-3);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: var(--space-4);
-  padding-block: var(--space-5);
-  border-top: 1px solid var(--color-muted);
-}
-.service:first-of-type {
-  border-top: none;
+  gap: var(--space-5);
 }
 
-.serviceInner {
-  width: 100%;
+/* ---- la apertura ---- */
+.opener {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-4);
-  align-items: center;
+  gap: var(--space-3);
+  align-items: start;
+  margin-block-start: var(--space-2);
 }
-
 @media (min-width: 900px) {
-  .serviceInner {
-    /* Text column first in source order (already the DOM order) so
-       reading order and visual order match; image column runs flush to
-       the viewport's right edge since nothing above it constrains width. */
+  .opener {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    /* Align to the row's top, not its center (overriding the base rule
-       above). `.copy`'s real content (heading + tagline + two numbered
-       lists + CTA) is routinely taller than `.imageWrap`'s own bounded
-       height (min(70svh,46rem)) -- with align-items:center this centered
-       the image within the taller combined row, pushing it below the
-       first viewport on any service with a long includes/process list.
-       Verified live: a fresh DOM measurement on load found the image's
-       top edge 704px into the document -- no photography visible in the
-       first paint at all, on a page whose whole point is photography.
-       Paired with .imageWrap's own position:sticky below, so the photo
-       stays in view as the (taller) text column scrolls past it, instead
-       of just moving where it centers. */
-    align-items: start;
+    column-gap: var(--space-4);
   }
-  .serviceInner.noImage {
-    grid-template-columns: 1fr;
-    align-items: center;
+  .opener.noImage {
+    grid-template-columns: minmax(0, 46rem);
   }
 }
-
-.copy {
+.openerCopy {
   max-width: 34rem;
-  /* --gutter, no --space-3: es la misma línea vertical con la que alinean la
-     cabecera, el pie y el resto de páginas. Con --space-3 el texto de esta
-     página empezaba 20 px más adentro que el logotipo de encima. */
-  padding-inline: var(--gutter);
-}
-.noImage .copy {
-  max-width: 44rem;
-  margin-inline: auto;
 }
 
-.chapterNumber {
-  composes: chapterNumber from global;
-  display: block;
-  margin-block-end: var(--space-2);
+/* El rótulo del formato. Dice de un vistazo cuál de los dos servicios es
+   éste, que en una página hija -- a la que se llega desde un buscador tan a
+   menudo como desde el índice -- no es obvio hasta leer el titular. */
+.formato {
+  composes: eyebrow from global;
+  color: var(--color-muted);
+  margin: 0 0 var(--space-1);
 }
 
-.name {
-  font-family: var(--font-serif);
-  font-size: var(--type-h2);
-  line-height: 1;
-  margin: 0 0 var(--space-2);
-  /* Kinetic typography, same variable-font wght-shift mechanism as
-     EditorialSpread.module.css's .title and SelectedWork.module.css's
-     .name -- a direct self-hover here (not a wrapper/link hover) since
-     .name is a plain heading, not itself the interactive element; opsz
-     is left alone (stays on font-optical-sizing: auto). */
-  font-variation-settings: 'wght' 400;
-  transition: font-variation-settings var(--duration-base) var(--ease-standard);
-}
-@media (hover: hover) and (pointer: fine) {
-  .name:hover {
-    font-variation-settings: 'wght' 600;
+/* LA APERTURA SE ASIENTA POR LÍNEAS. El titular ya se revelaba palabra a
+   palabra y justo debajo caía un bloque de tres párrafos entero y a la vez:
+   el contraste hacía que la mitad de arriba de la página pareciera dos
+   páginas distintas. Ahora cada línea llega en su turno, un poco después que
+   el titular, y la página se termina de componer sola.
+
+   ARRANCA EN 0.55 DE OPACIDAD, NO EN CERO. Es la regla de la casa: lo que
+   hay que leer se lee con la página parada. Y 0.55 no es un número cómodo,
+   es el suelo por debajo del cual este gris sobre este papel deja de llegar
+   al contraste que pide la norma mientras está en camino.
+
+   `--turno` lo pone el componente (lib/turno.ts). */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .tagline,
+    .intro,
+    .idealFor {
+      animation: lineaEntra linear both;
+      animation-timeline: view();
+      animation-range:
+        entry calc(18% + var(--turno, 0) * 7%)
+        entry calc(64% + var(--turno, 0) * 7%);
+    }
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .name { transition: none; }
+@keyframes lineaEntra {
+  from { opacity: 0.55; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* LOS EXTRAS, UNO DETRÁS DE OTRO. Son cuatro o cinco palabras sueltas en una
+   línea; llegando juntas se leen como una lista de ingredientes y llegando
+   en fila se leen como opciones que alguien va enumerando. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .extrasItem {
+      animation: lineaEntra linear both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(2% + var(--turno, 0) * 2.5%)
+        cover calc(16% + var(--turno, 0) * 2.5%);
+    }
+  }
+}
+
+/* ---- los capítulos ---- */
+.capitulo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+  border-block-start: 1px solid var(--color-hairline);
+  padding-block-start: var(--space-3);
+}
+@media (min-width: 900px) {
+  /* El rótulo del capítulo a la izquierda y el contenido a la derecha: la
+     misma columna estrecha de título que usan las fichas de reportaje, para
+     que el ojo sepa siempre dónde empieza un bloque nuevo. */
+  .capitulo {
+    grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr);
+    column-gap: var(--space-4);
+  }
+}
+/* EL FILETE DEL CAPÍTULO SE LLENA MIENTRAS SE LEE EL CAPÍTULO.
+   ---------------------------------------------------------------------
+   El rótulo de capítulo se queda pegado arriba mientras recorres su bloque,
+   y esa era toda la señal de por dónde ibas: un título quieto que no cambia
+   nunca. Ahora el filete que separa un capítulo del anterior se pinta de
+   tinta según avanzas por él, así que el rótulo pegado deja de ser un
+   letrero y pasa a ser un indicador.
+
+   VA SOBRE `.capitulo`, QUE NO ESTÁ PEGADO, y no sobre el rótulo, que sí.
+   Una animación guiada por `view()` dentro de una caja `position: sticky`
+   mide contra una caja que no se mueve respecto a la pantalla y se queda
+   congelada a media animación -- este proyecto ya lo tiene documentado dos
+   veces. El capítulo entero sí recorre la pantalla con normalidad.
+
+   El tramo es `contain`: de cuando el capítulo acaba de llenar la pantalla a
+   cuando empieza a salir, que es exactamente el rato que se está leyendo.
+   Para un capítulo más bajo que la ventana `contain` no llega a existir y el
+   filete se queda lleno y quieto, que es lo correcto: si cabe entero a la
+   vista, ya lo has leído todo. */
+.capitulo {
+  position: relative;
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* CON NOMBRE, NO CON `view()`. `view()` mide contra el elemento que lleva
+       la animación, y aquí ese elemento es un filete de 1px: el tramo habría
+       salido de la altura de la ventana y no de la del capítulo, así que el
+       filete se llenaba a la misma velocidad en un capítulo de tres párrafos
+       que en uno de diez -- justo lo contrario de lo que promete. Nombrando
+       la línea de tiempo en `.capitulo`, el sujeto es el capítulo. */
+    .capitulo {
+      view-timeline-name: --cap;
+    }
+    .capitulo::before {
+      content: '';
+      position: absolute;
+      inset-block-start: -1px;
+      inset-inline: 0;
+      height: 1px;
+      background: var(--color-ink);
+      transform-origin: left;
+      animation: capituloAvanza linear both;
+      animation-timeline: --cap;
+      animation-range: contain 0% contain 100%;
+    }
+  }
+}
+@keyframes capituloAvanza {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* El capítulo de las fotografías va a todo el ancho: el mural necesita las
+   tres columnas enteras y una columna de título al lado lo estrangularía. */
+.capituloAncho {
+  border-block-start: 1px solid var(--color-hairline);
+  padding-block-start: var(--space-3);
+}
+
+.capituloTitulo {
+  font-family: var(--font-display);
+  font-size: var(--type-h2-sm);
+  line-height: 1.02;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  margin: 0 0 var(--space-2);
+  text-wrap: balance;
+}
+@media (min-width: 900px) {
+  .capitulo .capituloTitulo {
+    /* Se queda a la vista mientras se recorre su propio capítulo. */
+    position: sticky;
+    top: var(--space-4);
+    margin: 0;
+  }
+}
+
+/* ---- lo que incluye: afirmaciones, no una lista de la compra ---- */
+.incluyeGrupo {
+  display: flex;
+  flex-direction: column;
+}
+.incluyeItem {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  padding-block: var(--space-2);
+  border-block-start: 1px solid var(--color-hairline);
+}
+.incluyeItem:first-child {
+  border-block-start: none;
+  padding-block-start: 0;
+}
+/* A cuerpo de entradilla y en la serif: lo que se lleva la pareja es el
+   contenido de esta página, no una nota al pie. Es además lo que distingue a
+   simple vista esta lista de la del proceso, que va a cuerpo de texto con su
+   descripción debajo. */
+.incluyeTexto {
+  margin: 0;
+  font-family: var(--font-display);
+  /* --type-h3, no --type-lead. Esta página tenía cuatro bloques de texto
+     seguidos a cuerpos casi iguales, que es de lo que viene la sensación de
+     «plano»: sin saltos de tamaño no hay jerarquía y el ojo no encuentra
+     dónde entrar. Lo que se lleva la pareja es el contenido de la página y
+     ahora se ve que lo es. El proceso, debajo, se queda a cuerpo de texto: el
+     salto entre los dos es lo que distingue las dos listas de un vistazo. */
+  font-size: var(--type-h3);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  max-width: 26ch;
+  text-wrap: balance;
+}
+
+/* ---- el proceso: una secuencia de verdad ---- */
+.pasos {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.paso {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  padding-block: var(--space-2);
+  border-block-start: 1px solid var(--color-hairline);
+}
+.paso:first-child {
+  border-block-start: none;
+  padding-block-start: 0;
+}
+
+/* LA LÍNEA QUE SE DIBUJA AL BAJAR. Es la única animación nueva de esta
+   página, y está porque dice algo: por dónde va uno de un proceso que tiene
+   orden. Nada se esconde detrás de ella -- los pasos se leen enteros con la
+   página parada --, lo único que hace es crecer.
+   Nativa del navegador (`animation-timeline: view()`), sin JavaScript, y tras
+   la doble puerta de siempre: quien pide menos movimiento ve la línea entera
+   y quieta, que es exactamente lo que tiene que ver. */
+@media (min-width: 900px) {
+  .pasos::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: calc(var(--space-2) * -1);
+    width: 1px;
+    background: var(--color-hairline);
+  }
+  .pasos::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: calc(var(--space-2) * -1);
+    width: 1px;
+    background: var(--color-ink);
+    transform-origin: top;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .pasos::after {
+        animation: pasoAvanza linear both;
+        animation-timeline: view();
+        animation-range: entry 55% cover 78%;
+      }
+    }
+  }
+}
+@keyframes pasoAvanza {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* EL TITULAR, AL ESCALÓN MAYOR. Estaba a --type-h2, el mismo que los rótulos
+   de capítulo que vienen debajo, así que el nombre del servicio no mandaba
+   sobre nada.
+   Sin el hover que le engordaba el peso: engordar un titular al pasar el ratón
+   por encima sólo tiene sentido si el titular es lo que se pulsa, y éste no es
+   un enlace -- es el nombre de la página. Movimiento que responde a un gesto
+   que no lleva a ninguna parte. */
+.name {
+  font-family: var(--font-display);
+  font-size: var(--type-h1);
+  line-height: 0.98;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  margin: 0 0 var(--space-2);
+  text-wrap: balance;
 }
 
 .tagline {
@@ -134,35 +350,18 @@
   margin: 0 0 var(--space-4);
 }
 
-/* Numbered sequence: replaces the old `<ul><li>• ...</li></ul>` rendering
-   for both `includes` and `process`. `role="list"`/`role="listitem"` on
-   plain divs keep real list semantics for assistive tech (item count,
-   position) without a native <ul>/<li> element anywhere -- the numeral
-   itself is the visible marker, styled as a scaled-down version of the
-   same `.chapterNumber` treatment (serif, tight line-height, low visual
-   weight), never a bullet character. */
-.numberedGroup {
-  display: flex;
-  flex-direction: column;
-  margin-block-end: var(--space-4);
-}
-
-.numberedItem {
-  display: flex;
-  gap: var(--space-2);
-  align-items: baseline;
-  padding-block: var(--space-1);
-  border-top: 1px solid var(--color-muted);
-}
-.numberedItem:first-child {
-  border-top: none;
-}
+/* `role="list"`/`role="listitem"` sobre divs, nunca <ul><li>: estas dos
+   listas no se marcan con topos (ver la prueba «never renders service content
+   as a bullet list») -- el marcador visible es el numeral. Lo que las
+   distingue entre sí ya no es el marcador sino el peso: lo que incluye va en
+   la serif a cuerpo de entradilla (`.incluyeTexto`), el proceso a cuerpo de
+   texto con su descripción debajo. */
 
 .itemNumber {
   font-family: var(--font-serif);
-  /* Same treatment as .chapterNumber (serif, tight line-height, muted
-     weight) at a much smaller scale -- a "chapter numeral" reduced to an
-     item marker, not a different visual language. */
+  /* El numeral del capítulo reducido a marcador de ítem: misma serif, mismo
+     interlineado apretado, mismo gris. No es otro lenguaje visual, es el mismo
+     a otra escala. */
   font-size: var(--type-h3);
   line-height: 0.85;
   color: var(--color-muted);
@@ -181,6 +380,17 @@
 .stepDescription {
   color: var(--color-muted);
   margin: 0.25em 0 0;
+}
+
+/* `.cierreFicha`, NO `.cierre`. Son dos cierres distintos --éste el de la
+   ficha de un servicio, el del índice está al final de este fichero-- y
+   compartían nombre dentro del mismo módulo: CSS Modules genera una sola
+   clase por nombre y por fichero, así que este cierre heredaba además el
+   `display: grid`, el `margin-block-start` y, por encima de 760 px, la
+   rejilla de dos pistas del otro, con una pista vacía comiéndose el hueco. */
+.cierreFicha {
+  border-block-start: 1px solid var(--color-hairline);
+  padding-block-start: var(--space-3);
 }
 
 .ctaRow {
@@ -203,66 +413,183 @@
   color: var(--color-muted);
 }
 
-/* Film strip of real work under each service: natural aspect ratios,
-   one shared height, horizontal scroll with snap on narrow viewports
-   (never cropped into uniform squares -- a drone frame and a portrait
-   need different boxes). */
-.strip {
-  display: flex;
-  gap: var(--space-1);
-  height: clamp(12rem, 36svh, 26rem);
-  padding-inline: var(--gutter);
-  padding-block-end: var(--space-2);
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
-  scrollbar-width: none;
-}
-.strip::-webkit-scrollbar { display: none; }
-
-.stripItem {
-  position: relative;
-  flex: 0 0 auto;
-  height: 100%;
+/* ---------- el interludio: una fotografía entre los dos capítulos ----------
+   «Lo que incluye» y «Cómo trabajamos» son dos listas seguidas. Sin nada en
+   medio la página se lee como un pliego de condiciones -- que es lo que el
+   estudio describió como «muy plana». Una fotografía a todo el ancho del
+   contenedor parte esa lectura en dos tramos y de paso enseña, en el sitio
+   donde se está prometiendo algo, una boda de verdad. */
+/* Y AHORA SE SALE A LOS BORDES. El estudio ha vuelto a pedir más dinamismo
+   después de la primera ronda, y el motivo es de composición, no de
+   animaciones: la página de un servicio era una sola columna de 75rem de
+   principio a fin, sin un solo momento en el que la maquetación cambiara de
+   registro. Esta banda es ese momento -- lo único de la página que ocupa la
+   ventana entera -- y es además donde cae el material que la página vende.
+   El pie se queda dentro de la caja de 75rem: alineado con el resto del
+   texto, para que la banda se lea como una pausa de la misma página y no
+   como un anuncio metido en medio. */
+.interludio {
+  composes: breakout from global;
   margin: 0;
+  padding-block: var(--space-4) var(--space-3);
+  border-block-start: 1px solid var(--color-hairline);
+}
+
+
+.interludioMarco {
+  position: relative;
+  width: 100%;
+  /* 2:1: una banda, no un cuadro. El contenedor mide 75rem, así que en un
+     monitor grande son unos 1.200 px de ancho -- que es justo lo que pide el
+     `sizes` declarado en el componente. */
+  aspect-ratio: 2 / 1;
+  /* clip y no hidden: `hidden` haría de esta caja un contenedor de scroll y
+     la línea de tiempo de la imagen pasaría a medirse contra ella. */
   overflow: hidden;
-  scroll-snap-align: start;
-  background: transparent;
+  overflow: clip;
+  background: var(--color-hairline);
 }
-
+@media (max-width: 700px) {
+  .interludioMarco {
+    /* En un teléfono una banda de 2:1 mide 170 px de alto: no es una
+       fotografía, es un friso. */
+    aspect-ratio: 4 / 3;
+  }
+}
 @media (min-width: 900px) {
-  .strip {
-    height: clamp(16rem, 56svh, 40rem);
-    gap: var(--space-2);
-  }
-  /* Three landscape frames (video posters) need a lower row to fit the
-     viewport side by side without cropping. */
-  .stripLandscape {
-    height: clamp(12rem, 31svh, 22rem);
-  }
-  .stripItem:nth-child(2) {
-    /* Lift the middle frame so the three read as a laid-out spread, not a
-       flat row. */
-    transform: translateY(calc(-1 * var(--space-2)));
+  .interludioMarco {
+    /* A sangre, el 2:1 se vuelve una tira de 1.600x800 en un portátil: mucho
+       ancho y poca fotografía. Con el alto atado a la ventana la banda ocupa
+       de verdad la pantalla, que es lo que la convierte en una pausa. */
+    aspect-ratio: auto;
+    height: min(78svh, 44rem);
   }
 }
 
+.interludioPie {
+  composes: eyebrow from global;
+  color: var(--color-muted);
+  /* La banda va a sangre; el pie vuelve a la caja de texto de la página. */
+  max-width: 75rem;
+  margin: var(--space-1) auto 0;
+  padding-inline: var(--gutter);
+}
+
+/* PARALAJE, QUE AQUÍ SÍ SE PUEDE. La fotografía se mueve DENTRO del marco
+   mientras la banda cruza la pantalla: el encuadre se queda quieto y lo que
+   se desplaza es el material. Es el gesto que hace que una banda a sangre se
+   note como un plano y no como una imagen pegada.
+
+   Se puede porque el marco recorta (`overflow: clip`) y porque la imagen va
+   sobredimensionada un 12% en vertical: el recorrido cabe entero dentro del
+   sobrante, así que en ningún momento asoma el fondo por arriba ni por abajo.
+   Un paralaje montado sobre una imagen justa de tamaño enseña el borde, que
+   es el fallo clásico de este efecto.
+
+   El 12% es también todo el recorte que se le añade, y es poco a propósito:
+   esta es la página que vende fotografía. Doble puerta de siempre; sin ella
+   la imagen se queda centrada y quieta, bien encuadrada. */
+.interludioCapa {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  height: 100%;
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .interludioCapa {
+      /* LA ARITMÉTICA, porque de esto depende que no asome el fondo.
+         Con el marco de alto H: la capa mide 1,15H y arranca en -0,075H, así
+         que sobra 0,075H por arriba y otro tanto por abajo. El recorrido es
+         ±5,2% DE LA CAPA (los porcentajes de `translate` van contra la caja
+         propia, no contra el contenedor) = 0,052 x 1,15H = 0,0598H. Margen:
+         0,0152H, un 1,5% -- unos 11 px en escritorio.
+         Estaba en 112%/-6%, que daba 0,0018H de margen: 1,2 px en
+         escritorio y medio píxel en un teléfono, o sea por debajo del
+         redondeo a píxel de dispositivo. En cuanto el navegador redondeara
+         al lado malo asomaría el fondo del marco como una línea clara. */
+      height: 115%;
+      inset-block-start: -7.5%;
+      animation: interludioDeriva linear both;
+      animation-timeline: view();
+      animation-range: entry 0% exit 100%;
+    }
+  }
+}
+@keyframes interludioDeriva {
+  from { transform: translateY(-5.2%); }
+  to   { transform: translateY(5.2%); }
+}
+
+/* ---------- el mural de «De bodas reales» ----------
+   Era un carril horizontal con la barra de scroll escondida: en un escritorio
+   se veían dos fotografías y media y el resto sólo existía para quien
+   adivinara que aquello se arrastraba. En la página que vende fotografía, eso
+   es esconder el argumento.
+
+   Después fue una rejilla de columnas iguales, y ahí salió el defecto que el
+   estudio vio en el mural gemelo de /sobre-nosotros: en una rejilla la fila
+   mide lo que mida la foto más alta, así que un vertical junto a dos
+   apaisadas abría dos huecos en blanco del tamaño de media fotografía.
+
+   Ahora es maquetación por columnas: cada fotografía cae debajo de la
+   anterior de su columna en cuanto hay sitio, sin esperar a que la fila
+   termine. No hay huecos porque no hay filas, y cada una conserva la
+   proporción de su fichero (la pone el componente en línea, del tamaño real).
+
+   `break-inside: avoid` impide que una fotografía se parta entre el pie de
+   una columna y la cabeza de la siguiente. El aire entre fotografías va como
+   `margin-block-end` en cada una: en maquetación por columnas `gap` sólo
+   separa columnas, no lo que hay dentro. */
+.mural {
+  columns: 1;
+  column-gap: var(--space-2);
+}
+@media (min-width: 700px) {
+  .mural {
+    columns: 2;
+  }
+}
+@media (min-width: 1100px) {
+  .mural {
+    columns: 3;
+    column-gap: var(--space-3);
+  }
+  .muralItem {
+    margin-block-end: var(--space-3);
+  }
+}
+
+.muralItem {
+  position: relative;
+  margin: 0 0 var(--space-2);
+  break-inside: avoid;
+  overflow: hidden;
+  overflow: clip;
+  background: var(--color-hairline);
+}
+
+/* TOPE DE ANCHO. La columna de la imagen no tenía ninguno, así que en un
+   monitor ancho se estiraba hasta ~950 px -- 1.900 reales en densidad doble --
+   y la fotografía más grande del archivo mide 1.333: una ampliación del 42%
+   en la página que vende fotografía. A 44rem la imagen reduce siempre, y de
+   paso la columna de texto deja de quedarse en una tira estrecha al lado de
+   una fotografía enorme. */
 .imageWrap {
   position: relative;
   aspect-ratio: 4 / 5;
+  width: min(100%, 44rem);
+  margin-inline: auto;
 }
 
 @media (min-width: 900px) {
   .imageWrap {
     aspect-ratio: auto;
-    height: min(70svh, 46rem);
-    /* Sticks within .serviceInner's own row as the taller .copy column
-       scrolls past -- see .serviceInner's align-items:start comment
-       above. --space-4 clears Header.module.css's fixed header (roughly
-       2*--space-2 padding + a 2.25rem logo, comfortably under --space-4's
-       4-6rem range) even when the header hasn't auto-hidden yet. */
-    position: sticky;
-    top: var(--space-4);
+    /* La apertura ya no es una columna de texto altísima con una foto al
+       lado, así que la foto no tiene que ir anclada persiguiéndola: le basta
+       con medir lo mismo que el bloque de texto que tiene enfrente. */
+    height: min(62svh, 40rem);
+    width: 100%;
   }
 }
 
@@ -276,21 +603,54 @@
    corta que reparte hacia las dos hijas. Por eso tiene su propio bloque de
    estilos y no reutiliza `.service`, que está construido para un "momento"
    de casi pantalla completa por servicio. */
+/* LA MISMA CAJA QUE EL RESTO DEL SITIO. Sin tope, en un portátil ancho cada
+   tarjeta se iba a 836 px de ancho -- o sea 1.672 px reales en una pantalla
+   de densidad doble -- y NINGUNA fotografía del archivo tiene tantos: la más
+   grande mide 1.333. El resultado era una ampliación del 57% justo en la
+   página que vende fotografía. A 75rem, que es la caja de /trabajos y de cada
+   ficha, la tarjeta se queda en ~580 px y las fotos REDUCEN.
+   No es solo nitidez: dos tarjetas de 836 px una al lado de otra tampoco se
+   leen como una elección, se leen como dos vallas. */
 .indexPage {
-  padding-block: var(--space-5);
+  max-width: 75rem;
+  margin-inline: auto;
+  padding-block: var(--space-4) var(--space-5);
   padding-inline: var(--gutter);
 }
 
+/* LA CABECERA, EN DOS COLUMNAS. Ocupaba una pantalla entera con el titular
+   pegado a la izquierda y la mitad derecha vacía -- y ese vacío no se leía
+   como aire, se leía como una página a medio cargar. Ahora el titular y lo
+   que hay debajo comparten fila: el texto de apoyo se va a la derecha y la
+   cabecera cabe en la mitad de alto. */
 .indexHeader {
-  max-width: 44rem;
-  margin-block-end: var(--space-5);
+  margin-block-end: var(--space-4);
+}
+@media (min-width: 900px) {
+  .indexHeader {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    column-gap: var(--space-4);
+    align-items: end;
+  }
+  .kicker {
+    grid-column: 1 / -1;
+  }
 }
 
+/* EL TÍTULO DE LA PÁGINA, POR DEBAJO DE LOS NOMBRES DE LOS SERVICIOS.
+   Estaba a --type-h1, el mismo escalón que ahora tienen las dos filas, y dos
+   cosas del mismo tamaño no hacen jerarquía: hacen ruido. En un índice lo que
+   manda son los elementos, no el rótulo de la página -- es lo que hace la
+   referencia que trajo el cliente, donde «selected works» es letra pequeña y
+   los nombres de los trabajos ocupan la pantalla. Sigue siendo el <h1> del
+   documento, que es lo que le importa a un buscador y a un lector de
+   pantalla; lo que baja es el tamaño, no el rango. */
 .indexTitle {
   composes: display from global;
-  font-size: var(--type-h1);
-  line-height: 1;
-  margin: 0 0 var(--space-3);
+  font-size: var(--type-h2-sm);
+  line-height: 1.02;
+  margin: 0 0 var(--space-2);
   text-wrap: balance;
 }
 .indexTitleEm {
@@ -300,91 +660,394 @@
 .indexLead {
   font-size: var(--type-lead);
   color: var(--color-muted);
-  max-width: 36rem;
+  max-width: 32rem;
   margin: 0;
+  /* Baja hasta la última línea del titular, para que las dos columnas se
+     apoyen en la misma línea y no floten cada una a su aire. */
+  padding-block-end: 0.35em;
 }
 
-.indexGrid {
+/* ====================================================================
+   EL ÍNDICE DE SERVICIOS
+   ====================================================================
+   Dos filas grandes, una debajo de otra, con el nombre a tamaño de titular
+   y la imagen al lado. Sustituye a una rejilla de dos tarjetas iguales: dos
+   cajas del mismo tamaño se leen como un formulario de dos opciones, y lo
+   que esta página tiene que provocar es una elección.
+
+   El nombre del servicio es lo más grande de la página, y a propósito. En
+   la versión anterior el numeral decorativo («01», «02») estaba pintado a
+   --type-h1 y el nombre a --type-h3: el adorno le ganaba en tamaño al
+   contenido. El numeral se ha retirado entero -- dos servicios no son una
+   secuencia que haya que leer en orden, así que numerarlos no decía nada. */
+.index {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-4);
-}
-@media (min-width: 760px) {
-  .indexGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-3);
-  }
 }
 
-.cardLink {
-  display: block;
+.row {
+  border-block-start: 1px solid var(--color-hairline);
+}
+.row:last-child {
+  border-block-end: 1px solid var(--color-hairline);
+}
+
+.rowLink {
+  display: grid;
+  gap: var(--space-2);
+  padding-block: var(--space-3);
   color: inherit;
   text-decoration: none;
 }
+@media (min-width: 760px) {
+  .rowLink {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--space-4);
+  }
+  /* LAS FILAS ALTERNAN EL LADO DE LA IMAGEN. Obliga a recorrer la página en
+     zigzag, y eso hace que cada servicio se mire por separado en vez de
+     compararlos de un golpe como se comparan dos columnas. */
+  .row:nth-child(even) .rowFrame {
+    order: 2;
+  }
+  .row:nth-child(even) .rowBody {
+    order: 1;
+  }
+}
 
-/* Retrato: las dos `previewImage` de content/services.ts son verticales, y
-   una foto vertical dentro de una tarjeta apaisada enseña un tercio de sí
-   misma. */
-.cardFrame {
+/* Retrato: la imagen de fotografía es vertical, y una foto vertical dentro
+   de un marco apaisado enseña un tercio de sí misma. */
+.rowFrame {
   position: relative;
   display: block;
   aspect-ratio: 4 / 5;
-  overflow: hidden;
+  overflow: clip;
   background: var(--color-hairline);
-  margin-block-end: var(--space-2);
 }
-.cardImage {
+/* EL MARCO DE LA PELÍCULA, APAISADO. El clip es 16:9 y metido en el 4:5 de
+   al lado se recortaba a menos de la mitad de su ancho y se ampliaba más del
+   doble: de ahí venía el grano. A 3:2 el recorte es del 16% y el vídeo se
+   pinta casi a su tamaño real.
+   No es 16:9 exacto a propósito: a esa proporción la fila se queda en una
+   franja baja al lado de un retrato y el servicio de vídeo parece el hermano
+   pequeño. */
+.rowFrameFilm {
+  aspect-ratio: 3 / 2;
+}
+.rowMedia {
   object-fit: cover;
   transition: transform var(--duration-slow) var(--ease-standard);
 }
 @media (hover: hover) and (pointer: fine) {
-  .cardLink:hover .cardImage {
+  .rowLink:hover .rowMedia {
     transform: scale(1.03);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .cardImage { transition: none; }
-  .cardLink:hover .cardImage { transform: none; }
+  .rowMedia { transition: none; }
+  .rowLink:hover .rowMedia { transform: none; }
 }
 
-.cardNumber {
-  composes: chapterNumber from global;
+.rowBody {
   display: block;
 }
 
-.cardName {
-  font-family: var(--font-serif);
-  font-size: var(--type-h3);
-  line-height: 1.05;
+/* EL NOMBRE, A TAMAÑO DE TITULAR. Es lo que la pareja está eligiendo, así
+   que es lo más grande que hay aquí. Recta la primera palabra y cursiva el
+   «de boda», el mismo par que usan los titulares del resto del sitio. */
+.rowName {
+  composes: display from global;
+  font-size: var(--type-h1);
+  line-height: 0.98;
   margin: 0 0 var(--space-1);
+  text-wrap: balance;
+}
+.rowNameEm {
+  composes: displayEm from global;
 }
 
-.cardTagline {
+.rowTagline {
   display: block;
   color: var(--color-muted);
+  font-size: var(--type-lead);
+  max-width: 34ch;
   margin-block-end: var(--space-2);
+  text-wrap: pretty;
 }
 
-.cardCta {
+.rowCta {
   composes: arrowLink from global;
   color: var(--color-accent);
 }
 
-/* Vuelta al índice desde una hija. Ocupa el sitio que tenía `.kicker` en la
-   página única, con el mismo tamaño de etiqueta pequeña. */
-.kickerLink {
-  composes: eyebrow from global;
-  display: inline-block;
-  font-weight: 400;
-  margin: 0 0 var(--space-2);
-  line-height: 1.5;
-  color: var(--color-muted);
-  text-decoration: none;
+/* La vuelta al índice vive ahora en components/ui/VolverA, compartida con la
+   ficha de reportaje: era el mismo enlace escrito dos veces y en una de las
+   dos secciones ni siquiera estaba. */
+
+/* ====================================================================
+   LOS EXTRAS DE UN SERVICIO
+   ====================================================================
+   Estas reglas nacieron en un `ServicioDetalle.module.css` propio que NADIE
+   importaba: `ServicioDetalle.tsx` trae `./page.module.css`, así que los
+   cuatro `styles.extras*` resolvían a `undefined` y la lista salía sin
+   estilo y, lo peor, sin el punto que separa un ítem del siguiente -- los
+   dos extras se leían pegados formando una sola frase sin sentido. Viven
+   aquí, en el fichero que el componente sí importa. */
+/* Los extras: lo que depende del pack o se contrata aparte. Deliberadamente
+   más callado que la lista numerada de «Incluye» -- sin numerales, a cuerpo de
+   nota y con un filete que lo separa -- porque su trabajo es matizar esa
+   lista, no competir con ella. */
+.extras {
+  margin-block: var(--space-2);
+  padding-block-start: var(--space-2);
+  border-top: 1px solid var(--color-hairline);
 }
-.kickerLink:hover,
-.kickerLink:focus-visible {
-  color: var(--color-ink);
+.extrasLabel {
+  composes: eyebrow from global;
+  margin: 0 0 var(--space-1);
+}
+.extrasList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2em 0;
+  font-size: var(--type-small);
+  color: var(--color-muted);
+}
+/* El separador es decorativo y va en el CSS, no en el texto: un punto medio
+   escrito en el marcado se lo lee el lector de pantalla entre ítem e ítem. */
+.extrasItem:not(:last-child)::after {
+  content: '·';
+  margin-inline: 0.6em;
+  color: var(--color-hairline);
+}
+
+/* ====================================================================
+   LO QUE INCLUYE Y CÓMO TRABAJAMOS, ENTRANDO AL RITMO DEL SCROLL
+   ====================================================================
+   Las dos listas de cada servicio son lo que más ocupa de la página, y
+   aparecían enteras y quietas: cuatro o cinco filas idénticas plantadas a la
+   vez, que es exactamente la sensación de plantilla que hay que quitar. Ahora
+   cada fila llega un poco después que la anterior.
+
+   Nativo del navegador (`animation-timeline: view()`), sin JavaScript. Y con
+   la misma doble puerta y el mismo suelo de opacidad que el resto del sitio:
+   0.6, no 0, porque una lista de lo que incluye un servicio tiene que poder
+   leerse parada -- y por debajo de ese valor el texto no llega al contraste
+   que pide la norma mientras está en camino. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* EL ESCALONADO, EN UNA SOLA REGLA. Eran cinco: una por puesto y un
+       `:nth-child(n + 5)` que metía en el mismo instante todo lo que viniera
+       a partir de la quinta fila -- justo donde más filas hay. El puesto lo
+       pone ahora el componente en `--turno` (ver lib/turno.ts) y aquí se
+       multiplica: tres puntos de tramo por fila, sin tope. */
+    .incluyeItem,
+    .paso {
+      animation: itemEntra linear both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(var(--turno, 0) * 3%)
+        cover calc(18% + var(--turno, 0) * 3%);
+    }
+    /* EL NUMERAL LLEGA UN PASO POR DETRÁS DE SU FILA, y por eso no se declara
+       sobre `.incluyeItem`: es otro elemento, así que no se pelea con
+       `itemEntra` propiedad a propiedad -- que es como esta hoja ya se
+       desarmó una vez. */
+    .incluyeItem .itemNumber,
+    .paso .itemNumber {
+      animation: numeralEntra linear both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(4% + var(--turno, 0) * 3%)
+        cover calc(24% + var(--turno, 0) * 3%);
+    }
+  }
+}
+/* 0.55 Y NO 0.25, que es el suelo de la casa: por debajo, este gris sobre
+   este papel deja de llegar al 4.5:1 mientras el numeral está en camino. */
+@keyframes numeralEntra {
+  from { opacity: 0.55; transform: translateX(-0.35em); }
+  to   { opacity: 1; transform: none; }
+}
+/* EL FILETE DE LA FILA, DIBUJÁNDOSE -- AHORA CON `transform`, NO CON
+   `background-size`.
+   Antes el filete pasaba de `border` a fondo pintable y era el propio
+   fotograma de `itemEntra` el que lo estiraba animando `background-size`.
+   Funcionaba, pero `background-size` NO es una propiedad compositable, y
+   basta con que una sola propiedad del fotograma no lo sea para que Chromium
+   baje la animación ENTERA al hilo principal: también la opacidad y el
+   desplazamiento de esa misma regla. Eran cuatro o cinco filas por lista
+   recalculándose en cada fotograma de scroll, contra la regla que este
+   proyecto declara en ScrollReveal y en RevealWords -- sólo `transform` y
+   `opacity`.
+   Un pseudo-elemento de 1px escalado en horizontal da exactamente el mismo
+   dibujo y se queda en el compositor. Y como es OTRO elemento, tampoco
+   compite con `itemEntra` propiedad a propiedad: cada uno anima lo suyo.
+   La primera fila de cada lista no lleva filete (ver `:first-child` arriba),
+   así que tampoco lo dibuja. */
+.incluyeItem,
+.paso {
+  position: relative;
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .incluyeItem:not(:first-child),
+    .paso:not(:first-child) {
+      border-block-start-color: transparent;
+    }
+    .incluyeItem:not(:first-child)::before,
+    .paso:not(:first-child)::before {
+      content: '';
+      position: absolute;
+      inset-block-start: -1px;
+      inset-inline: 0;
+      height: 1px;
+      background: var(--color-hairline);
+      transform-origin: left;
+      animation: fileteTiende linear both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(var(--turno, 0) * 3%)
+        cover calc(18% + var(--turno, 0) * 3%);
+    }
+  }
+}
+
+@keyframes itemEntra {
+  from {
+    opacity: 0.6;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fileteTiende {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ====================================================================
+   LA ELECCIÓN, CONTADA CON LA PÁGINA
+   ====================================================================
+   Esta página existe para una sola cosa: que la pareja elija entre dos
+   servicios. Todo lo de aquí abajo empuja en esa dirección. */
+
+/* AL MIRAR UNA, LA OTRA SE APAGA. Es el gesto que convierte dos filas
+   puestas una debajo de la otra en una elección: al acercarse a una, la
+   página entera se compromete con ella. Cuesta una regla y es de lo que más
+   se nota.
+   Solo con ratón: en táctil no hay un «estoy mirando ésta» que detectar, y
+   dejar media página apagada sin poder deshacerlo sería un defecto. */
+@media (hover: hover) and (pointer: fine) {
+  @media (prefers-reduced-motion: no-preference) {
+    .index .row {
+      transition: opacity var(--duration-base) var(--ease-standard);
+    }
+  }
+  /* `:focus-within` además de `:hover`: si el puntero descansa sobre una fila
+     y se llega a la otra con el tabulador, la fila enfocada se quedaba
+     apagada al 45% con el aro de foco encima. */
+  .index:hover .row:not(:hover):not(:focus-within) {
+    opacity: 0.45;
+  }
+}
+
+/* EL CUERPO DE CADA FILA SE ASIENTA DETRÁS DE SU NOMBRE. El nombre del
+   servicio ya se revela palabra a palabra; el lema y la llamada que van
+   debajo llegaban plantados, así que la fila se componía a medias. Mismo
+   fotograma que la apertura de la ficha (`lineaEntra`) y mismo suelo de
+   opacidad: se leen con la página parada. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .indexLead,
+    .rowTagline,
+    .rowCta {
+      animation: lineaEntra linear both;
+      animation-timeline: view();
+      animation-range:
+        entry calc(22% + var(--turno, 0) * 8%)
+        entry calc(66% + var(--turno, 0) * 8%);
+    }
+  }
+}
+
+/* LA IMAGEN SE DESCUBRE AL ENTRAR, como un plano que abre. Un cuarto de
+   recorte, no la imagen entera: lo que hay dentro se ve desde el primer
+   fotograma -- la regla de la casa es que nada que haya que mirar empieza
+   escondido -- y lo que se mueve es el borde de abajo. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .rowFrame {
+      animation: marcoAbre linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 26%;
+    }
+    .row:nth-child(even) .rowFrame {
+      animation-range: cover 6% cover 32%;
+    }
+  }
+}
+@keyframes marcoAbre {
+  from {
+    clip-path: inset(0 0 22% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* La llamada a la acción acusa recibo: la flecha se adelanta y el rótulo se
+   subraya solo cuando el puntero está en la fila, no solo sobre el texto.
+   Es la fila entera la que es un enlace, y tiene que comportarse como uno. */
+@media (hover: hover) and (pointer: fine) {
+  .rowCta {
+    transition: gap var(--duration-fast) var(--ease-standard);
+  }
+  .rowLink:hover .rowCta {
+    gap: 1em;
+    text-decoration: underline;
+    text-underline-offset: 0.35em;
+    text-decoration-thickness: 1px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rowCta { transition: none; }
+}
+
+/* ====================================================================
+   EL CIERRE DEL ÍNDICE
+   ====================================================================
+   Una línea y un enlace, sobre un filete. Deliberadamente callado: viene
+   detrás de las cifras, que ya llevan el peso visual, y lo único que tiene
+   que hacer es dar una salida a quien ha leído las dos filas y sigue sin
+   decidirse. */
+.cierre {
+  display: grid;
+  gap: var(--space-2);
+  border-block-start: 1px solid var(--color-hairline);
+  padding-block-start: var(--space-3);
+  margin-block-start: var(--space-3);
+}
+@media (min-width: 760px) {
+  .cierre {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: var(--space-4);
+  }
+}
+.cierreTexto {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--type-h2-sm);
+  line-height: 1.15;
+  max-width: 26ch;
+  text-wrap: balance;
+}
+.cierreCta {
+  composes: arrowLink from global;
+  color: var(--color-accent);
 }

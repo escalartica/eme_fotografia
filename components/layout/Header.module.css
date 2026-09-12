@@ -38,32 +38,42 @@
   }
 }
 
+/* LA BARRA SE ENCOGE AL BAJAR. En reposo, sobre la banda de papel de la
+   portada, se da todo el aire que quiere; en cuanto la fotografía empieza a
+   pasar por debajo se aprieta y devuelve a la pantalla algo más de media
+   pulgada de altura. Es el gesto de las cuatro referencias del cliente, y en
+   un móvil apaisado -- donde una boda se mira tumbado en el sofá -- se nota
+   de verdad.
+   El alto se anima en `padding` y en la altura del logotipo, no en `height`
+   ni en `transform`: la barra es fija y no participa del flujo, así que
+   ningún otro elemento de la página se recalcula por esto. */
+.header[data-scrolled='true'] {
+  padding-block: var(--space-1);
+}
+.header[data-scrolled='true'] .logo {
+  height: 1.85rem;
+}
+
 .header.animated {
   transition:
     background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard);
+    border-color var(--duration-fast) var(--ease-standard),
+    padding var(--duration-fast) var(--ease-standard);
+}
+.header.animated .logo {
+  transition: height var(--duration-fast) var(--ease-standard);
 }
 
 .brand {
   display: inline-flex;
   flex: 0 0 auto;
 }
-.logo {
-  height: 2.25rem;
-  width: auto;
-}
-/* Una sola de las dos versiones se pinta, según el tema. Van las dos en el
-   HTML (y no un `src` condicional) para que el cambio de tema sea inmediato:
-   con `src` habría que esperar a que el navegador pidiera el otro fichero, y
-   el logotipo parpadearía en cada clic del interruptor. */
-.logoLight {
-  display: none;
-}
-:global([data-theme='dark']) .logoDark {
-  display: none;
-}
-:global([data-theme='dark']) .logoLight {
-  display: block;
+/* El intercambio claro/oscuro del logotipo vive ahora en
+   components/ui/BrandMark.module.css, compartido con las cinco pantallas
+   privadas que se lo habían perdido. Aquí queda sólo lo que es de la
+   cabecera: el hueco que ocupa la marca dentro de la barra. */
+.marca {
+  flex: 0 0 auto;
 }
 
 /* Desktop nav: one line, centred between the wordmark and the contact
@@ -259,9 +269,9 @@
    manda la versión clara del logotipo, gane lo que gane el tema. Antes esto
    era un `filter: invert(1)` sobre el único fichero que había; ahora que
    existe la versión clara, invertir sería repintar dos veces. */
-.header:has(.menuButton[aria-expanded='true']) .logoDark {
+.header:has(.menuButton[aria-expanded='true']) [data-marca='tinta'] {
   display: none;
 }
-.header:has(.menuButton[aria-expanded='true']) .logoLight {
+.header:has(.menuButton[aria-expanded='true']) [data-marca='claro'] {
   display: block;
 }

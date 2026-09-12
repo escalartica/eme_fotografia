@@ -31,6 +31,16 @@
 .content {
   max-width: 1200px;
   width: 100%;
+  /* El botón de cerrar va anclado en `bottom: 100%`, o sea JUSTO ENCIMA de
+     esta caja, y necesita unos 56 px de aire. El fondo centra su contenido
+     con `var(--space-3)` de margen, así que el hueco de arriba es la mitad de
+     lo que sobre -- y con una imagen al 80% de la altura, esa mitad son 10vh.
+     Por debajo de unos 560 px de alto (un móvil de lado, o cualquier pantalla
+     de 1080 al 200% de zoom) el botón quedaba entero fuera de la pantalla, y
+     como el fondo es `position: fixed` no hay scroll que lo rescate: la única
+     salida visible del visor desaparecía. Reservando su altura aquí, la
+     imagen se encoge lo justo y el botón siempre cae dentro. */
+  max-height: calc(100dvh - var(--space-3) * 2 - 3.5rem);
   position: relative;
   transform: scale(1);
   transition: transform var(--duration-fast) var(--ease-standard);

@@ -1,72 +1,246 @@
-.section { margin-block-start: var(--space-4); padding-block-start: var(--space-3); border-top: 1px solid var(--color-muted); }
-.section h2 { font-family: var(--font-serif); font-size: var(--type-h3); margin-block-end: var(--space-2); }
-.item { padding-block: var(--space-1); border-bottom: 1px solid var(--color-muted); }
+/* LAS PREGUNTAS FRECUENTES, con el mismo vocabulario que la guía de la home.
+   =====================================================================
+   Lo que había: filetes en `--color-muted` (el gris del TEXTO, no el del
+   papel, o sea tres veces más marcados que cualquier otra línea del sitio),
+   preguntas en sans negrita, y la respuesta apareciendo con un `display:
+   none` en transición. Era la única sección desplegable del sitio que no se
+   parecía a la otra, haciendo exactamente lo mismo que ella.
 
-/* Replaces the native disclosure triangle (::marker) with .marker's own
-   PlusIcon below -- kept as a real <summary> for native keyboard/AT
-   disclosure semantics, just re-laid-out as a flex row so the custom
-   glyph can sit at the trailing edge. */
-.item summary {
-  cursor: pointer;
-  font-weight: 600;
-  padding-block: var(--space-1);
+   Lo que hay: filete de pelo, pregunta en serif, un «+» en un círculo que
+   gira 45 grados al abrir, y la apertura animada de verdad --de 0 a `auto`--
+   con `interpolate-size` y `::details-content`, tras su propia puerta. Donde
+   eso no esté soportado, el desplegable abre de golpe, que es lo que ha hecho
+   siempre. Sin JavaScript ni respaldo que lo necesite. */
+
+.section {
+  margin-block-start: var(--space-5);
+  padding-block-start: var(--space-4);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.encabezado {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
+  margin-block-end: var(--space-3);
+}
+
+.eyebrow {
+  composes: eyebrow from global;
+  color: var(--color-muted);
+  margin: 0;
+}
+
+/* ---------- el buscador ---------- */
+.buscador {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+  margin-block-start: var(--space-2);
+  width: 100%;
+  max-width: 34rem;
+}
+
+/* Una línea, no una caja. El sitio no tiene un solo campo con recuadro fuera
+   del formulario de contacto, y meterlo aquí --justo debajo del formulario--
+   haría que estas dieciséis preguntas parecieran parte de él. Un filete
+   inferior que se enciende al enfocar dice «se escribe aquí» sin estrenar un
+   componente. */
+.campo {
+  flex: 1 1 14rem;
+  min-width: 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  color: var(--color-ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-hairline);
+  padding-block: var(--space-1);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+.campo::placeholder {
+  color: var(--color-muted);
+}
+.campo:focus {
+  outline: none;
+  border-bottom-color: var(--color-ink);
+}
+/* El anillo sí se pinta cuando el foco viene del teclado: sin `outline` y sin
+   más señal que el filete, quien tabula no sabría dónde está. */
+.campo:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 4px;
+}
+
+.recuento {
+  composes: eyebrow from global;
+  color: var(--color-muted);
+  margin: 0;
+  flex: none;
+}
+
+/* Lo que se dice cuando el filtro no deja nada. No es un error: es la salida,
+   y por eso apunta al formulario. */
+.vacio {
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  color: var(--color-muted);
+  max-width: 52ch;
+  margin: var(--space-3) 0 0;
+  text-wrap: pretty;
+}
+
+.titulo {
+  font-family: var(--font-serif);
+  font-size: var(--type-h2-sm);
+  line-height: 1.08;
+  font-weight: 400;
+  font-variation-settings: 'wght' 400;
+  margin: 0;
+  text-wrap: balance;
+}
+
+/* Sin `gap`: lo que separa una fila de la siguiente es su propio filete, como
+   en un índice impreso. Un hueco además del filete haría que dieciséis filas
+   cerradas se leyeran como dieciséis tarjetas. */
+.lista {
+  display: grid;
+}
+
+.item {
+  border-top: 1px solid var(--color-hairline);
+}
+.item:last-of-type {
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.resumen {
+  display: flex;
+  /* `start`, no `center`: hay preguntas de dos y tres líneas, y con el signo
+     centrado verticalmente cada fila lo coloca en un sitio distinto. Mismo
+     criterio que la guía de la home. */
+  align-items: start;
   justify-content: space-between;
   gap: var(--space-2);
+  padding-block: var(--space-2);
+  /* Zona de pulsación cómoda en un teléfono sin que la fila crezca. */
+  min-height: 3rem;
+  cursor: pointer;
   list-style: none;
 }
-.item summary::-webkit-details-marker { display: none; }
-.item summary::marker { content: ''; }
+.resumen::-webkit-details-marker { display: none; }
+.resumen::marker { content: ''; }
+.resumen:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 4px;
+}
 
-.marker {
-  flex: none;
-  display: inline-flex;
-  color: var(--color-muted);
+.pregunta {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  font-weight: 400;
+  font-variation-settings: 'wght' 400;
+  margin: 0;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  max-width: 34ch;
+  text-wrap: balance;
+  /* El desplazamiento al pasar por encima es el gesto de un índice impreso:
+     la línea se adelanta un poco hacia quien la va a pulsar. */
   transition: transform var(--duration-fast) var(--ease-standard);
 }
-/* Plus rotated 45deg reads as the open state -- same icon-morph-via-
-   rotate mechanism as Header's .menuGlyph/.closeGlyph. */
-.item[open] .marker {
-  transform: rotate(45deg);
-  color: var(--color-accent);
+@media (hover: hover) and (pointer: fine) {
+  .resumen:hover .pregunta {
+    transform: translateX(0.35rem);
+  }
 }
 
-.item p {
-  color: var(--color-muted);
-  padding-block-end: var(--space-1);
-  /* Entry transition for the answer, gated behind @supports so browsers
-     without discrete-property transitions just keep the instant native
-     show/hide -- same @starting-style mechanism this codebase already
-     uses in Lightbox.module.css. */
+/* El signo. Gira 45 grados al abrir, o sea que el «+» se convierte en «×» sin
+   cambiar de icono ni cargar otro. Mismo mecanismo que .menuGlyph en la
+   cabecera y que la guía de la home. */
+.marca {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--color-hairline);
+  border-radius: 50%;
+  color: var(--color-ink);
+  transition:
+    transform var(--duration-base) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
 }
-@supports (transition-behavior: allow-discrete) {
-  .item p {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity var(--duration-fast) var(--ease-standard),
-      transform var(--duration-fast) var(--ease-standard),
-      display var(--duration-fast) allow-discrete,
-      content-visibility var(--duration-fast) allow-discrete;
+.item[open] .marca {
+  transform: rotate(45deg);
+  /* --color-accent, como la guía de la home: los tres acordeones del sitio
+     tienen que cambiar de color a la vez el día que la paleta los separe. */
+  border-color: var(--color-accent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .resumen:hover .marca {
+    border-color: var(--color-ink);
   }
-  .item:not([open]) p {
-    display: none;
-    content-visibility: hidden;
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  @starting-style {
-    .item[open] p {
-      opacity: 0;
-      transform: translateY(-4px);
+}
+
+.cuerpo {
+  padding-block-end: var(--space-3);
+  /* Alineada con la pregunta, dejando libre la columna del signo. */
+  padding-inline-end: calc(2rem + var(--space-2));
+}
+
+.cuerpo p {
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  color: var(--color-muted);
+  text-wrap: pretty;
+  max-width: 62ch;
+  margin: 0;
+}
+
+/* LA APERTURA ANIMADA. Tres condiciones, y si falla cualquiera el desplegable
+   sigue funcionando: abre de golpe, como toda la vida.
+     - `interpolate-size: allow-keywords`, que es lo que permite animar hacia
+       `auto`. Se declara en la propia sección, no en :root, para no cambiar
+       el comportamiento de ningún otro sitio del proyecto.
+     - `::details-content`, que es la caja que hay que mover.
+     - movimiento no reducido. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (interpolate-size: allow-keywords) and (selector(::details-content)) {
+    .section {
+      interpolate-size: allow-keywords;
+    }
+    .item::details-content {
+      block-size: 0;
+      /* clip, con hidden delante de respaldo: `hidden` haría de la respuesta
+         colapsada un contenedor de scroll. */
+      overflow: hidden;
+      overflow: clip;
+      transition:
+        block-size var(--duration-base) var(--ease-standard),
+        content-visibility var(--duration-base) allow-discrete;
+    }
+    .item[open]::details-content {
+      block-size: auto;
     }
   }
 }
+
+/* Quien pide movimiento reducido no pierde ninguna función: el desplegable
+   abre igual y el signo sigue girando a «×». Lo que se apaga son los
+   desplazamientos con transición, que es lo que marea. */
 @media (prefers-reduced-motion: reduce) {
-  .marker { transition: none; }
-  .item p { transition: opacity var(--duration-fast) linear; }
-  .item:not([open]) p { transform: none; }
-  @starting-style {
-    .item[open] p { transform: none; }
+  .pregunta,
+  .marca {
+    transition: none;
+  }
+  .resumen:hover .pregunta {
+    transform: none;
   }
 }

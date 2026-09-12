@@ -7,6 +7,7 @@ import { HeartIcon, CommentIcon, CheckIcon } from '@/components/ui/Icon';
 import { Lightbox } from '@/components/motion/Lightbox';
 import type { GalleryPhoto, Selection } from '@/lib/gallery-store';
 import styles from './GalleryClient.module.css';
+import { srcSetMiniatura, srcSetVisor } from '@/lib/gallery-srcset';
 
 interface ItemState {
   liked: boolean;
@@ -133,7 +134,7 @@ export function GalleryClient({
                   aria-label={`Ver ${photo.alt} en tamaño completo`}
                 >
                   <img
-                    src={`/${slug}/photo/${photo.filename}`}
+                    {...srcSetMiniatura(slug, photo.filename)}
                     alt={photo.alt}
                     loading={index < 4 ? 'eager' : 'lazy'}
                     className={styles.image}
@@ -152,7 +153,10 @@ export function GalleryClient({
                   <button
                     type="button"
                     className={styles.iconButton}
-                    aria-pressed={commentOpen}
+                    // Solo `aria-expanded`. Con los dos, el lector de
+                    // pantalla decía «pulsado, expandido» para un único
+                    // estado. `aria-expanded` es el correcto aquí: el botón
+                    // no conmuta nada, abre un panel.
                     aria-expanded={commentOpen}
                     aria-label={state.comment ? 'Editar comentario de esta foto' : 'Añadir comentario a esta foto'}
                     onClick={() => setOpenCommentId(commentOpen ? null : photo.id)}
@@ -224,7 +228,7 @@ export function GalleryClient({
       <Lightbox isOpen={lightboxPhoto !== null} onClose={() => setLightboxPhoto(null)}>
         {lightboxPhoto && (
           <div className={styles.lightboxImageWrap}>
-            <img src={`/${slug}/photo/${lightboxPhoto.filename}`} alt={lightboxPhoto.alt} />
+            <img {...srcSetVisor(slug, lightboxPhoto.filename)} alt={lightboxPhoto.alt} />
           </div>
         )}
       </Lightbox>

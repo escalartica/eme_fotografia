@@ -70,12 +70,22 @@ export function MobileMenu({
 
   // Lock the page behind the overlay. Without this the panel is fixed but
   // the document keeps scrolling under it on touch.
+  //
+  // SÓLO EL EJE VERTICAL. `overflow: hidden` a secas escribe los DOS ejes, y
+  // el horizontal del `body` no es libre: la hoja global le pone
+  // `overflow-x: clip`, que es de lo que dependen todas las secciones a
+  // sangre del sitio -- recorta sin crear contenedor de scroll, y por eso no
+  // rompe la cabecera fija ni las tres pilas ancladas. Escribiendo `overflow`
+  // entero, mientras el menú estaba abierto el `body` pasaba a ser contenedor
+  // de scroll en los dos ejes: cualquier banda a sangre que se pasara unos
+  // píxeles --lo hacen, por el ancho de la barra de scroll clásica-- sacaba
+  // una barra horizontal por detrás del panel.
   useEffect(() => {
     if (!isOpen) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const previous = document.body.style.overflowY;
+    document.body.style.overflowY = 'hidden';
     return () => {
-      document.body.style.overflow = previous;
+      document.body.style.overflowY = previous;
     };
   }, [isOpen]);
 

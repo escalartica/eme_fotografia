@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
+import { BrandMark } from '@/components/ui/BrandMark';
 import Link from 'next/link';
-import Image from 'next/image';
 import { getAdminSession } from '@/lib/auth/require-session';
 import { readHits, summarise } from '@/lib/analytics-store';
 import { site } from '@/content/site';
@@ -70,7 +70,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
     <div className={dash.page}>
       <header className={dash.header}>
         <Link href="/" className={dash.brand} aria-label={`${site.brandName} - inicio`}>
-          <Image src="/images/logo/eme-logo.png" alt={site.brandName} width={100} height={47} priority />
+          <BrandMark alto={2.2} priority />
         </Link>
         <div className={dash.headerActions}>
           <ThemeToggle />

@@ -48,6 +48,16 @@ export function VideoPreview({ media, onOpenFull }: { media: ProjectMedia; onOpe
         preload="none"
         aria-label={media.alt}
       />
+      {/* UN TRIÁNGULO, NO LA PALABRA. Esto era una píldora blanca maciza con
+          «Reproducir» escrito, plantada en el centro exacto del cuadro: sobre
+          una fotografía de boda tapa justo lo que hay que mirar, y encima
+          decía lo mismo que el puntero ya estaba diciendo al lado. Dos veces
+          el mismo mensaje, las dos encima del trabajo.
+          Sigue siendo un botón de verdad -- con su `aria-label`, alcanzable
+          con el tabulador y pulsable con el dedo --, porque el puntero
+          personalizado no existe para quien navega con teclado ni en una
+          pantalla táctil. Lo que cambia es que en escritorio se aparta: ver
+          `.playGlyph` en el CSS. */}
       <button
         type="button"
         className={styles.playButton}
@@ -57,7 +67,9 @@ export function VideoPreview({ media, onOpenFull }: { media: ProjectMedia; onOpe
         }}
         aria-label="Reproducir vídeo"
       >
-        Reproducir
+        <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.playGlyph}>
+          <path d="M9 6.5v11l9-5.5z" />
+        </svg>
       </button>
     </div>
   );

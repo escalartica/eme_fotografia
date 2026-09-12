@@ -31,7 +31,15 @@ export function ScrubWords({ as: Tag = 'p', className, children }: { as?: Elemen
         split = SplitText.create(el, { type: 'words', tag: 'span', aria: 'none' });
         gsap.fromTo(
           split.words,
-          { opacity: 0.16 },
+          // 0.6, no 0.16. Es el mismo defecto que ya se corrigió en la lista de
+          // /trabajos: la franja de pantalla donde el texto todavía no ha
+          // terminado de escribirse está SIEMPRE ocupada mientras se lee, así
+          // que en cualquier momento en que el lector se para hay párrafo
+          // pintado al 16% -- 1.42:1 sobre el papel, contra el 4.5:1 que pide
+          // la norma. A 0.6 son 5.11:1 y el efecto se sigue leyendo, porque lo
+          // que lo cuenta es el escalonado palabra a palabra, no lo apagado
+          // que esté el punto de partida.
+          { opacity: 0.6 },
           {
             opacity: 1,
             ease: 'none',

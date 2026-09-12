@@ -49,6 +49,81 @@
   font-variation-settings: 'wght' 400;
 }
 
+/* La entrada de la franja.
+   ---------------------------------------------------------------------
+   Mismo vocabulario que components/motion/RevealWords -- ventana que
+   recorta, contenido que sube 108% de su propia altura, doble puerta -- pero
+   escalonado por COLUMNA en vez de por palabra: en pantalla ancha las tres
+   cifras entran a la vez, así que el escalón es lo único que las convierte
+   en una lectura de izquierda a derecha en lugar de en un bloque que
+   aparece de golpe.
+
+   El 6% de escalón por columna, y no el 5% de RevealWords: aquí solo hay
+   tres pasos en vez de seis o siete, y con cinco la cascada casi no se
+   distingue de un movimiento simultáneo.
+
+   El numeral sube tras su ventana; el rótulo y las marcas (estrellas, años)
+   entran DESPUÉS y solo con un desplazamiento corto y opacidad. Es la misma
+   jerarquía que tiene la columna leyéndola: primero la cifra, luego lo que
+   la explica. Recortar el rótulo con su propia ventana sería repetir el
+   gesto grande a tamaño de versalita, donde ya no se lee como un gesto sino
+   como un parpadeo. */
+.numeralMask {
+  display: inline-block;
+  overflow: clip;
+  vertical-align: bottom;
+  /* Holgura para los descendentes -- aquí no hay ninguno en las cifras, pero
+     el Didone del "5,0" lleva coma, que sí baja de la línea base. */
+  padding-block-end: 0.16em;
+  margin-block-end: -0.16em;
+}
+.numeral {
+  display: inline-block;
+  /* Cifras de ancho fijo: mientras el contador sube, un «1» más estrecho que
+     un «8» haría bailar el número entero y saltar la maquetación a su lado. */
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .numeral {
+      animation: cifraRise linear both;
+      animation-timeline: view();
+      animation-range: entry calc(10% + var(--i) * 6%) entry calc(62% + var(--i) * 6%);
+    }
+
+    .label,
+    .years,
+    .stars {
+      animation: cifraFollow linear both;
+      animation-timeline: view();
+      animation-range: entry calc(24% + var(--i) * 6%) entry calc(76% + var(--i) * 6%);
+    }
+  }
+}
+
+@keyframes cifraRise {
+  from {
+    transform: translate3d(0, 108%, 0);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes cifraFollow {
+  from {
+    transform: translate3d(0, 8px, 0);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
 .valueLink {
   color: inherit;
   text-decoration: none;

@@ -1,0 +1,131 @@
+/* Las dos operaciones peligrosas de una galería, al pie de su ficha.
+   Al pie y no arriba a propósito: lo que el estudio viene a hacer aquí el 99%
+   de las veces es MIRAR la selección de la pareja, y un botón de borrar por
+   encima de esa cuadrícula es un accidente esperando. */
+.acciones {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-start: var(--space-5);
+  padding-block-start: var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+}
+@media (min-width: 800px) {
+  .acciones {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+}
+
+.bloque {
+  display: grid;
+  gap: var(--space-1);
+  align-content: start;
+}
+
+/* El bloque de borrado se marca con un filete de aviso a la izquierda, no con
+   un fondo de color: el panel entero es papel y una caja roja aquí gritaría
+   por encima de las fotografías de la boda, que es lo que hay que mirar. */
+.peligro {
+  border-inline-start: 2px solid var(--color-danger);
+  padding-inline-start: var(--space-2);
+}
+
+.titulo {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 1.1;
+  font-weight: 400;
+  margin: 0;
+}
+
+.nota {
+  color: var(--color-muted);
+  font-size: var(--type-small);
+  margin: 0;
+  max-width: 46ch;
+}
+
+.codigo {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.95em;
+  color: var(--color-ink);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: start;
+  margin-block-start: var(--space-1);
+}
+
+.etiqueta {
+  composes: eyebrow from global;
+  color: var(--color-muted);
+}
+
+.campo {
+  width: min(100%, 26rem);
+  font: inherit;
+  padding: 0.65em 0.8em;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: 1px solid var(--color-hairline);
+  border-radius: 2px;
+}
+.campo:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  border-color: var(--color-ink);
+}
+
+.boton {
+  font: inherit;
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  padding: 0.7em 1.2em;
+  color: var(--color-paper);
+  background: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  border-radius: 2px;
+  cursor: pointer;
+  /* WCAG 2.5.8: el objetivo táctil mínimo son 24x24 px, y a este cuerpo el
+     relleno solo no siempre llega. */
+  min-height: 2.75rem;
+}
+.boton:disabled,
+/* `aria-disabled` y no `disabled` en el botón de borrar: ver el comentario del
+   componente. El aspecto apagado es el mismo; lo que cambia es que el foco
+   sigue llegando y el mensaje puede explicar qué falta. */
+.boton[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Las dos regiones vivas están siempre en el documento, también vacías. Sin
+   esto dejarían un renglón en blanco bajo cada formulario. */
+.exito:empty,
+.error:empty {
+  display: none;
+}
+.botonPeligro {
+  color: var(--color-danger);
+  background: none;
+  border-color: var(--color-danger);
+}
+/* Sin `:hover` que lo rellene de rojo: este botón ya está deshabilitado hasta
+   que se escribe el nombre de la galería, y esa es la confirmación de verdad.
+   Un relleno al pasar por encima solo lo haría más fácil de pulsar. */
+
+.exito {
+  color: var(--color-ink);
+  font-size: var(--type-small);
+  margin: 0;
+  max-width: 46ch;
+}
+.error {
+  color: var(--color-danger);
+  font-size: var(--type-small);
+  margin: 0;
+  max-width: 46ch;
+}

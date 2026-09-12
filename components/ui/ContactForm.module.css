@@ -33,8 +33,12 @@
 
 .progress {
   height: 2px;
-  background: var(--color-muted);
-  opacity: 0.3;
+  /* La opacidad iba aquí, en el contenedor, así que se aplicaba también al
+     relleno: carril y relleno se quedaban a 1.36:1 el uno del otro y la barra
+     no distinguía nada, mientras el elemento declaraba `role="progressbar"` y
+     prometía justo eso. Ahora el carril es un color translúcido de verdad y el
+     relleno va a tinta entera: 3:1 largos entre los dos. */
+  background: color-mix(in srgb, var(--color-muted) 32%, transparent);
 }
 .progressBar {
   height: 100%;
@@ -108,9 +112,28 @@
   min-height: 7rem;
   resize: vertical;
 }
+/* Sin `opacity`. --color-muted ya está calculado para cumplir contraste sobre
+   el papel (4.92:1 en claro, 6.67:1 en oscuro); bajarlo al 70% lo dejaba en
+   2.77:1, por debajo del 4.5:1 que pide la norma. Y lo que se pierde ahí no es
+   decoración: son los ejemplos («Ej. una hacienda en Sevilla») que explican
+   qué se espera en un campo obligatorio. */
+/* styles/reset.css deja todos los <a> sin color propio y sin subrayado, y este
+   módulo no tenía regla para los del panel de respuesta: el correo y el
+   WhatsApp se pintaban exactamente igual que el párrafo que los rodea. Importa
+   sobre todo cuando el envío NO ha llegado al estudio, porque entonces esos dos
+   enlaces son la única forma que le queda a la pareja de avisar. */
+.success a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+}
+.success a:hover,
+.success a:focus-visible {
+  text-decoration-thickness: 2px;
+}
+
 .form input::placeholder, .form textarea::placeholder {
   color: var(--color-muted);
-  opacity: 0.7;
 }
 .form input:hover, .form select:hover, .form textarea:hover {
   border-bottom-color: var(--color-ink);
@@ -187,4 +210,52 @@
   text-transform: none;
   letter-spacing: 0;
   line-height: 1.4;
+}
+
+/* EL CONSENTIMIENTO RGPD, al pie del último paso.
+   La casilla y su texto en una rejilla de dos columnas: sin ella, un texto de
+   tres líneas envuelve por debajo de la casilla y se lee como un párrafo
+   suelto en vez de como la etiqueta de lo que hay que marcar. */
+.consentimiento {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75em;
+  align-items: start;
+  margin-block-start: var(--space-2);
+}
+
+.consentimientoCasilla {
+  /* `accent-color` en vez de una casilla dibujada a mano: la nativa ya trae
+     el foco del sistema, el estado indeterminado y el comportamiento táctil,
+     y lo único que desentonaba era el azul del navegador. */
+  accent-color: var(--color-ink);
+  inline-size: 1.15rem;
+  block-size: 1.15rem;
+  /* Alineada con la primera línea del texto, no con el bloque entero. */
+  margin-block-start: 0.15em;
+}
+
+.consentimientoTexto {
+  font-size: var(--type-small);
+  line-height: 1.55;
+  color: var(--color-muted);
+  /* El área de pulsación es la etiqueta entera, que es lo que hace que en un
+     teléfono no haya que acertar en un cuadrado de dieciocho píxeles. */
+  cursor: pointer;
+}
+.consentimientoTexto a {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* La marca de «(opcional)» dentro de la etiqueta de un campo. Va DENTRO y no
+   en un párrafo aparte para que un lector de pantalla la anuncie junto al
+   nombre del campo: «Teléfono, opcional». Fuera, se oiría suelta después y
+   quien navega campo a campo no sabría a cuál se refiere. */
+.opcional {
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--color-muted);
+  font-weight: 400;
 }

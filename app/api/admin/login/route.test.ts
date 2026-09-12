@@ -143,9 +143,11 @@ describe('POST /api/admin/login', () => {
 
   it('keeps refusing even when the attacker changes IP on every request', async () => {
     // El cubo por IP sale de X-Forwarded-For, que cualquiera falsifica. El cubo
-    // global (40 intentos / 15 min contra la única cuenta que existe) es el
-    // único techo real, y es lo que este test protege.
-    for (let i = 0; i < 40; i++) {
+    // global -- GLOBAL_MAX intentos cada 15 min contra la única cuenta que
+    // existe -- es el único techo real, y es lo que este test protege.
+    // El número se importa del propio módulo: escrito a mano aquí, esta
+    // prueba se rompió en cuanto el techo bajó de 40 a 15.
+    for (let i = 0; i < route.GLOBAL_MAX; i++) {
       const res = await route.POST(login({}, { 'x-forwarded-for': `10.0.0.${i}` }));
       expect(res.status, `intento ${i}`).toBe(400);
     }

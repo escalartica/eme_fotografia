@@ -46,6 +46,7 @@ export class MailError extends Error {
 const LABELS: Record<keyof ContactSubmission, string> = {
   nombre: 'Nombre',
   email: 'Email',
+  telefono: 'Teléfono',
   comoNosConociste: 'Cómo nos conociste',
   tipoEvento: 'Tipo de evento',
   fecha: 'Fecha',
@@ -54,6 +55,16 @@ const LABELS: Record<keyof ContactSubmission, string> = {
   presupuesto: 'Presupuesto',
   queEsperas: 'Qué esperan de la cobertura',
   mensaje: 'Mensaje',
+  // El registro de consentimiento NO va en el correo al estudio: es una
+  // prueba que vive en el fichero guardado y se consulta desde el panel, y
+  // repetirla en cada aviso sólo alarga un correo que se lee de un vistazo
+  // para saber si la fecha está libre. Las tres claves están aquí porque
+  // `Record<keyof ContactSubmission, string>` las exige; la cadena vacía es
+  // la señal de "no se imprime" (ver el filtro de `campos` más abajo).
+  consentimiento: '',
+  consentimientoVersion: '',
+  consentimientoTexto: '',
+  politicaVersion: '',
 };
 
 function escapeHtml(s: string): string {
@@ -65,9 +76,13 @@ export function renderContactEmail(submission: ContactSubmission, id: string, re
   const when = submission.fecha ? ` · ${submission.fecha}` : '';
   const subject = `Nueva solicitud de ${submission.tipoEvento.toLowerCase()}: ${submission.nombre}${when}`;
 
+  // Se filtra por las DOS puntas: un valor vacío no tiene nada que contar, y
+  // una etiqueta vacía es la marca de "este campo existe en el tipo pero no
+  // se imprime" (el registro de consentimiento, ver LABELS). Sin lo segundo,
+  // el correo salía con una línea ": si" colgando al final.
   const rows = (Object.keys(LABELS) as (keyof ContactSubmission)[])
     .map((key) => [LABELS[key], (submission[key] ?? '').toString().trim()] as const)
-    .filter(([, value]) => value.length > 0);
+    .filter(([label, value]) => label.length > 0 && value.length > 0);
 
   const text = [
     `Nueva solicitud recibida desde emefotografiasevilla.com`,

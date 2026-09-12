@@ -29,17 +29,21 @@ const SPAN_SIZES: Record<Span, string> = {
   half: '(max-width: 700px) 100vw, 46vw',
 };
 
-// "First two images" (per the A3 spec) means the first two items of type
-// 'image' specifically, not the first two gallery entries by raw index --
-// several real projects (e.g. boda-real-01) lead with video items, which
-// don't take a next/image `priority` prop at all.
+// NINGUNA FOTOGRAFÍA DE LA GALERÍA ES PRIORITARIA, y ésa es la decisión.
+//
+// Antes lo eran las dos primeras de tipo imagen. El problema es dónde
+// empieza esta galería: debajo de la portada del reportaje, que ocupa hasta
+// un 76% de la altura de la ventana y es la imagen que decide el LCP de la
+// página. `priority` no adelanta nada aquí -- las dos fotos siguen estando
+// fuera de pantalla -- pero sí pone `fetchpriority="high"` en dos descargas
+// que compiten con la portada por el mismo ancho de banda, justo mientras se
+// está pintando. Sin la marca, la carga diferida de Next las pide igual con
+// margen de sobra antes de que lleguen a verse.
+//
+// Se mantiene la forma de la función (un valor por entrada de la galería)
+// para no tener que tocar los dos sitios que la consumen.
 function computeImagePriorityFlags(gallery: ProjectMedia[]): boolean[] {
-  let imagesSeen = 0;
-  return gallery.map((media) => {
-    if (media.type !== 'image') return false;
-    imagesSeen += 1;
-    return imagesSeen <= 2;
-  });
+  return gallery.map(() => false);
 }
 
 // State is keyed on the media object itself (not a gallery index) so the
@@ -77,7 +81,7 @@ export function ProjectGallery({ project }: { project: Project }) {
           row.kind === 'duo' ? (
             <div key={`duo-${r}`} className={styles.duo}>
               {row.items.map(({ media, index }) => (
-                <GalleryFlowItem key={index} media={media} span="half" side={index % 2 === 0 ? 'left' : 'right'} priority={priorityFlags[index]} onOpenMedia={setOpenMedia} inDuo />
+                <GalleryFlowItem key={index} media={media} span="half" side={index % 2 === 0 ? 'left' : 'right'} priority={priorityFlags[index]} onOpenMedia={setOpenMedia} inDuo index={index} total={project.gallery.length} />
               ))}
             </div>
           ) : (
@@ -88,9 +92,22 @@ export function ProjectGallery({ project }: { project: Project }) {
               side={row.index % 2 === 0 ? 'left' : 'right'}
               priority={priorityFlags[row.index]}
               onOpenMedia={setOpenMedia}
+              index={row.index}
+              total={project.gallery.length}
             />
           )
         )}
+        {/* EL FINAL DEL REPORTAJE, DICHO. Un reportaje entero puede pasar de
+            veinte fotografías, y hasta ahora la última daba paso sin más a
+            «Otros reportajes»: quien llegaba abajo no sabía si se había
+            acabado o si le faltaba por cargar. Un filete corto y una palabra
+            cierran la historia, que es lo que hace un libro de fotos al
+            terminar un capítulo. */}
+        <p className={styles.end} aria-hidden="true">
+          <span className={styles.endRule} />
+          Fin del reportaje
+          <span className={styles.endRule} />
+        </p>
       </div>
       <Lightbox isOpen={openMedia !== null} onClose={() => setOpenMedia(null)}>
         {openMedia?.type === 'video' && (
@@ -108,7 +125,11 @@ export function ProjectGallery({ project }: { project: Project }) {
         )}
         {openMedia?.type === 'image' && (
           <div className={styles.lightboxImageWrap}>
-            <Image src={openMedia.src} alt={openMedia.alt} fill sizes="100vw" />
+            {/* 1200px, no 100vw. El visor vive dentro de `.content` de
+                Lightbox, que está topado a 1200px: con `100vw` declarado, en
+                un monitor de 1900 a 2x el navegador pedía el escalón de 3840
+                para pintarlo a 1200. Son megabytes que nadie llega a ver. */}
+            <Image src={openMedia.src} alt={openMedia.alt} fill sizes="(max-width: 1200px) 100vw, 1200px" />
           </div>
         )}
       </Lightbox>
@@ -161,10 +182,16 @@ function GalleryFlowItem({
   side,
   priority,
   onOpenMedia,
+  index,
+  total,
   inDuo = false,
 }: {
   media: ProjectMedia;
   span: Span;
+  /** Posición de esta pieza dentro del reportaje, empezando en 0. */
+  index: number;
+  /** Cuántas piezas tiene el reportaje entero. */
+  total: number;
   /** Rendered inside a two-up row: no side offset, no overlap. */
   inDuo?: boolean;
   // Which viewport edge a narrower (wide/half) item leans toward, and the
@@ -261,7 +288,7 @@ function GalleryFlowItem({
 
   // Real intrinsic aspect ratio when this media item has been measured
   // (content/types.ts's ProjectMedia.width/height doc comment -- currently
-  // only boda-real-01's videos), overriding the span's own CSS default via
+  // only andrea-y-jesus's videos), overriding the span's own CSS default via
   // higher-specificity inline style. Most real photos in this project
   // haven't been measured yet, so they fall back to the span's default
   // ratio -- same "reserve a box, don't guess exact numbers" convention
@@ -285,6 +312,19 @@ function GalleryFlowItem({
           <VideoPreview media={media} onOpenFull={() => onOpenMedia(media)} />
         )}
       </div>
+      {/* EL NÚMERO DE FOTOGRAMA, como en una hoja de contactos.
+          Aparece al pasar por encima, en la esquina y sobre un velo mínimo.
+          Hace dos cosas a la vez: da la sensación de estar mirando el
+          material de un fotógrafo y no una galería cualquiera, y le dice a
+          quien lleva un rato bajando por dónde va -- que en un reportaje de
+          veinticinco fotos se agradece.
+          `aria-hidden` porque no es información nueva: el enlace de cada foto
+          ya se anuncia con su descripción, y el recuento entero está en la
+          cabecera de la ficha. */}
+      <span className={styles.frame} aria-hidden="true">
+        {String(index + 1).padStart(2, '0')}
+        <span className={styles.frameTotal}>/{String(total).padStart(2, '0')}</span>
+      </span>
       {media.isPlaceholderMedia && (
         <span className="sourceBadge">
           {media.type === 'video' ? 'Vídeo de muestra' : 'Imagen de muestra'}

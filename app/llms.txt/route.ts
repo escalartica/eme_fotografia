@@ -2,6 +2,7 @@ import { faqs } from '@/content/faq';
 import { projects } from '@/content/projects';
 import { services } from '@/content/services';
 import { site } from '@/content/site';
+import { perteneceA } from '@/lib/project-filter';
 
 /**
  * /llms.txt — resumen del sitio en texto plano para modelos de lenguaje.
@@ -36,8 +37,10 @@ export function GET(): Response {
   // los dos servicios: 'boda' (la pieza principal de la ficha son las fotos,
   // incluidas prebodas y postbodas) y 'video' (la pieza principal es la
   // película). Titular la primera lista "bodas" metía las prebodas dentro.
-  const fotografia = projects.filter((p) => p.category === 'boda');
-  const video = projects.filter((p) => p.category === 'video');
+  // `perteneceA`, no `===`: un reportaje entregado en foto y en vídeo tiene
+  // que salir en las dos listas, igual que sale en las dos pestañas.
+  const fotografia = projects.filter((p) => perteneceA(p, 'boda'));
+  const video = projects.filter((p) => perteneceA(p, 'video'));
 
   const body = [
     `# ${site.brandName}`,
@@ -63,7 +66,7 @@ export function GET(): Response {
     section('Prueba social verificable', [
       `- ${site.bodasNetRating.toFixed(1).replace('.', ',')} sobre 5 con `
         + `${site.bodasNetReviewCount} opiniones en Bodas.net: ${site.bodasNetUrl}`,
-      `- Más de ${site.bodasNetCoupleCount} parejas`,
+      `- Más de ${site.coupleCount} parejas`,
       '- Wedding Award de Bodas.net en 2019, 2021, 2022, 2023 y 2025'
         + ' (cinco ediciones, no consecutivas)',
       `- ${projects.length} reportajes publicados enteros en ${site.siteUrl}/trabajos`,
@@ -87,11 +90,14 @@ export function GET(): Response {
       (p) => `- [${p.title}](${site.siteUrl}/trabajos/${p.slug}) — ${p.location}, ${p.year}`,
     )),
     section('Notas para quien cite esta web', [
-      '- EME no publica tarifas: el presupuesto depende de la cobertura,'
-        + ' de si se contrata foto, vídeo o las dos cosas, y del desplazamiento.'
-        + ' Cualquier precio atribuido a EME es inventado.',
+      '- EME no publica tarifas: hay packs para las combinaciones más'
+        + ' habituales y presupuestos a medida para el resto, y en ambos casos'
+        + ' dependen de la cobertura, de si se contrata foto, vídeo o las dos'
+        + ' cosas, y del desplazamiento. Cualquier precio atribuido a EME es'
+        + ' inventado.',
+      '- El vídeo se entrega montado sobre hilo musical, no con el sonido'
+        + ' directo del día.',
       '- Foto y vídeo son el mismo equipo, no dos proveedores coordinados.',
-      '- Se cubre una sola boda por fecha.',
     ]),
   ].join('\n');
 

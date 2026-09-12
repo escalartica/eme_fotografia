@@ -1,5 +1,18 @@
 .stack {
   position: relative;
+
+  /* Cuánto se aleja un panel anclado mientras el siguiente lo tapa. Lo lee
+     StackedSections.tsx una sola vez (ver su comentario): el número es una
+     decisión visual y vive aquí, no repartido por el JavaScript.
+
+     0.96 y no menos: son dos puntos de papel por cada borde -- unos 19 px de
+     alto en una pantalla de 960 y unos 28 px de ancho en una de 1440. Lo
+     justo para que la fotografía a sangre deje de tocar los bordes y se lea
+     como una copia posada sobre el papel. Por debajo de 0.94 el margen deja
+     de ser un aire y empieza a parecer que la sección se ha encogido por un
+     error de maquetación; por encima de 0.98 no se distingue de no hacer
+     nada. */
+  --recede-scale: 0.96;
 }
 
 /* Every panel is positioned and opaque so later panels paint over earlier
@@ -21,7 +34,15 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  /* `clip`, con `hidden` delante como respaldo. `hidden` haría de este
+     recuadro un contenedor de scroll, y entonces cualquier
+     `animation-timeline: view()` dentro de un panel anclado (el revelado por
+     palabras del titular de un panel de servicio) se mediría contra él en
+     vez de contra la pantalla: el titular siempre está entero ahí dentro,
+     el progreso se queda clavado y la animación no corre. `clip` recorta
+     igual sin crear scrollport. */
   overflow: hidden;
+  overflow: clip;
 }
 .pinned > * {
   width: 100%;

@@ -61,4 +61,37 @@ describe('Cursor', () => {
     fireEvent.mouseOver(screen.getByText('Siguiente proyecto'));
     expect(screen.getByTestId('cursor-label')).toHaveTextContent('EXPLORAR');
   });
+
+  // SOBRE UN VÍDEO, UN TRIÁNGULO Y NO LA PALABRA. «REPRODUCIR» en versalitas
+  // dentro de un disco, encima de una fotografía de boda y a la vez que el
+  // botón que decía lo mismo en el centro del cuadro, era el mismo mensaje dos
+  // veces tapando el trabajo. El triángulo no tiene idioma y ocupa una cuarta
+  // parte.
+  it('draws a play triangle over a video instead of spelling the word', () => {
+    mockPointerFine();
+    const { container } = render(
+      <>
+        <Cursor />
+        <div data-cursor="reproducir">
+          <span>Tráiler</span>
+        </div>
+      </>
+    );
+    fireEvent.mouseOver(screen.getByText('Tráiler'));
+    const pista = screen.getByTestId('cursor-label');
+    expect(pista).toHaveTextContent('');
+    expect(container.querySelector('[data-testid="cursor-label"] svg')).not.toBeNull();
+  });
+
+  it('keeps words for the hints that have no symbol everyone reads', () => {
+    mockPointerFine();
+    render(
+      <>
+        <Cursor />
+        <Link href="/trabajos" data-cursor="explorar">Siguiente</Link>
+      </>
+    );
+    fireEvent.mouseOver(screen.getByText('Siguiente'));
+    expect(screen.getByTestId('cursor-label')).toHaveTextContent('EXPLORAR');
+  });
 });

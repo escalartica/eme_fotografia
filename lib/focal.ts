@@ -35,6 +35,18 @@ export function resolveFocus(media: { src?: string; focus?: string } | undefined
   return media.src ? measuredFocus[media.src] : undefined;
 }
 
+/**
+ * `--photo-grade: none` para las piezas marcadas `sinEtalonar`.
+ *
+ * Se devuelve como estilo en línea y no como clase porque `--photo-grade` es
+ * una propiedad personalizada y se hereda: puesta en el propio elemento, las
+ * veinte reglas del sitio que escriben `filter: var(--photo-grade)` leen
+ * `none` sin que haya que tocar ninguna.
+ */
+export function sinEtalonarStyle(media: { sinEtalonar?: boolean } | undefined): CSSProperties | undefined {
+  return media?.sinEtalonar ? ({ ['--photo-grade']: 'none' } as CSSProperties) : undefined;
+}
+
 /** Same, for a plain src/focus pair rather than a media object. */
 export function focusOf(src: string | undefined, focus?: string): CSSProperties | undefined {
   const value = focus ?? (src ? measuredFocus[src] : undefined);

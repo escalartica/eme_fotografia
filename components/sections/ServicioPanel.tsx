@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import type { Service } from '@/content/types';
+import { RevealWords } from '@/components/motion/RevealWords';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import { focusOf } from '@/lib/focal';
 import styles from './ServicioPanel.module.css';
@@ -76,7 +77,6 @@ export function ServicioPanel({ service, index }: { service: Service; index: num
   }, [reducedMotion]);
 
   const number = String(index + 1).padStart(2, '0');
-  const shortName = service.name.replace(/^Fotografía de /i, '');
 
   return (
     <section ref={rootRef} className={styles.panel} aria-labelledby={`servicio-${service.slug}-heading`}>
@@ -101,33 +101,61 @@ export function ServicioPanel({ service, index }: { service: Service; index: num
               sizes="100vw"
               className={styles.bg}
               style={focusOf(service.panelImage ?? service.previewImage)}
-              priority={index === 0}
+              /* SIN `priority`. La primera franja de servicio no está arriba:
+                 por encima quedan el hero, el manifiesto, la marquesina y el
+                 carrete -- cuatro pantallas largas. Marcarla prioritaria no
+                 la adelantaba, le quitaba ancho de banda a la fotografía del
+                 hero, que es la que decide el LCP de la portada. */
             />
           )
         )}
         <div className={styles.scrim} />
       </div>
 
+      {/* LA FRANJA SE MONTA SOLA. Cada rótulo sube desde detrás de su propia
+          ventana (`.mask`), escalonado, y termina de posarse justo cuando el
+          panel se ancla. Antes la fotografía entraba en movimiento y toda la
+          franja aparecía encima ya puesta, que es lo que hacía que la tarjeta
+          se leyera como una plantilla con una foto detrás en vez de como una
+          copia con su pie. Todo el gesto es CSS guiado por el scroll y con la
+          doble puerta de siempre -- ver ServicioPanel.module.css. */}
       <div className={styles.strip}>
         <div className={styles.left}>
-          <span className={styles.number}>{number}</span>
-          <p className={styles.promise}>{service.tagline}</p>
+          <span className={styles.mask}>
+            <span className={styles.number}>{number}</span>
+          </span>
+          {/* La ventana es un <div> y no un <span> porque lo que envuelve es
+              un <p>, y un párrafo dentro de contenido de frase no es HTML
+              válido. */}
+          <div className={styles.mask}>
+            <p className={styles.promise}>{service.tagline}</p>
+          </div>
         </div>
         <div className={styles.right}>
-          <span className={styles.label}>{index === 0 ? 'Fotografía' : 'Vídeo'} · Bodas</span>
+          <span className={styles.mask}>
+            <span className={styles.label}>{index === 0 ? 'Fotografía' : 'Vídeo'} · Bodas</span>
+          </span>
+          {/* El nombre del servicio, palabra a palabra, con el mismo revelado
+              del manifiesto y del cierre (components/motion/RevealWords). Es
+              el segundo tipo más grande de la home y era el único enunciado
+              de la página que llegaba ya montado: el panel entraba con toda
+              su fotografía en movimiento y el titular, quieto encima.
+              Aquí el tramo de entrada del titular termina justo cuando el
+              panel se ancla, así que las palabras acaban de montarse en el
+              mismo momento en que la tarjeta se detiene. Ese encaje depende
+              de que ningún antepasado sea un contenedor de scroll -- ver la
+              nota sobre `overflow: clip` en ServicioPanel.module.css y en
+              StackedSections.module.css. */}
           <h2 id={`servicio-${service.slug}-heading`} className={styles.name}>
-            {service.name}
+            <RevealWords segments={[{ text: service.name }]} />
           </h2>
-          {/* WCAG 2.5.3 (el nombre contiene la etiqueta). El aria-label decía
-              "Ver el servicio de vídeo de boda" mientras en pantalla ponía
-              "Ver servicio": quien maneja el sitio por voz dicta lo que LEE,
-              y "pulsa Ver servicio" no casaba con ningún nombre accesible.
-              El desambiguador (hay dos paneles idénticos en la home) va ahora
-              en el propio texto del enlace, oculto solo a la vista, así que el
-              nombre accesible empieza literalmente por lo que se ve. */}
+          {/* WCAG 2.5.3: el nombre accesible es exactamente lo que se lee en
+              pantalla. Antes ponía "Ver servicio" con un añadido oculto para
+              distinguir los dos paneles; ahora cada uno lleva su etiqueta
+              propia ("Ver reportaje fotográfico" / "Ver película de boda"),
+              que los distingue sin texto invisible y además dice a dónde va. */}
           <Link href={service.route} className={styles.arrow}>
-            Ver servicio
-            <span className="sr-only"> de {shortName.toLowerCase()}</span>
+            {service.panelCtaLabel}
             <span className="arrow" aria-hidden="true">↗</span>
           </Link>
         </div>

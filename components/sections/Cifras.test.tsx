@@ -6,7 +6,7 @@ import { site } from '@/content/site';
 describe('Cifras', () => {
   it('renders the Bodas.net figures from content/site.ts', () => {
     render(<Cifras />);
-    expect(screen.getByText(`+${site.bodasNetCoupleCount}`)).toBeInTheDocument();
+    expect(screen.getByText(`+${site.coupleCount}`)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '5,0' })).toHaveAttribute('href', site.bodasNetUrl);
     expect(screen.getByRole('img', { name: /5 de 5 estrellas/ })).toBeInTheDocument();
     expect(screen.getByText(/puntuación máxima/i)).toBeInTheDocument();

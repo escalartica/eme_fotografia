@@ -1,0 +1,16 @@
+/* Una caja que se pueda medir y que no introduzca espacio propio: hereda la
+   alineación de su sitio y no añade ni un píxel de maquetación. El
+   desplazamiento lo escribe GSAP en `transform`, así que nada de lo que hay
+   alrededor se recalcula. */
+.magnet {
+  display: inline-flex;
+  /* Que no se estire al ancho de la columna cuando el envoltorio cae como
+     hijo de un grid o de un flex: la caja tiene que ser la del propio
+     enlace, porque es la que decide desde dónde atrae. */
+  width: fit-content;
+  max-width: 100%;
+  /* `will-change` a propósito NO: son tres o cuatro elementos que en reposo
+     están quietos, y promocionarlos a capa de compositor de forma permanente
+     cuesta memoria en todas las visitas. GSAP escribe translate3d, que ya
+     crea la capa mientras dura el movimiento. */
+}

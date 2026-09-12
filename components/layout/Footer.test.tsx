@@ -40,38 +40,57 @@ describe('Footer', () => {
     expect(stats.closest('ul')?.className).toMatch(/stats/i);
   });
 
-  it('repeats the primary nav destinations and adds the two service pages', () => {
+  it('does not repeat the header navigation', () => {
+    // La cabecera es fija y sigue visible cuando el lector llega al pie, así
+    // que las seis entradas de aquí abajo eran la misma navegación dos veces
+    // en la misma pantalla. Las dos páginas hijas de servicios siguen
+    // enlazadas desde el índice /servicios y desde la guía de la home.
     render(<Footer />);
-    const nav = screen.getByRole('navigation', { name: /pie de página/i });
-    expect(nav).toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: /pie de página/i })).not.toBeInTheDocument();
     for (const label of ['Trabajos', 'Servicios', 'Equipo', 'Contacto']) {
-      expect(screen.getByRole('link', { name: label })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: label })).not.toBeInTheDocument();
     }
-    // El menú de cabecera se queda con el índice de servicios; el pie es el
-    // único enlace permanente a las dos páginas hijas, así que si desaparecen
-    // de aquí se quedan sin enlace fijo en todo el sitio.
-    expect(screen.getByRole('link', { name: 'Fotografía de boda' })).toHaveAttribute(
-      'href',
-      '/servicios/fotografia-de-boda',
-    );
-    expect(screen.getByRole('link', { name: 'Vídeo de boda' })).toHaveAttribute(
-      'href',
-      '/servicios/video-de-boda',
-    );
   });
 
-  it('renders the closing wordmark as decorative (hidden from the accessibility tree)', () => {
+  it('shows the email as a plain contact detail, not a section-sized heading', () => {
     render(<Footer />);
-    // Scoped to the wordmark. The copyright line also prints the brand
-    // name, so the bare regex matched two elements and threw.
-    const mark = screen.getByText(/EME Fotografía Sevilla/i, { selector: 'p' });
-    expect(mark).toHaveAttribute('aria-hidden', 'true');
+    const emailLink = screen.getByRole('link', { name: /info@emefotografiasevilla.com/i });
+    expect(emailLink).toHaveAttribute('href', 'mailto:info@emefotografiasevilla.com');
+    // Su clase es la del correo discreto, no la de las pastillas de redes ni
+    // la del antiguo enlace a tamaño de titular.
+    expect(emailLink.className).toMatch(/email/i);
   });
 
-  it('renders a copyright line with the current year and the real brand name', () => {
-    render(<Footer />);
+  it('closes with the logo itself, decorative and out of the accessibility tree', () => {
+    const { container } = render(<Footer />);
+    // El cierre pasó de ser el nombre compuesto en tipografía a ser el
+    // logotipo. Sigue siendo decorativo: el nombre ya lo dan el <title>, el
+    // logotipo de la cabecera con su nombre accesible y la línea de
+    // copyright de abajo, así que anunciarlo una cuarta vez es ruido.
+    const mark = container.querySelector('img[aria-hidden="true"]');
+    expect(mark).toBeInTheDocument();
+    expect(mark).toHaveAttribute('alt', '');
+    expect(mark?.getAttribute('src')).toContain(encodeURIComponent('/images/logo/eme-mark-light.png'));
+  });
+
+  /* La línea la dictó el estudio palabra por palabra. Lo único que NO es
+     literal es el año, que se calcula: escrito a mano envejece solo, y en
+     una web de bodas se nota porque media clientela entra a contratar para
+     el año siguiente. */
+  it('cierra con la línea de copyright que pidió el estudio, con el año al día', () => {
+    const { container } = render(<Footer />);
     const year = new Date().getFullYear().toString();
-    expect(screen.getByText(new RegExp(`${year}.*EME Fotografía Sevilla`, 'i'))).toBeInTheDocument();
+    const linea = container.textContent ?? '';
+    expect(linea).toContain(`© ${year} Eme Fotografía. All rights reserved.`);
+    expect(linea).toContain('Designed & Developed by Escalârtica.');
+  });
+
+  /* Una sola línea de copyright, no dos: aquí convivía «Todos los derechos
+     reservados» con el lema del estudio, que ya está en la cabecera de cada
+     página. Si alguien la reintroduce, esto lo dice. */
+  it('no repite el copyright en castellano ni el lema', () => {
+    const { container } = render(<Footer />);
+    expect(container.textContent).not.toMatch(/todos los derechos reservados/i);
   });
 
   it('scrolls to top on request, falling back to window.scrollTo when no Lenis instance is mounted', async () => {

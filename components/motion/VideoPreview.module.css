@@ -10,16 +10,65 @@
   overflow: hidden;
 }
 .wrapper video { width: 100%; height: 100%; object-fit: cover; }
+/* EL BOTÓN DE REPRODUCIR.
+   Translúcido con desenfoque detrás, no un disco macizo: va siempre sobre una
+   fotografía y un relleno opaco le hace un agujero. El anillo fino es lo que
+   lo sostiene lo mismo sobre un vestido blanco que sobre un traje negro, que
+   es el rango real de una boda. Y abajo a la izquierda, no en el centro: en el
+   centro tapa exactamente el motivo de la toma. */
 .playButton {
   position: absolute;
-  inset: 0;
-  margin: auto;
-  width: fit-content;
-  height: fit-content;
-  background: var(--color-paper);
-  color: var(--color-ink);
-  border: none;
+  left: var(--space-2);
+  bottom: var(--space-2);
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  padding: 0;
+  background: color-mix(in srgb, var(--color-scrim) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-night-text) 50%, transparent);
   border-radius: 999px;
-  padding: var(--space-1) var(--space-3);
+  color: var(--color-night-text);
   cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition:
+    opacity var(--duration-base) var(--ease-standard),
+    transform var(--duration-base) var(--ease-standard);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .playButton {
+    background: color-mix(in srgb, var(--color-scrim) 68%, transparent);
+  }
+}
+.playGlyph {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: currentColor;
+  /* El triángulo pesa a la izquierda; medio punto a la derecha lo centra
+     ópticamente dentro del círculo. */
+  margin-inline-start: 0.1em;
+}
+.playButton:hover,
+.playButton:focus-visible {
+  transform: scale(1.06);
+  background: color-mix(in srgb, var(--color-scrim) 62%, transparent);
+}
+
+/* EN ESCRITORIO SE APARTA, porque ahí el trabajo lo hace el puntero: sobre el
+   vídeo aparece el disco con el triángulo siguiendo al ratón
+   (components/motion/Cursor.tsx), y tener las dos cosas a la vez era
+   justamente lo que sobraba. Se aparta, no desaparece: sigue en el árbol, lo
+   alcanza el tabulador y al recibir el foco vuelve entera.
+   La regla se apoya en las tres condiciones que hacen que el puntero exista de
+   verdad -- ratón, puntero fino y nadie pidiendo menos movimiento --; si falta
+   cualquiera de ellas, `Cursor` no se pinta y este botón se queda visible, que
+   es lo que tiene que pasar en un móvil o con movimiento reducido. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .playButton {
+    opacity: 0;
+  }
+  .playButton:focus-visible {
+    opacity: 1;
+  }
 }

@@ -14,6 +14,10 @@ const validPayload = {
   lugar: 'Carmona',
   tipoEvento: 'foto-y-video',
   mensaje: 'Hola',
+  // Obligatorio desde que el formulario pide el consentimiento expreso
+  // (RGPD art. 7.1): sin esta marca el servidor rechaza el envío con un 400.
+  // Ver content/consentimiento.ts y el bloque de pruebas del final.
+  consentimiento: 'si' as const,
 };
 
 function req(body: unknown) {

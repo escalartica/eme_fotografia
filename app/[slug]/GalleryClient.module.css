@@ -133,22 +133,26 @@
   filter: var(--photo-grade);
   transition: transform var(--duration-slow) var(--ease-standard);
 }
-@media (hover: hover) and (pointer: fine) {
-  /* WCAG 2.4.7 (foco visible). El anillo global es `outline-offset: 4px`
-   (styles/globals.css), o sea pintado 4 px POR FUERA del botón -- y este
-   botón ocupa .frame entero, que es `overflow: hidden`. El recorte del
-   contenedor sí alcanza al contorno de sus descendientes, así que al tabular
-   por la cuadrícula el anillo se recortaba por completo: la pareja iba
-   pasando de foto en foto sin ninguna señal de dónde estaba. Con el desfase
-   hacia dentro el anillo cae dentro del recorte y se ve. Va por dentro
-   también para no confundirse con el aro de "seleccionada" (que es
-   --color-accent, grueso, en -3px): este es fino y en el color del texto. */
+/* WCAG 2.4.7 (foco visible). FUERA del `@media (hover: hover)`: ahí dentro
+   estuvo por un pegado mal hecho, y el efecto era que en una tableta con
+   teclado -- que es un puntero grueso y sin hover -- la regla no se aplicaba
+   nunca. Y no había red de seguridad: `all: unset` más arriba ya había matado
+   el anillo global, así que la pareja repasando su galería en un iPad iba
+   pasando de foto en foto sin ninguna señal de dónde estaba.
+   El anillo global es `outline-offset: 4px` (styles/globals.css), o sea
+   pintado 4 px POR FUERA del botón -- y este botón ocupa .frame entero, que
+   es `overflow: hidden`. El recorte del contenedor sí alcanza al contorno de
+   sus descendientes, así que por fuera se recortaba entero. Con el desfase
+   hacia dentro cae dentro del recorte y se ve. Va por dentro también para no
+   confundirse con el aro de "seleccionada" (que es --color-accent, grueso, en
+   -3px): este es fino y en el color del texto. */
 .photoButton:focus-visible {
   outline: 2px solid var(--color-night-text);
   outline-offset: -6px;
 }
 
-.photoButton:hover .image {
+@media (hover: hover) and (pointer: fine) {
+  .photoButton:hover .image {
     transform: scale(1.03);
   }
 }

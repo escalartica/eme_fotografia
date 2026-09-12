@@ -102,12 +102,6 @@
      dark mode -- see --color-night-text in styles/tokens.css. */
   color: var(--color-night-text);
 }
-.openerChapter {
-  composes: chapterNumber from global;
-  color: var(--color-night-text);
-  opacity: 0.85;
-  font-size: var(--type-h2);
-}
 .openerTitle {
   font-family: var(--font-serif);
   /* Deliberately smaller than the old shared h1 (--type-h2) -- the photo
@@ -168,13 +162,98 @@
   text-decoration-color: var(--color-accent);
   text-underline-offset: 0.3em;
 }
+.toolbarEnd {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
 .count {
   composes: eyebrow from global;
   line-height: 1.5;
 }
-.empty {
+
+/* EL CONMUTADOR DE VISTA: «Ver [Índice | Rejilla]».
+   ---------------------------------------------------------------------
+   Estuvo días delante del cliente sin que supiera que se podía pulsar. Y era
+   previsible: dos palabras en versalitas, del mismo cuerpo y del mismo color
+   que los filtros de al lado, con un filete debajo de la activa. Todo lo que
+   se parece a una etiqueta se lee como una etiqueta.
+   Lo que lo convierte en un mando son tres cosas a la vez, y hacen falta las
+   tres: un MARCO que encierra las dos opciones y dice «esto es una pieza»,
+   un RELLENO sólido en la que está puesta (no un subrayado: relleno, que es
+   lo que distingue un interruptor de un enlace visitado) y un ICONO por
+   opción que se entiende sin leer. El rótulo «Ver» delante cierra la frase.
+   Se esconde por debajo de 960 px: ahí la lista ya se pinta como rejilla y
+   siempre lo hizo, así que sería un mando con una sola posición útil. */
+.viewGroup {
+  display: none;
+}
+@media (min-width: 960px) {
+  .viewGroup {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding-inline-start: var(--space-2);
+    border-inline-start: 1px solid var(--color-hairline);
+  }
+}
+.viewLabel {
+  composes: eyebrow from global;
+  line-height: 1.5;
+}
+.viewSwitch {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--color-hairline);
+  border-radius: 999px;
+  padding: 2px;
+  gap: 2px;
+}
+.viewButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  background: none;
+  border: none;
+  border-radius: 999px;
+  /* WCAG 2.5.8: 24x24 px reales, que a --type-label no los da la caja del
+     texto por sí sola. */
+  min-height: 1.75rem;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  font: inherit;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
   color: var(--color-muted);
-  padding-block: var(--space-3);
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .viewButton:hover {
+    color: var(--color-ink);
+    background: color-mix(in srgb, var(--color-ink) 7%, transparent);
+  }
+}
+.viewButton[aria-pressed='true'] {
+  /* Tinta llena y texto en papel: el mismo par que usan los botones
+     principales del sitio, así que se lee como «puesto» y no como «visitado».
+     Se invierte solo con el tema porque los dos son tokens. */
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+@media (hover: hover) and (pointer: fine) {
+  .viewButton[aria-pressed='true']:hover {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .viewButton {
+    transition: none;
+  }
 }
 
 /* ---------- index + preview ---------- */
@@ -218,15 +297,23 @@
   content: '';
   position: absolute;
   inset: auto 0 0 0;
-  height: 45%;
-  z-index: 2;
-  background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--color-scrim) 62%, transparent) 100%);
+  height: 52%;
+  z-index: 3;
+  /* Del 62% al 80%. El pie del marco no se apoya en el borde de abajo sino
+     var(--space-2) por encima, donde el degradado del 62% todavía iba por la
+     mitad: sobre una foto clara -- un vestido blanco, un cielo -- los nombres
+     de la pareja se quedaban por debajo de 3.5:1. Con el velo más alto y más
+     opaco se leen sobre cualquier fotograma del archivo. */
+  background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--color-scrim) 80%, transparent) 100%);
   pointer-events: none;
 }
+/* `clip-path`, no `opacity`: el cambio de fotografía es un barrido y las
+   dos capas están siempre opacas (ver el comentario del efecto en
+   TrabajosIndex.tsx). */
 .layer {
   position: absolute;
   inset: 0;
-  will-change: transform, opacity;
+  will-change: transform, clip-path;
 }
 .previewImage {
   object-fit: cover;
@@ -237,7 +324,7 @@
   left: var(--space-2);
   right: var(--space-2);
   bottom: var(--space-2);
-  z-index: 3;
+  z-index: 4;
   display: grid;
   gap: 0.2em;
   pointer-events: none;
@@ -251,16 +338,16 @@
   font-family: var(--font-serif);
   font-size: var(--type-h3);
   line-height: 1;
-  opacity: 0.8;
 }
 .previewTitle {
   font-family: var(--font-serif);
   font-size: var(--type-h3);
   line-height: 1.05;
 }
+/* Sin `opacity`: este rótulo va sobre fotografía, no sobre el papel, y ahí
+   cada punto de opacidad que se le quita sale directamente del contraste. */
 .previewMeta {
   composes: eyebrow from global;
-  opacity: 0.85;
   color: inherit;
   line-height: 1.5;
 }
@@ -284,8 +371,52 @@
   .row {
     border-top: 1px solid var(--color-hairline);
   }
+  /* La fila que abre temporada no lleva filete propio: el del año, que cruza
+     hasta el borde, ya está haciendo de separador justo encima. Dos líneas
+     pegadas se leen como una sola mal hecha. */
+  .row:has(> .yearMark) {
+    border-top: none;
+  }
   .row:last-child {
     border-bottom: 1px solid var(--color-hairline);
+  }
+}
+
+/* EL AÑO QUE ABRE CADA TEMPORADA.
+   Una lista de veintiocho nombres seguidos no tiene relieve: el ojo baja sin
+   encontrar dónde pararse. Con el año delante de cada grupo, la misma lista
+   se lee como lo que es -- un archivo por temporadas -- y quien llega puede
+   medir de un vistazo desde cuándo y cada cuánto trabaja este equipo.
+   El filete se lleva el espacio que sobra hasta el borde, así que el año
+   queda anclado a la izquierda como una pestaña de archivador. */
+.yearMark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-2) var(--space-1);
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 1;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* El primero no necesita aire por arriba: ya lo pone la barra de filtros. */
+.row:first-child .yearMark {
+  padding-block-start: 0;
+}
+.yearRule {
+  order: 1;
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--color-hairline);
+}
+/* Solo en el índice. En cualquier rejilla -- la de escritorio y la de móvil,
+   que es la misma lista en dos columnas -- las fichas son celdas, y un año
+   metido dentro de una de ellas no separa nada: se lee como una etiqueta más
+   de esa ficha. */
+@media (max-width: 959px) {
+  .yearMark {
+    display: none;
   }
 }
 
@@ -306,18 +437,19 @@
   .thumb {
     position: relative;
     display: block;
-    /* Each cover's own ratio (--thumb-ar, set inline). A fixed 3:4 here
-       showed the six landscape covers at half their width. The grid is
-       masonry-ish as a result, which is what a wall of photographs
-       actually looks like. */
-    aspect-ratio: var(--thumb-ar, 3 / 4);
+    /* La MISMA proporción que en la rejilla de escritorio, y por el mismo
+       motivo: la pared se lee por su ritmo. Aquí cada casilla tomaba la
+       proporción de su propia portada y las dos columnas quedaban
+       descuadradas una contra otra, con los nombres a alturas distintas.
+       El recorte no decapita a nadie porque cada fotografía lleva su punto
+       focal medido (content/focus-points.ts). */
+    aspect-ratio: 2 / 3;
     overflow: hidden;
     background: var(--color-hairline);
   }
-  .thumbImage {
-    object-fit: cover;
-    filter: var(--photo-grade);
-  }
+  /* `.thumbImage` (object-fit + gradación) se declara una sola vez, al pie
+     de este fichero: desde que existe la vista rejilla la miniatura también
+     se pinta en escritorio, así que la regla ya no es cosa del móvil. */
   .rowTitle {
     font-family: var(--font-serif);
     font-size: var(--type-body);
@@ -385,12 +517,23 @@
   .row[data-active] .rowTitle {
     font-variation-settings: 'wght' 500;
   }
+  /* El número se entinta con el color de acento. Es lo que ata la línea de
+     texto con la fotografía del marco de al lado: sin él, la única señal de
+     qué boda se está viendo era medio milímetro de grosor tipográfico. */
+  .row[data-active] .rowIndex {
+    color: var(--color-accent);
+  }
+  .rowIndex {
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
   .row[data-active] .rowArrow {
     opacity: 1;
     transform: none;
   }
-  .row:not([data-active]):hover .rowTitle {
-    transform: translateX(4px);
+  @media (hover: hover) and (pointer: fine) {
+    .row:not([data-active]):hover .rowTitle {
+      transform: translateX(4px);
+    }
   }
 }
 .rowLink:focus-visible {
@@ -405,7 +548,243 @@
   }
   .rowLink,
   .rowTitle,
-  .rowArrow {
+  .rowArrow,
+  .rowIndex,
+  .thumbImage {
     transition: none;
+  }
+}
+
+/* ====================================================================
+   VISTA REJILLA — LA PARED DE RETRATOS
+   ====================================================================
+   Estudiado sobre bellephoto.com.au/featured-weddings, que es la referencia
+   que trajo el cliente para esta parte. Lo que hace que esa pared se lea
+   como profesional no es la variedad: es al revés. Todas sus casillas son
+   RETRATOS DEL MISMO TAMAÑO (687x1030, o sea 2:3), los nombres van debajo
+   partidos en dos líneas, y no hay nada más -- ni número, ni etiqueta, ni
+   borde. El ritmo constante es lo que deja que hablen las fotografías.
+
+   Aquí antes cada casilla tomaba la proporción de su propia portada, y eso
+   daba un muro irregular donde la mirada no encontraba dónde apoyarse y
+   ninguna foto ganaba. Ahora todas son 2:3 -- y el recorte no decapita a
+   nadie porque cada fotografía lleva su punto focal medido
+   (content/focus-points.ts), que es justo lo que permite imponer una
+   proporción común sin romper los encuadres.
+
+   Y donde nos separamos de Belle: sus casillas están quietas. Las nuestras
+   cambian de fotografía al pasar por encima y la columna del medio va
+   descolgada. */
+.thumbImage {
+  object-fit: cover;
+  filter: var(--photo-grade);
+}
+
+@media (min-width: 960px) {
+  .layout[data-view='rejilla'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .layout[data-view='rejilla'] .previewCol {
+    display: none;
+  }
+  .layout[data-view='rejilla'] .list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4) var(--space-2);
+  }
+  /* LA COLUMNA DEL MEDIO, DESCOLGADA. Una rejilla perfectamente alineada
+     tiene tres líneas horizontales rectas cruzando la pantalla, y el ojo las
+     sigue a ellas en vez de a las fotos. Bajando la del centro el recorrido
+     se vuelve diagonal y la pared respira, sin perder la proporción común
+     que es lo que la mantiene ordenada. */
+  .layout[data-view='rejilla'] .row:nth-child(3n + 2) {
+    margin-block-start: var(--space-4);
+  }
+  .layout[data-view='rejilla'] .row,
+  .layout[data-view='rejilla'] .row:last-child {
+    border-block: none;
+  }
+
+  /* La ficha: fotografía y, debajo, los nombres. Sin numeral: el número es
+     del índice, donde ordena una lista; aquí solo compite con la foto. */
+  .layout[data-view='rejilla'] .rowLink {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'thumb thumb'
+      'title arrow'
+      'meta  meta';
+    align-items: baseline;
+    column-gap: var(--space-1);
+    row-gap: 0.35em;
+    padding-block: 0;
+  }
+  .layout[data-view='rejilla'] .rowIndex,
+  .layout[data-view='rejilla'] .yearMark {
+    display: none;
+  }
+  .layout[data-view='rejilla'] .thumb {
+    grid-area: thumb;
+    position: relative;
+    display: block;
+    /* La proporción común de toda la pared. Ya no hay proporción por
+       ficha: lo que se mete dentro es el retrato de cada reportaje
+       (`previewMedia` en el TSX), elegido justo para caber aquí. */
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+    background: var(--color-hairline);
+    margin-block-end: 0.5em;
+  }
+  .layout[data-view='rejilla'] .rowTitle {
+    grid-area: title;
+    font-size: var(--type-lead);
+    line-height: 1.02;
+  }
+  /* Los nombres, en dos líneas. Es lo que convierte el pie de foto en
+     tipografía: «Carmen / y Alberto» ocupa el ancho de la columna y se lee
+     como un rótulo compuesto, no como una etiqueta que se ha partido sola. */
+  .layout[data-view='rejilla'] .titleLine {
+    display: block;
+  }
+  .layout[data-view='rejilla'] .rowMeta {
+    grid-area: meta;
+    flex-wrap: wrap;
+    gap: 0 0.8em;
+    white-space: normal;
+  }
+  .layout[data-view='rejilla'] .rowCategory {
+    display: none;
+  }
+  .layout[data-view='rejilla'] .rowArrow {
+    grid-area: arrow;
+    justify-self: end;
+  }
+  /* El estado activo es cosa del índice (marca qué boda está en el marco
+     anclado). Aquí no hay marco, así que la primera ficha se quedaría
+     señalada para siempre sin que nadie la hubiera señalado. */
+  .layout[data-view='rejilla'] .row[data-active] .rowLink {
+    padding-inline-start: 0;
+  }
+  .layout[data-view='rejilla'] .row[data-active] .rowTitle {
+    font-variation-settings: 'wght' 400;
+  }
+  .layout[data-view='rejilla'] .row[data-active] .rowArrow {
+    opacity: 0;
+    transform: translate(-6px, 6px);
+  }
+
+  /* EL CAMBIO DE FOTOGRAFÍA. La casilla no se limita a acercarse: enseña
+     otra foto de esa misma boda. Es lo que hace que la pared se lea como el
+     archivo de un fotógrafo -- cada casilla promete que detrás hay más -- y
+     es, con diferencia, lo que más se nota de todo este bloque.
+     La segunda va encima y apagada; debajo está siempre la portada, así que
+     en ningún momento hay un hueco: lo que se ve es una foto o la otra,
+     nunca el fondo. */
+  .layout[data-view='rejilla'] .thumbHover {
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .layout[data-view='rejilla'] .thumbImage {
+      transition:
+        opacity var(--duration-base) var(--ease-standard),
+        transform var(--duration-slow) var(--ease-standard);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .layout[data-view='rejilla'] .rowLink:hover .thumbImage {
+        transform: scale(1.04);
+      }
+    }
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .layout[data-view='rejilla'] .rowLink:hover .thumbHover,
+    .layout[data-view='rejilla'] .rowLink:focus-visible .thumbHover {
+      opacity: 1;
+    }
+    .layout[data-view='rejilla'] .rowLink:hover .rowArrow {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .layout[data-view='rejilla'] .rowLink:hover .rowTitle {
+    transform: none;
+  }
+  .layout[data-view='rejilla'] .rowLink:focus-visible .rowArrow {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* En móvil la rejilla es la única vista, y ahí las dos líneas del nombre
+   también ayudan: la columna mide media pantalla. */
+@media (max-width: 959px) {
+  .titleLine {
+    display: block;
+  }
+}
+
+/* ====================================================================
+   LA ENTRADA, AL RITMO DEL SCROLL
+   ====================================================================
+   Cada boda entra desde un poco más abajo y con menos peso, y termina de
+   asentarse cuando ya se ha visto un cuarto de pantalla. Nativo del
+   navegador (`animation-timeline: view()`), sin JavaScript, sin
+   `IntersectionObserver` y sin un solo byte de cliente añadido: el mismo
+   mecanismo que ya usan el banner de esta página y el cierre de la home.
+
+   POR QUÉ NO ARRANCA EN OPACIDAD CERO, Y POR QUÉ EL SUELO ES 0.6. Regla de
+   la casa: lo que hay que leer se ve estando quieto. Con la doble puerta de
+   abajo (movimiento reducido y `@supports`) un navegador que no lo entienda
+   ni lee la declaración -- pero es que además, aun leyéndola, el punto de
+   partida es visible. El suelo estuvo en 0.28 y era un defecto de contraste
+   de verdad, no un tecnicismo: la franja inferior de la pantalla siempre
+   tiene filas dentro del recorrido, así que en cualquier momento en que el
+   lector se para hay texto de proyecto pintado al 28% -- que sobre el papel
+   del sitio son unos 1.5:1, muy por debajo del 4.5:1 que pide la norma. A
+   0.6 el texto se lee parado y la sensación de que la fila llega la sigue
+   dando el desplazamiento vertical, que es de donde venía en realidad.
+
+   POR QUÉ `cover` Y NO `entry`. `entry` mide el rato que tarda el elemento
+   en acabar de entrar, y en la vista índice cada fila mide cuarenta
+   píxeles: la animación entera se resolvía en dos dedos de scroll y no se
+   veía. `cover` se mide contra la pantalla (su longitud es alto de pantalla
+   + alto del elemento), así que el recorrido se parece mucho más entre una
+   línea de texto y una ficha con su fotografía -- no es idéntico, la ficha
+   recorre alrededor de un 50% más, pero deja de depender del alto.
+
+   POR QUÉ VA EN `.rowLink` Y NO EN `.row`. GSAP anima `.row` al cambiar de
+   filtro o de vista, y una animación de CSS gana siempre a un estilo en
+   línea: puestas en el mismo elemento, esta se comería aquella. Cada una
+   en el suyo, y las dos se ven.
+
+   EL DESFASE DE LA REJILLA. Tres fichas de la misma fila entran a la vez
+   porque están a la misma altura; los dos retardos de abajo hacen que se
+   enciendan de izquierda a derecha, que es como se lee. 6% y 12% del
+   recorrido, no 3% y 6%: al 3% la diferencia entre columnas era de unos
+   cuarenta píxeles de scroll, uno o dos fotogramas en un golpe de rueda, y
+   el orden de lectura no llegaba a verse. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .rowLink {
+      animation: rowSettle linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 16%;
+    }
+    @media (min-width: 960px) {
+      .layout[data-view='rejilla'] .row:nth-child(3n + 2) .rowLink {
+        animation-range: cover 6% cover 22%;
+      }
+      .layout[data-view='rejilla'] .row:nth-child(3n + 3) .rowLink {
+        animation-range: cover 12% cover 28%;
+      }
+    }
+  }
+}
+@keyframes rowSettle {
+  from {
+    opacity: 0.6;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

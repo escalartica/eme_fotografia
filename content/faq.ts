@@ -8,7 +8,7 @@ export const faqs: FaqEntry[] = [
     id: 'disponibilidad',
     question: '¿Cómo sé si tenéis libre mi fecha?',
     answer:
-      'Escribidnos con la fecha y el lugar por el formulario o por WhatsApp y os contestamos personalmente, normalmente el mismo día. Solo cubrimos una boda por fecha, así que en cuanto la reservéis es vuestra.',
+      'Escribidnos con la fecha y el lugar por el formulario o por WhatsApp y os contestamos personalmente, normalmente el mismo día. Si esa fecha sigue abierta os lo decimos en la misma respuesta, con quién del equipo estaría disponible.',
   },
   {
     id: 'antelacion',
@@ -21,7 +21,7 @@ export const faqs: FaqEntry[] = [
     id: 'precio',
     question: '¿Cuánto cuesta un fotógrafo de bodas en Sevilla?',
     answer:
-      'Depende de lo que queráis: solo fotografía, solo vídeo o las dos cosas, las horas de cobertura, si incluís preboda y álbum, y el desplazamiento. Por eso no publicamos una tarifa cerrada: contadnos cómo es vuestra boda y os enviamos un presupuesto claro, sin sorpresas ni extras escondidos.',
+      'Depende de lo que queráis: solo fotografía, solo vídeo o las dos cosas, las horas de cobertura, si añadís preboda o álbum, y el desplazamiento. Tenemos packs montados para las combinaciones que más nos piden, y presupuestos a medida para las bodas que no encajan en ninguno. Por eso no publicamos una tarifa cerrada: contadnos cómo es la vuestra y os enviamos un presupuesto claro, sin sorpresas ni extras escondidos.',
   },
   {
     id: 'foto-y-video',
@@ -42,8 +42,7 @@ export const faqs: FaqEntry[] = [
     id: 'cuantos-sois',
     question: '¿Cuántas personas venís el día de la boda?',
     answer:
-      'Depende de si contratáis foto, vídeo o las dos cosas, y del tamaño de la boda. Lo que no cambia es de dónde salimos: somos un equipo fijo de cinco personas, no cámaras sueltos contratados para ese sábado. Cuando os pasemos el presupuesto sabréis exactamente quién va a estar.',
-    isPendingConfirmation: true,
+      'Los que haga falta, que casi nunca son los cinco. El equipo lo forman cinco personas fijas, pero quién va a vuestra boda depende de lo que contratéis y de cómo sea el día: una boda de sesenta invitados con solo fotografía no necesita lo mismo que una de trescientos con foto, vídeo y dron. Lo que no cambia es de dónde sale quien va: del equipo de siempre, no de una lista de cámaras sueltos contratados para ese sábado. En el presupuesto veréis exactamente cuántos y quiénes.',
   },
   {
     id: 'dron',
@@ -55,15 +54,24 @@ export const faqs: FaqEntry[] = [
     id: 'reserva',
     question: '¿Cómo se reserva la fecha?',
     answer:
-      'Con un contrato sencillo y una señal a cuenta del presupuesto total. A partir de ahí la fecha queda bloqueada en exclusiva para vosotros y empezamos a planificar el día juntos.',
+      'Con un contrato sencillo y una señal a cuenta del presupuesto total. A partir de ahí el equipo que hayamos acordado queda reservado para vosotros y empezamos a planificar el día juntos.',
     isPendingConfirmation: true,
   },
   {
     id: 'entrega',
     question: '¿Cuánto se tarda en recibir las fotos y el vídeo?',
     answer:
-      'Unas fotos de adelanto en los días siguientes, para que tengáis algo que enseñar. La galería completa, entre 6 y 8 semanas; la película, entre 8 y 12, según la época del año.',
-    isPendingConfirmation: true,
+      'Unas fotos de adelanto en los días siguientes, para que tengáis algo que enseñar. La galería completa, entre tres y seis meses. La película, entre seis meses y un año: el montaje de una boda entera lleva mucho más trabajo del que parece y preferimos deciros el plazo de verdad antes que uno bonito que no vamos a cumplir.',
+  },
+  {
+    // La pregunta la trae el propio material: quien ve un tráiler con música
+    // encima da por hecho que la película larga lleva las voces del día. No
+    // las lleva, y es mejor decirlo aquí que dejar que se descubra al abrir
+    // la entrega.
+    id: 'sonido-video',
+    question: '¿La película lleva el sonido de la ceremonia?',
+    answer:
+      'La película se monta sobre hilo musical, con música con licencia elegida para vuestra boda. No entregamos las voces ni el sonido directo del día: ni los votos, ni los discursos, ni el ambiente. Es una decisión de montaje, no un extra que se pueda añadir, así que preferimos que lo sepáis antes de contratar y no al abrir el enlace.',
   },
   {
     id: 'desplazamiento',
@@ -87,7 +95,7 @@ export const faqs: FaqEntry[] = [
     id: 'galeria',
     question: '¿Cómo recibimos las fotos?',
     answer:
-      'En una galería online privada, protegida con clave, que podéis compartir con familia e invitados. Desde ella veis todas las fotos, marcáis vuestras favoritas y nos dejáis notas para preparar el álbum.',
+      'En una galería online privada, protegida con clave, que podéis compartir con familia e invitados. Desde ella veis todas las fotos, las descargáis y marcáis vuestras favoritas; si lleváis álbum, esa selección es con la que lo montamos.',
   },
   {
     id: 'derechos-imagen',

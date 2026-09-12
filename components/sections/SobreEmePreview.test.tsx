@@ -7,7 +7,7 @@ describe('SobreEmePreview', () => {
     render(<SobreEmePreview />);
     expect(
       screen.getByRole('heading', {
-        name: 'El día de la boda ya nos conocéis.',
+        name: 'Cuando llega el gran día, ya no hay desconocidos tras la cámara.',
       })
     ).toBeInTheDocument();
   });
@@ -23,7 +23,7 @@ describe('SobreEmePreview', () => {
 
   it('links to the full about page', () => {
     render(<SobreEmePreview />);
-    expect(screen.getByRole('link', { name: 'Conocer al equipo' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Conoce a las personas que os acompañarán' })).toHaveAttribute(
       'href',
       '/sobre-nosotros'
     );

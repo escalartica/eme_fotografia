@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Page from './page';
-import { featuredFrames } from '@/content/featured';
 
 vi.mock('@/lib/hooks/useReducedMotion', () => ({ useReducedMotion: () => true }));
 // HeroMosaic calls useRouter() to prefetch the wedding a column links to.
@@ -19,17 +18,19 @@ describe('Home page', () => {
     render(<Page />);
     const headingTexts = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
     expect(headingTexts).toEqual([
-      'No contamos bodas. Contamos vuestra historia.',
-      `${featuredFrames.length} bodas, ninguna igual.`,
+      'Menos protocolo. Más verdad.',
+      'Bodas reales, historias irrepetibles.',
       'Fotografía de boda',
       'Vídeo de boda',
-      'El día de la boda ya nos conocéis.',
+      'Cuando llega el gran día, ya no hay desconocidos tras la cámara.',
       'Lo que dicen de nosotros',
       // The home's one block of real prose, added so the page has
       // something for a reader (and a crawler) to read between the
-      // photographs. See GuiaBodasSevilla's doc comment.
-      'Fotografía de bodas en Sevilla',
-      'una boda por fecha',
+      // photographs. «Antes de escribirnos» sigue estando ahí, pero ahora es
+      // el antetítulo: el <h2> dice lo que hay debajo, que son las seis
+      // preguntas desplegables. Ver el comentario de GuiaBodasSevilla.
+      'Las seis preguntas que nos hacen siempre.',
+      'Vuestra boda merece toda nuestra atención.',
     ]);
   });
 });

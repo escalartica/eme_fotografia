@@ -4,10 +4,11 @@ import { Faq } from '@/components/sections/Faq';
 import { faqs } from '@/content/faq';
 import { site } from '@/content/site';
 import { formatRating } from '@/lib/format';
-import { buildMetadata } from '@/lib/seo';
-import { faqSchema } from '@/lib/schema';
+import { buildMetadata, ogImage } from '@/lib/seo';
+import { faqSchema, jsonLd } from '@/lib/schema';
 import { MailIcon, InstagramIcon, FacebookIcon, ExternalLinkIcon, TikTokIcon, WhatsAppIcon } from '@/components/ui/Icon';
 import styles from './page.module.css';
+import { RevealWords } from '@/components/motion/RevealWords';
 
 export const metadata = buildMetadata({
   title: 'Contacto y fechas libres para vuestra boda',
@@ -17,6 +18,14 @@ export const metadata = buildMetadata({
   description:
     'Contadnos la fecha y el lugar de vuestra boda en Sevilla o en Andalucía y os decimos si la tenemos libre. Respondemos nosotros, casi siempre el mismo día.',
   path: '/contacto',
+  // LA TARJETA DE ENLACE ES UNA FOTOGRAFÍA, no el logotipo.
+  // Todas las páginas menos las fichas de boda compartían la misma tarjeta
+  // genérica --la marca sobre fondo oscuro-- así que un estudio de fotografía
+  // que se manda por WhatsApp aparecía como un wordmark. La imagen ES el
+  // producto y es lo único que se ve en una previsualización antes de decidir
+  // si se pincha. `ogImage()` cambia la extensión al derivado JPEG de 1200x630
+  // que vive al lado de cada foto (WhatsApp no pinta WebP; ver lib/seo.ts).
+  image: ogImage('/images/trabajos/carmen-y-alberto/06.webp'),
 });
 
 // What happens after the form is sent -- three real, verifiable steps
@@ -25,7 +34,7 @@ export const metadata = buildMetadata({
 const NEXT_STEPS = [
   { title: 'Os respondemos', text: 'Leemos cada mensaje personalmente y os confirmamos si tenemos libre vuestra fecha.' },
   { title: 'Hablamos', text: 'Una videollamada o un café donde os venga bien. Sin presupuesto por delante: primero vemos si encajamos.' },
-  { title: 'Reserváis la fecha', text: 'Si encajamos, dejamos vuestra fecha en exclusiva y empezamos a planificar el día con vosotros.' },
+  { title: 'Reserváis la fecha', text: 'Si encajamos, con un contrato sencillo y una señal queda reservado el equipo para vuestro día, y empezamos a planificarlo con vosotros.' },
 ];
 
 export default function Page() {
@@ -40,7 +49,7 @@ export default function Page() {
           lib/schema.ts marks up only the confirmed ones. */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(faqs)) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema(faqs)) }}
       />
       <div className={styles.layout}>
         {/* <div>, no <aside>. <aside> emite un landmark "complementary",
@@ -52,7 +61,7 @@ export default function Page() {
         <div className={styles.side}>
           <p className={styles.eyebrow}>Escribidnos</p>
           <h1 className={styles.title}>
-            Hablemos de <em>vuestro día.</em>
+            <RevealWords segments={[{ text: 'Hablemos de ' }, { text: 'vuestro día.', em: true }]} />
           </h1>
           <p className={styles.lead}>
             Contadnos la fecha, el lugar y cómo os imagináis el día. Con eso nos basta para deciros si estamos
@@ -70,7 +79,7 @@ export default function Page() {
               Este enlace las pone a un clic sin bajar el formulario media
               página, que es lo que costaría subirlas. */}
           <a href="#preguntas-frecuentes" className={styles.jumpFaq}>
-            Antes, las dudas de siempre
+            ¿Tienes dudas?
             <span className="arrow" aria-hidden="true">↓</span>
           </a>
 
@@ -137,17 +146,22 @@ export default function Page() {
             </div>
             <div className={styles.contactRow}>
               <dt>Base</dt>
-              <dd>
-                {site.addressLocality}, {site.legalCity} · Sin estudio físico: nos vemos donde os venga bien
-              </dd>
+              {/* Sólo «Sevilla». Aquí ponía el pueblo, la provincia y una
+                  aclaración de que no hay local -- tres datos para responder
+                  «¿dónde estáis?», y el único que la pareja necesita antes de
+                  escribir es la ciudad. La localidad exacta sigue en
+                  content/site.ts, que es de donde sale la dirección del
+                  esquema de datos estructurados. */}
+              <dd>{site.legalCity}</dd>
             </div>
             <div className={styles.contactRow}>
               <dt>Zona</dt>
-              <dd>Sevilla y toda Andalucía; también nos desplazamos fuera</dd>
+              {/* Ya no repite «Sevilla»: la fila de arriba lo acaba de decir. */}
+              <dd>Toda Andalucía; también nos desplazamos fuera</dd>
             </div>
           </dl>
 
-          <ol className={styles.nextSteps} aria-label="Qué pasa después de escribirnos">
+          <ol className={styles.nextSteps} role="list" aria-label="Qué pasa después de escribirnos">
             {NEXT_STEPS.map((s, i) => (
               <li key={s.title} className={styles.nextStep}>
                 <span className={styles.nextNumber} aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
@@ -161,6 +175,14 @@ export default function Page() {
         </div>
 
         <section id="formulario" className={styles.formPanel} aria-labelledby="form-heading">
+          {/* ESTE TITULAR NO LLEVA REVELADO POR PALABRAS, y es deliberado.
+              Vive dentro de `.formPanel`, que de 960 px para arriba es
+              `position: sticky`. RevealWords se mide con
+              `animation-timeline: view()`, o sea contra la pantalla, y un
+              elemento anclado no se mueve respecto a ella: su progreso se
+              congela en cuanto se pega, y las palabras se quedarían a medio
+              subir durante todo el rato que dure el formulario. Mismo motivo
+              por el que «Quién soy» tampoco lo lleva en /sobre-nosotros. */}
           <h2 id="form-heading" className={styles.formHeading}>
             Consultadnos vuestra fecha
           </h2>

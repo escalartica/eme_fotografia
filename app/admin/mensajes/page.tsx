@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
+import { BrandMark } from '@/components/ui/BrandMark';
 import Link from 'next/link';
-import Image from 'next/image';
 import { getAdminSession } from '@/lib/auth/require-session';
 import { listContactSubmissions, type ContactSubmission } from '@/lib/contact-store';
 import { isMailConfigured } from '@/lib/mail';
@@ -19,6 +19,7 @@ export const dynamic = 'force-dynamic';
 // borrado: quien cambie el formato en disco toca un sitio, no dos.
 
 const FIELDS: [keyof ContactSubmission, string][] = [
+  ['telefono', 'Teléfono'],
   ['tipoEvento', 'Evento'],
   ['fecha', 'Fecha'],
   ['lugar', 'Lugar'],
@@ -37,7 +38,7 @@ export default async function MensajesPage() {
     <div className={dash.page}>
       <header className={dash.header}>
         <Link href="/" className={dash.brand} aria-label={`${site.brandName} - inicio`}>
-          <Image src="/images/logo/eme-logo.png" alt={site.brandName} width={100} height={47} priority />
+          <BrandMark alto={2.2} priority />
         </Link>
         <div className={dash.headerActions}>
           <ThemeToggle />
@@ -104,6 +105,28 @@ export default async function MensajesPage() {
                 ))}
               </dl>
               <p className={styles.message}>{r.mensaje}</p>
+              {/* EL REGISTRO DE CONSENTIMIENTO, visible. De poco sirve
+                  guardarlo si el estudio no puede enseñarlo: si alguna vez
+                  hay que responder a una reclamación, la prueba es esto --
+                  qué texto exacto aceptó esta pareja y cuándo. La fecha es la
+                  de recepción, que es el mismo instante en que se marcó la
+                  casilla.
+                  Los mensajes anteriores a 2026-09-12 no lo llevan, y se dice
+                  en vez de callarlo: un hueco en blanco parecería un fallo de
+                  la página en lugar de lo que es, un mensaje recibido cuando
+                  el formulario todavía no lo pedía. */}
+              {r.consentimientoTexto ? (
+                <p className={styles.consent}>
+                  <strong>Consentimiento</strong> (v. {r.consentimientoVersion}):
+                  «{r.consentimientoTexto}» — política {r.politicaVersion ?? 'sin versión'} — aceptado el{' '}
+                  {new Date(r.receivedAt).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })}.
+                </p>
+              ) : (
+                <p className={styles.consent}>
+                  <strong>Consentimiento</strong>: sin registro. Mensaje recibido antes de que el
+                  formulario pidiera la aceptación expresa.
+                </p>
+              )}
             </li>
           ))}
         </ol>

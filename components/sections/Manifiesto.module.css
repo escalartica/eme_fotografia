@@ -23,10 +23,12 @@
   /* Clears the fixed bar, plus a little air so the pinned statement never
      sits flush against the header's hairline. */
   top: calc(var(--header-h) + var(--space-2));
-  /* The scroll budget each statement gets before the next covers it. Tall
-     enough for a two-line statement at --type-h2-sm, short enough that
-     three of them cost less than one old full-screen panel. */
-  min-height: clamp(8rem, 19svh, 11.5rem);
+  /* El presupuesto de scroll de cada declaración antes de que la siguiente la
+     tape. Subió de 19svh a 34svh cuando cada fila pasó a llevar titular Y
+     párrafo: con la altura anterior el párrafo se salía por debajo del borde
+     y lo tapaba la fila siguiente. El techo en rem evita que en una pantalla
+     muy alta la fila se estire sin necesidad. */
+  min-height: clamp(13rem, 34svh, 19rem);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
@@ -56,7 +58,7 @@
   }
   .number { grid-area: num; }
   .tag { grid-area: tag; }
-  .statement { grid-area: text; }
+  .text { grid-area: text; }
 }
 
 /* Numerals and category label share the site's small tracked-out language
@@ -72,6 +74,22 @@
 }
 .tag {
   text-align: end;
+}
+
+/* Titular y párrafo comparten la columna central de la fila. */
+.text {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+/* El párrafo que desarrolla el titular. En el color apagado y a la medida de
+   lectura: en la fila manda el titular, y esto es lo que se lee después si la
+   frase de arriba ha enganchado. */
+.body {
+  color: var(--color-muted);
+  max-width: 62ch;
+  margin: 0;
 }
 
 .statement {

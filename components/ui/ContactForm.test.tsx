@@ -54,7 +54,13 @@ async function completeAllSteps(
   );
   await user.click(screen.getByRole('button', { name: /siguiente/i }));
 
-  // Paso 6: opcional, se deja en blanco.
+  // Paso 6: el desplegable es opcional y se deja en blanco, pero la casilla
+  // del consentimiento es obligatoria desde que el formulario la pide -- sin
+  // marcarla, `checkValidity()` falla y el envío ni sale.
+  // Sin `{ hidden: true }` a propósito: aquí ya estamos en el último paso, y
+  // que la consulta encuentre la casilla es parte de lo que se comprueba --
+  // el consentimiento tiene que estar A LA VISTA en el momento de enviar.
+  await user.click(screen.getByRole('checkbox'));
   await user.click(screen.getByRole('button', { name: /consultar disponibilidad/i }));
 }
 
@@ -182,5 +188,74 @@ describe('ContactForm (seis pasos)', () => {
     render(<ContactForm />);
     await completeAllSteps(user);
     expect(await screen.findByRole('alert')).toHaveTextContent(/no hemos podido enviar/i);
+  });
+});
+
+
+/**
+ * EL CONSENTIMIENTO RGPD, del lado del formulario.
+ *
+ * Lo que hay que sostener es lo que exige la norma: que el consentimiento sea
+ * una acción afirmativa de la pareja (art. 4.11), que esté a la vista en el
+ * momento de enviar, y que puedan leer a qué dicen que sí antes de decirlo.
+ */
+describe('ContactForm: consentimiento', () => {
+  /**
+   * `{ hidden: true }` en las dos consultas de aquí abajo, y no es un parche:
+   * los seis pasos del formulario están SIEMPRE montados y sólo se ocultan
+   * con el atributo `hidden` (ver el comentario de `handleSubmit` en el
+   * componente). Sin la bandera, `getByRole` --que por defecto se salta todo
+   * lo que no está en el árbol de accesibilidad-- no encuentra nada mientras
+   * el formulario está en el primer paso.
+   * Lo que estas dos pruebas fijan es el MARCADO: que la casilla no venga
+   * marcada y que el enlace apunte donde debe. Que estén a la vista en el
+   * momento de enviar lo cubre el resto del bloque, que sí recorre los pasos.
+   */
+  it('trae la casilla sin marcar: una ya puesta no es el consentimiento de nadie', () => {
+    render(<ContactForm />);
+    expect(screen.getByRole('checkbox', { hidden: true })).not.toBeChecked();
+  });
+
+  it('enlaza a la política de privacidad desde la propia casilla', () => {
+    render(<ContactForm />);
+    const enlace = screen.getByRole('link', { hidden: true, name: /política de privacidad/i });
+    expect(enlace).toHaveAttribute('href', '/privacidad');
+    // En otra pestaña: abrirla en la misma perdería el formulario a medio
+    // rellenar, que es la forma más segura de que nadie la lea.
+    expect(enlace).toHaveAttribute('target', '_blank');
+  });
+
+  it('no envía nada si la casilla no está marcada', async () => {
+    const user = userEvent.setup();
+    render(<ContactForm />);
+    await user.type(screen.getByLabelText('Vuestros nombres'), 'Ana');
+    await user.click(screen.getByRole('button', { name: /siguiente/i }));
+    await user.type(screen.getByLabelText('Correo electrónico'), 'ana@example.com');
+    await user.click(screen.getByRole('button', { name: /siguiente/i }));
+    await user.type(screen.getByLabelText('Fecha'), '2027-06-12');
+    await user.type(screen.getByLabelText('Lugar o pueblo'), 'Carmona');
+    await user.click(screen.getByRole('button', { name: /siguiente/i }));
+    await user.selectOptions(screen.getByLabelText('Cobertura'), 'foto-y-video');
+    await user.click(screen.getByRole('button', { name: /siguiente/i }));
+    await user.type(screen.getByLabelText('Contádnoslo con vuestras palabras'), 'Hola');
+    await user.click(screen.getByRole('button', { name: /siguiente/i }));
+
+    await user.click(screen.getByRole('button', { name: /consultar disponibilidad/i }));
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('manda la marca de consentimiento al servidor', async () => {
+    const user = userEvent.setup();
+    render(<ContactForm />);
+    await completeAllSteps(user);
+    const [, init] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(JSON.parse((init as RequestInit).body as string).consentimiento).toBe('si');
+  });
+
+  /* El campo aceptaba una boda en 2019. */
+  it('no deja elegir una fecha de boda que ya ha pasado', async () => {
+    render(<ContactForm />);
+    const hoy = new Date().toLocaleDateString('en-CA');
+    expect(screen.getByLabelText('Fecha')).toHaveAttribute('min', hoy);
   });
 });

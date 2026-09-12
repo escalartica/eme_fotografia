@@ -29,15 +29,58 @@ import styles from './CinematicIntro.module.css';
  * the page behind it inert, and announces itself. Previously it was
  * role="presentation" over live, tabbable content nobody could see.
  */
+/**
+ * DOS FOTOGRAFÍAS APAISADAS, Y GRANDES. Antes eran dos portadas verticales de
+ * 1333x2000: `object-fit: cover` a pantalla completa se queda con una franja
+ * central de unos 900 px de ancho y la estira a todo lo ancho del monitor, así
+ * que lo primero que veía un visitante nuevo era la única imagen del sitio
+ * ampliada casi al triple. Estas dos son 2560x1707 reexportadas del original
+ * de cámara, y en apaisado el recorte apenas quita nada.
+ *
+ * NINGUNA DE LAS DOS BODAS APARECE DEBAJO, y esta vez de verdad. La primera
+ * que hubo aquí era un blanco y negro de la novia de espaldas junto a un
+ * coche, que no abre nada. Las que la sustituyeron salían en el mosaico que
+ * aparece justo al levantarse el telón. Y la que había en el segundo hueco
+ * hasta ahora --la novia sobre el puente con la Torre del Oro-- seguía
+ * teniendo medio problema: no era el mismo fichero que el mosaico, pero sí la
+ * misma boda que su segunda columna, así que la pareja salía dos veces en
+ * tres segundos. Ni Francisco Manuel ni Soledad y Alejandro están en el
+ * mosaico (content/mosaic.ts) ni en el carrete (content/featured.ts).
+ *
+ * Y EL SEGUNDO PLANO YA NO ES UN PAISAJE, ES UN MOMENTO. La foto del puente
+ * era correcta y no pasaba nada en ella: cielo plano, la novia pequeña y la
+ * Torre del Oro en la bruma, o sea una postal de Sevilla usada como fondo.
+ * Una secuencia de apertura de dos segundos y medio no puede gastar la mitad
+ * en una postal. La que la sustituye es la salida de la iglesia bajo la
+ * lluvia de arroz, con los invitados cerrando el encuadre por los dos lados:
+ * es la fotografía con más movimiento del archivo publicado.
+ *
+ * Y LAS DOS JUNTAS CUENTAN ALGO. «La llegada» y «La salida» son el principio
+ * y el final del mismo día, que es exactamente lo que este estudio dice que
+ * hace. Los rótulos ya no nombran un sitio: nombran dos momentos, como los
+ * intertítulos de una película.
+ */
 const FRAMES = [
-  { src: '/images/trabajos/miriam-y-alejandro/cover.webp', slate: 'Hacienda · Sevilla' },
-  { src: '/images/trabajos/reyes-y-francisco/cover.webp', slate: 'La fiesta' },
+  { src: '/images/trabajos/maria-y-francisco-manuel/llegada.webp', slate: 'La llegada' },
+  { src: '/images/trabajos/soledad-y-alejandro/09.webp', slate: 'La salida' },
 ];
 
-export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
+export function CinematicIntro({ onComplete, onReveal }: { onComplete: () => void; onReveal?: () => void }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
   const doneRef = useRef(false);
+  const revealedRef = useRef(false);
+  // La secuencia dura lo mismo pero AVISA ANTES. `onReveal` se dispara en el
+  // instante en que las barras empiezan a abrirse, no cuando la pantalla ya
+  // se ha ido: el masthead de detrás empieza a montarse mientras el telón
+  // sube, así que las dos animaciones se encadenan en vez de ir una detrás de
+  // otra con una pausa en medio. Sin esto, un visitante nuevo veía 2,2 s de
+  // secuencia, luego papel quieto, y sólo entonces el nombre del estudio
+  // escribiéndose: tres tiempos donde tiene que haber uno.
+  // El aviso tiene que llegar UNA sola vez: una timeline de GSAP puede pasar
+  // por el mismo punto más de una vez (el botón "Saltar" rebobina el
+  // playhead), y `finish` lo repite como red de seguridad. De eso se encarga
+  // `revealedRef`.
 
   useEffect(() => {
     const root = rootRef.current;
@@ -46,7 +89,16 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
     const finish = () => {
       if (doneRef.current) return;
       doneRef.current = true;
+      // Red de seguridad: si por lo que sea la llamada del fotograma 1,5 no
+      // llegó, el aviso sale igualmente aquí. `reveal` es idempotente.
+      reveal();
       onComplete();
+    };
+
+    const reveal = () => {
+      if (revealedRef.current) return;
+      revealedRef.current = true;
+      onReveal?.();
     };
 
     const tl = gsap.timeline({ defaults: { ease: 'power2.out' }, onComplete: finish });
@@ -76,7 +128,9 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       .to(q(`.${styles.barTop}`), { yPercent: -100, duration: 0.6, ease: 'expo.inOut' }, 1.5)
       .to(q(`.${styles.barBottom}`), { yPercent: 100, duration: 0.6, ease: 'expo.inOut' }, 1.5)
       .to(q(`.${styles.stage}`), { yPercent: -100, duration: 0.7, ease: 'expo.inOut' }, 1.55)
-      .to(q(`.${styles.skip}`), { opacity: 0, duration: 0.25 }, 1.5);
+      .to(q(`.${styles.skip}`), { opacity: 0, duration: 0.25 }, 1.5)
+      // En el mismo fotograma en que las barras se separan, no después.
+      .call(reveal, [], 1.5);
 
     const skip = () => {
       if (doneRef.current) return;
@@ -131,7 +185,10 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       siblings.forEach((el) => el.removeAttribute('inert'));
       tl.kill();
     };
-  }, [onComplete]);
+    // `onComplete` y `onReveal` llegan de Hero como `useCallback` sin
+    // dependencias, así que son estables y este efecto no se remonta ni
+    // rehace la timeline en cada render.
+  }, [onComplete, onReveal]);
 
   return (
     <div
@@ -145,7 +202,11 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       <div className={styles.stage}>
         {FRAMES.map((f, i) => (
           <div key={f.src} className={styles.frame} aria-hidden="true">
-            <Image src={f.src} alt="" fill sizes="(max-width: 900px) 100vw, 1440px" priority={i === 0} className={styles.image} />
+            {/* 100vw, no "1440px": el marco es `inset: 0` sobre una pantalla
+                completa, así que su ancho ES el del navegador. Declarar 1440
+                le hacía pedir esa medida en un monitor de 1900 y quedarse
+                corto justo donde más se nota. */}
+            <Image src={f.src} alt="" fill sizes="100vw" priority={i === 0} className={styles.image} />
           </div>
         ))}
         <div className={styles.slates} aria-hidden="true">

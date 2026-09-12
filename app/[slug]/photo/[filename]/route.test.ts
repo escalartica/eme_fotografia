@@ -6,7 +6,26 @@ import 'next/server';
 import { createTempDataRoot } from '@/lib/test-helpers/temp-data-root';
 import { CLIENT_COOKIE, ADMIN_COOKIE } from '@/lib/auth/cookies';
 
-const mocks = vi.hoisted(() => ({ jar: {} as Record<string, string> }));
+const mocks = vi.hoisted(() => ({
+  jar: {} as Record<string, string>,
+  // sharp es un binario nativo; aquí se sustituye por un doble para que la
+  // prueba mida lo que le toca (que la ruta pida o no una copia reducida, y
+  // cuándo) y no si la máquina que corre los tests puede decodificar un PNG.
+  redimensionado: vi.fn(),
+}));
+const WEBP_FALSO = new Uint8Array([0x52, 0x49, 0x46, 0x46, 1, 2, 3, 4]);
+vi.mock('sharp', () => ({
+  default: (entrada: Uint8Array) => {
+    mocks.redimensionado(entrada.length);
+    const cadena = {
+      rotate: () => cadena,
+      resize: () => cadena,
+      webp: () => cadena,
+      toBuffer: async () => Buffer.from(WEBP_FALSO),
+    };
+    return cadena;
+  },
+}));
 vi.mock('next/headers', () => ({
   cookies: async () => ({
     get: (name: string) => (mocks.jar[name] === undefined ? undefined : { name, value: mocks.jar[name] }),
@@ -38,6 +57,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   mocks.jar = {};
+  mocks.redimensionado.mockClear();
   for (const slug of [ANA, EVA]) {
     await store.saveGalleryMeta({
       slug,
@@ -64,10 +84,11 @@ afterAll(async () => {
   await fs.rm(dataRoot.root, { recursive: true, force: true });
 });
 
-const pedir = (slug: string, filename: string) =>
-  route.GET(new Request(`http://localhost:3000/${slug}/photo/${filename}`), {
-    params: Promise.resolve({ slug, filename }),
-  });
+const pedir = (slug: string, filename: string, ancho?: string) =>
+  route.GET(
+    new Request(`http://localhost:3000/${slug}/photo/${filename}${ancho ? `?w=${ancho}` : ''}`),
+    { params: Promise.resolve({ slug, filename }) }
+  );
 
 async function sesionDeCliente(slug: string): Promise<void> {
   const { token } = await sessions.createSession('client', slug, 'pareja');
@@ -147,5 +168,57 @@ describe('GET /[slug]/photo/[filename]', () => {
   it('returns 404 for a photo that does not exist in a gallery the client can open', async () => {
     await sesionDeCliente(ANA);
     expect((await pedir(ANA, 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee.png')).status).toBe(404);
+  });
+
+  describe('?w= (copias reducidas)', () => {
+    it('serves a resized WebP for a width the interface actually asks for', async () => {
+      await sesionDeCliente(ANA);
+      const res = await pedir(ANA, FICHERO, '800');
+      expect(res.status).toBe(200);
+      expect(res.headers.get('content-type')).toBe('image/webp');
+      expect(mocks.redimensionado).toHaveBeenCalledTimes(1);
+    });
+
+    it('caches the resized copy on disk instead of redoing the work', async () => {
+      await sesionDeCliente(ANA);
+      await pedir(ANA, FICHERO, '800');
+      await pedir(ANA, FICHERO, '800');
+      // La segunda petición sale de disco: redimensionar doscientas fotos en
+      // cada visita a la galería es justo lo que no puede pasar en un
+      // servidor pequeño.
+      expect(mocks.redimensionado).toHaveBeenCalledTimes(1);
+      const copias = await fs.readdir(store.galleryDerivativesDir(ANA));
+      expect(copias).toContain(`800-${FICHERO}.webp`);
+    });
+
+    // LA PARTE DE SEGURIDAD. Redimensionar es lo más caro que hace esta ruta.
+    // Si el parámetro se resolviera antes de mirar la sesión, cualquiera desde
+    // fuera podría encargarle trabajo al servidor -- y de paso llenarle el
+    // disco de copias -- sin haber entrado nunca en la galería.
+    it('never does resize work for a request with no session', async () => {
+      const res = await pedir(ANA, FICHERO, '800');
+      expect(res.status).toBe(401);
+      expect(mocks.redimensionado).not.toHaveBeenCalled();
+    });
+
+    // El ancho sale de una lista cerrada. Un número libre en la URL es una
+    // invitación a pedir mil tamaños distintos de la misma foto.
+    it('ignores a width outside the allowed list and serves the original', async () => {
+      await sesionDeCliente(ANA);
+      for (const w of ['999', '4000', '-800', '0', 'grande', '800px']) {
+        const res = await pedir(ANA, FICHERO, w);
+        expect(res.status, `w=${w}`).toBe(200);
+        expect(res.headers.get('content-type'), `w=${w}`).toBe('image/png');
+        expect(new Uint8Array(await res.arrayBuffer())).toEqual(BYTES);
+      }
+      expect(mocks.redimensionado).not.toHaveBeenCalled();
+    });
+
+    it('keeps a resized copy as unshareable as the original', async () => {
+      await sesionDeCliente(ANA);
+      const res = await pedir(ANA, FICHERO, '400');
+      expect(res.headers.get('cache-control')).toContain('private');
+      expect(res.headers.get('cache-control')).toContain('no-store');
+    });
   });
 });

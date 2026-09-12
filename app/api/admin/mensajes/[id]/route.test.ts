@@ -24,6 +24,10 @@ const MENSAJE = {
   lugar: 'Carmona',
   tipoEvento: 'foto-y-video',
   mensaje: 'Hola',
+  // Obligatorio desde que el formulario pide el consentimiento expreso
+  // (RGPD art. 7.1): sin esta marca, saveContactSubmission rechaza el envío
+  // y este fichero no llega ni a tener un mensaje que borrar.
+  consentimiento: 'si' as const,
 };
 
 let route: typeof import('./route');

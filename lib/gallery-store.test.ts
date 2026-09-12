@@ -301,3 +301,45 @@ describe('selección del cliente', () => {
     await expect(store.saveSelection('../../etc', [])).rejects.toThrow(/Invalid gallery slug/);
   });
 });
+
+
+/**
+ * BORRADO Y CAMBIO DE CONTRASEÑA, las dos operaciones que el panel no tenía.
+ * Lo que se comprueba aquí es lo que no se ve desde la ruta: que borrar no
+ * pueda salirse de su directorio, y que cambiar la contraseña no pueda
+ * RESUCITAR una galería que acaba de borrarse.
+ */
+describe('deleteGallery y updateGalleryPasswordHash', () => {
+  it('no acepta un slug con forma de escape de directorio', async () => {
+    expect(await store.deleteGallery('../../etc')).toBe(false);
+    expect(await store.deleteGallery('..')).toBe(false);
+    expect(await store.updateGalleryPasswordHash('../../etc', 'scrypt:00:00')).toBe(false);
+  });
+
+  it('devuelve false, sin lanzar, si la galería no existía', async () => {
+    expect(await store.deleteGallery('boda-que-no-existe')).toBe(false);
+  });
+
+  /**
+   * El fallo que esto impide: `saveGalleryMeta` empieza por un `mkdir`
+   * incondicional, así que cambiar la contraseña de una galería borrada
+   * recreaba su meta.json --con el nombre del cliente, su usuario y un hash--
+   * y devolvía los datos personales al disco después de una supresión.
+   */
+  it('no recrea una galería borrada al intentar cambiarle la contraseña', async () => {
+    await store.saveGalleryMeta({
+      slug: 'boda-fugaz',
+      clientName: 'Ana y Luis',
+      username: 'ana',
+      passwordHash: 'scrypt:00:00',
+      createdAt: new Date().toISOString(),
+      photos: [],
+    });
+    expect(await store.deleteGallery('boda-fugaz')).toBe(true);
+
+    await expect(
+      store.updateGalleryPasswordHash('boda-fugaz', 'scrypt:11:11')
+    ).resolves.toBe(false);
+    expect(await store.getGalleryMeta('boda-fugaz')).toBeNull();
+  });
+});

@@ -380,6 +380,11 @@ export function NewGalleryForm() {
             accept="image/webp,image/jpeg,image/png,image/avif"
             multiple
             className={styles.hiddenInput}
+            // Fuera del recorrido del tabulador. Está oculto con `clip`, que
+            // NO quita el foco, así que quien navega con teclado se
+            // encontraba dos paradas para la misma acción -- esta, invisible,
+            // y el botón «selecciónalas» que abre el mismo diálogo.
+            tabIndex={-1}
             onChange={handleFileInputChange}
           />
         </div>

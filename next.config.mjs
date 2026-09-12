@@ -130,7 +130,21 @@ const nextConfig = {
 
   async headers() {
     const baseline = [
-      { key: 'Content-Security-Policy', value: csp },
+      // La CSP se emite SOLO en producción.
+      //
+      // En desarrollo estorba y no protege de nada: `next dev` con Turbopack
+      // abre un WebSocket para el recargado en caliente, sirve las imágenes
+      // por un optimizador que se salta la caché y usa eval. Cada una de esas
+      // piezas hay que ir abriéndola a mano en la política, y el día que una
+      // versión de Next cambie cualquiera de ellas, la web deja de recargarse
+      // o de enseñar las fotos en local sin ningún mensaje de error: el
+      // navegador se limita a bloquear en silencio. La protección que da la
+      // CSP es contra scripts de terceros en un sitio público, y en
+      // http://localhost no hay terceros.
+      //
+      // La política de producción NO cambia, y `npm run pentest` la comprueba
+      // contra el dominio real, que es donde importa.
+      ...(isDev ? [] : [{ key: 'Content-Security-Policy', value: csp }]),
       { key: 'X-Content-Type-Options', value: 'nosniff' },
       // DENY, no SAMEORIGIN: esta web no se mete a sí misma en ningún iframe.
       // Es el respaldo de frame-ancestors para navegadores que no aplican CSP.

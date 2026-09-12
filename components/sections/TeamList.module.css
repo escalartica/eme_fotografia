@@ -1,105 +1,174 @@
+/* ====================================================================
+   EL EQUIPO: NOMBRES A UN LADO, LA CARA AL OTRO
+   ====================================================================
+   Dos columnas en escritorio. La de la izquierda lleva el retrato de quien
+   se está leyendo y va anclada mientras la lista pasa por delante; la de la
+   derecha son los cinco nombres, cada uno en una fila alta separada por
+   filete. En móvil no hay dos columnas: cada fila lleva su propio retrato al
+   principio, más grande que las miniaturas de 3,5 rem de antes. */
 .wrap {
   position: relative;
+  display: grid;
+  gap: var(--space-3);
 }
+@media (min-width: 900px) {
+  .wrap {
+    /* El retrato manda en anchura: es lo que la sección viene a enseñar. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    column-gap: var(--space-4);
+    align-items: start;
+  }
+}
+
+/* ---- el retrato grande ---- */
+.stage {
+  display: none;
+}
+@media (min-width: 900px) {
+  .stage {
+    display: block;
+    position: sticky;
+    /* Por debajo de la cabecera fija, que mide algo menos de 5 rem. */
+    top: 6rem;
+    aspect-ratio: 3 / 4;
+    /* 26rem, NO 30. Y el número sale de los ficheros, no del gusto.
+       Los cinco retratos del equipo miden 900x1200 y están guardados a muy
+       poco caudal (unos 0,055 bytes por píxel, contra los 0,17 de las
+       fotografías de boda de este mismo sitio): o sea que además de pequeños
+       vienen ya blandos de origen. A 30rem la caja mide 480 px, que en
+       densidad doble pide 960 de un fichero de 900 -- se ampliaba, y ampliar
+       una imagen ya machacada es exactamente como se ve «pixelada».
+       A 26rem la caja mide 416 y pide 832: el navegador REDUCE un 8%, y
+       reducir promedia los artefactos de compresión en vez de estirarlos.
+       Es todo lo que se puede hacer sin los originales; con ellos, esta caja
+       puede volver a 30rem o más. */
+    width: min(100%, 26rem);
+    overflow: clip;
+    background: var(--color-hairline);
+  }
+}
+.layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  /* Un punto de escala de más en la capa que se va: el relevo se lee como un
+     plano que cede el sitio, no como dos imágenes parpadeando. */
+  transform: scale(1.04);
+  transition:
+    opacity var(--duration-base) var(--ease-standard),
+    transform var(--duration-slow) var(--ease-standard);
+}
+.layer[data-activa] {
+  opacity: 1;
+  transform: none;
+}
+.layerImage {
+  object-fit: cover;
+  filter: var(--photo-grade);
+}
+@media (prefers-reduced-motion: reduce) {
+  .layer {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* ---- la lista de nombres ---- */
 .list {
   list-style: none;
   margin: 0;
   padding: 0;
-  border-top: 1px solid var(--color-hairline);
+  border-block-start: 1px solid var(--color-hairline);
 }
 .row {
-  border-bottom: 1px solid var(--color-hairline);
+  border-block-end: 1px solid var(--color-hairline);
 }
 .rowInner {
   display: grid;
-  grid-template-columns: 3.5rem 2.5rem minmax(0, 1fr);
-  grid-template-areas: 'thumb index name' 'thumb index role';
+  grid-template-columns: 6rem minmax(0, 1fr);
+  grid-template-areas: 'thumb name' 'thumb role';
   align-items: center;
   column-gap: var(--space-2);
+  row-gap: var(--space-0);
   padding-block: var(--space-2);
   color: var(--color-ink);
   text-decoration: none;
-  transition: padding-inline-start var(--duration-base) var(--ease-standard);
 }
+
 .thumb {
   grid-area: thumb;
   position: relative;
   aspect-ratio: 3 / 4;
-  width: 3.5rem;
-  overflow: hidden;
+  width: 6rem;
+  overflow: clip;
   background: var(--color-hairline);
 }
 .thumbImage {
   object-fit: cover;
   filter: var(--photo-grade);
 }
-.index {
-  grid-area: index;
-  font-family: var(--font-serif);
-  color: var(--color-muted);
-}
+
 .name {
   grid-area: name;
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-size: var(--type-h3);
   line-height: 1.05;
 }
 .role {
   composes: eyebrow from global;
   grid-area: role;
-  margin-top: var(--space-0);
+  color: var(--color-muted);
 }
 
-/* Floating portrait, desktop only. */
-.float {
-  display: none;
-}
-@media (hover: hover) and (pointer: fine) and (min-width: 900px) {
+@media (min-width: 900px) {
+  /* En escritorio el retrato vive en la columna anclada, así que la miniatura
+     de la fila sobra: repetir la misma cara dos veces a dos tamaños es ruido. */
   .thumb {
     display: none;
   }
   .rowInner {
-    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
-    grid-template-areas: 'index name role';
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'name role';
     align-items: baseline;
-    /* The desktop row used to bump padding-block from 0.9rem to 1.15rem by
-       hand. --space-2 is fluid and already grows over that range, so the
-       override is redundant. */
+    column-gap: var(--space-3);
+    padding-block: var(--space-3);
+  }
+  .name {
+    font-size: var(--type-h2-sm);
   }
   .role {
-    margin: 0;
     text-align: right;
   }
-  .row[data-hovered] .rowInner {
-    padding-inline-start: var(--space-1);
+
+  /* QUIÉN SE ESTÁ LEYENDO. Las demás filas bajan de intensidad; la activa se
+     queda a plena tinta y se separa un punto del filete. 0.42 y no menos: por
+     debajo de ahí el nombre de una persona deja de cumplir el contraste que
+     pide la norma, y esto no es decoración sino el contenido de la sección. */
+  .row {
+    transition:
+      opacity var(--duration-base) var(--ease-standard),
+      transform var(--duration-base) var(--ease-standard);
   }
-  .row[data-hovered] .name {
+  .list:not(:hover) .row:not([data-activa]),
+  .list:hover .row:not(:hover) {
+    opacity: 0.42;
+  }
+  .row[data-activa] .rowInner,
+  .row:hover .rowInner {
+    transform: translateX(var(--space-1));
+  }
+  .row[data-activa] .name,
+  .row:hover .name {
     font-style: italic;
   }
-  .float {
-    display: block;
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 13.5rem;
-    aspect-ratio: 3 / 4;
-    pointer-events: none;
-    z-index: 60;
-    opacity: 0;
-    transform: scale(0.9) rotate(-4deg);
-    /* --color-scrim en vez del literal: negro constante en los dos temas,
-       igual que el resto de las sombras del sitio. */
-    box-shadow: 0 30px 60px -30px color-mix(in srgb, var(--color-scrim) 45%, transparent);
-    overflow: hidden;
-    background: var(--color-hairline);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row {
+    transition: none;
   }
-  .floatLayer {
-    position: absolute;
-    inset: 0;
-    transition: opacity var(--duration-fast) var(--ease-standard);
-  }
-  .floatImage {
-    object-fit: cover;
-    filter: var(--photo-grade);
+  .row[data-activa] .rowInner,
+  .row:hover .rowInner {
+    transform: none;
   }
 }

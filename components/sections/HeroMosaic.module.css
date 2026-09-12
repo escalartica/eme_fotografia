@@ -83,6 +83,51 @@
   outline-offset: 4px;
 }
 
+/* LA CORTINA DE ENTRADA, UNA POR COLUMNA.
+   ---------------------------------------------------------------------
+   Cada columna del mosaico se abre desde su borde inferior hacia arriba, una
+   detrás de otra, mientras la banda entera se posa desde un acercamiento
+   ligero (el `transform` lo lleva HeroMosaic.tsx). El pie con el nombre de la
+   boda va dentro de la misma ventana, así que aparece el último de su
+   columna: la fotografía primero, la firma después.
+
+   POR QUÉ ES `clip-path` Y NO UN FUNDIDO. Esto sustituye a un
+   `gsap.set(frames, { opacity: 0 })`, es decir, a veinte fotografías puestas
+   a cero desde JavaScript en la primera pantalla del sitio. Una cortina no
+   tiene ese fallo: `backwards` significa que el estado de partida sólo existe
+   MIENTRAS la animación corre o espera su retardo, y que en cuanto termina
+   -- o si no llega a correr nunca -- el elemento cae en su propio estilo, que
+   es visible. Misma decisión, y por el mismo motivo, que `.corner` en
+   Hero.module.css y que la cortina de SelectedReel.
+
+   Y no se combina con opacidad a propósito: una fotografía que pasa media
+   entrada translúcida parece una imagen que no ha cargado.
+
+   LOS NÚMEROS. La animación arranca a los 0,16 s (encabalgada con el
+   masthead, no simultánea) y las columnas van con un escalón de 0,05 s, así
+   que la quinta cierra en el 1,04 -- dentro del presupuesto de 1,2 s de la
+   coreografía entera (ver Hero.tsx). 0,68 s de duración: por debajo de medio
+   segundo la cortina deja de leerse como una cortina y parece un parpadeo.
+
+   El atributo lo pone HeroMosaic.tsx sólo cuando la portada tiene permiso
+   para montarse (`play`), que en una primera visita es el fotograma en que
+   las barras de la secuencia de apertura empiezan a separarse. */
+@media (prefers-reduced-motion: no-preference) {
+  .band[data-enter='true'] .link {
+    animation: mosaicCurtain 0.68s var(--ease-standard) backwards;
+    animation-delay: 0.16s;
+  }
+  .band[data-enter='true'] .col[data-col='2'] .link { animation-delay: 0.21s; }
+  .band[data-enter='true'] .col[data-col='3'] .link { animation-delay: 0.26s; }
+  .band[data-enter='true'] .col[data-col='4'] .link { animation-delay: 0.31s; }
+  .band[data-enter='true'] .col[data-col='5'] .link { animation-delay: 0.36s; }
+}
+
+@keyframes mosaicCurtain {
+  from { clip-path: inset(0 0 100% 0); }
+  to   { clip-path: inset(0 0 0% 0); }
+}
+
 /* The frame takes the photograph's own shape (--tile-ar, set inline from
    the file's real pixel size), falling back to 3:4.
    ---------------------------------------------------------------------

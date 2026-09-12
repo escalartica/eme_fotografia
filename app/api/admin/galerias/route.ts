@@ -10,6 +10,8 @@ import {
   sniffImageKind,
   type GalleryPhoto,
 } from '@/lib/gallery-store';
+import { limpiarMetadatos } from '@/lib/image-metadata';
+import { excedeElTechoDePixeles, MAX_PIXELES } from '@/lib/sharp-limites';
 import { hashPassword } from '@/lib/auth/password';
 import { getAdminSession } from '@/lib/auth/require-session';
 import { isSameOriginRequest } from '@/lib/auth/origin-check';
@@ -118,9 +120,48 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    // EL TOPE DE TAMAÑO DE FICHERO NO DETECTA UNA BOMBA DE DESCOMPRESIÓN:
+    // mide el fichero comprimido, que es justo lo que la bomba deja pequeño.
+    // Un PNG de menos de un mega puede declarar 30.000 x 30.000 píxeles, que
+    // son 3,6 GB de RAM al decodificarlo. Se pregunta por la cabecera --que no
+    // decodifica nada-- antes de escribir, para que la bomba no llegue
+    // siquiera al disco: guardada, reventaría después en cada visita que
+    // intentara generar su miniatura.
+    if (await excedeElTechoDePixeles(bytes)) {
+      await fs.rm(photosDir, { recursive: true, force: true });
+      return NextResponse.json(
+        {
+          error: `"${file.name}" declara más de ${Math.round(MAX_PIXELES / 1_000_000)} megapíxeles. Exporta a una resolución normal antes de subirla.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // LOS METADATOS SE QUITAN ANTES DE TOCAR EL DISCO, no después: lo que se
+    // guarda es ya lo limpio, así que no queda ni un instante en el que el
+    // fichero con las coordenadas GPS del sitio de la boda exista en el
+    // servidor. Ver lib/image-metadata.ts para qué se quita y por qué no se
+    // reencodan los píxeles.
+    const limpios = await limpiarMetadatos(bytes, kind);
     const id = crypto.randomUUID();
     const filename = `${id}.${kind}`;
-    await fs.writeFile(path.join(photosDir, filename), bytes, { mode: 0o600 });
+    // `turbopackIgnore` NO es silenciar un aviso incómodo: es decirle al
+    // compilador algo que él no puede deducir y nosotros sí.
+    //
+    // Turbopack ve un `path.join` cuyo primer trozo sale de una llamada a
+    // función y, al no poder seguirla, se pone en lo peor: da por hecho que
+    // esta ruta puede leer cualquier cosa del proyecto y mete el proyecto
+    // ENTERO --incluida la carpeta `public`, que son 369 MB de fotografías--
+    // dentro del paquete del servidor. En un VPS eso es multiplicar por tres
+    // lo que hay que subir en cada despliegue, y el propio aviso advierte de
+    // que puede reventar los límites de tamaño.
+    //
+    // Lo que él no puede ver: `photosDir` sale de `galleryPhotosDir(slug)`,
+    // que se construye desde `path.join(process.cwd(), 'data', 'galleries')`,
+    // y `slug` ha pasado por `isValidSlug` --minúsculas, dígitos y guiones, ni
+    // barras ni puntos--. La ruta está acotada a data/galleries/<slug>/photos
+    // y no hay forma de que apunte a otro sitio.
+    await fs.writeFile(path.join(/* turbopackIgnore: true */ photosDir, filename), limpios, { mode: 0o600 });
     photos.push({ id, filename, alt: `Foto ${index} de la boda de ${clientName}` });
   }
 

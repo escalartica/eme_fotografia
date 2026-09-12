@@ -94,8 +94,18 @@
   gap: 0.5em;
 }
 
+.photoButton:focus-visible {
+  /* Desplazamiento NEGATIVO: `.photoButton` recorta lo que se sale, así que un
+     anillo por fuera quedaría cortado. */
+  outline: 2px solid var(--color-night-text);
+  outline-offset: -6px;
+}
 .photoButton {
   all: unset;
+  /* `all: unset` pone `outline-style: none`, y esta regla local gana al
+     `:focus-visible` global (misma especificidad, y el CSS del módulo se emite
+     después). Sin lo de abajo, eme tabulando por las fotos de una galería no
+     veía en cuál estaba. */
   position: relative;
   display: block;
   width: 100%;

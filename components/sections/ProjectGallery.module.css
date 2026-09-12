@@ -201,3 +201,86 @@
     object-fit: contain;
   }
 }
+
+/* ====================================================================
+   EL NÚMERO DE FOTOGRAMA
+   ====================================================================
+   Como en una hoja de contactos: `03/24` en la esquina de la fotografía,
+   apagado en reposo y encendido al pasar por encima. Es lo que hace que el
+   reportaje se lea como el material de un fotógrafo y no como una galería.
+
+   Sobre la FOTOGRAFÍA, así que ni el color ni la sombra pueden depender del
+   tema: --color-night-text y --color-scrim son constantes en claro y en
+   oscuro, y la sombra es lo que lo sostiene sobre un vestido blanco.
+   `z-index: 2` porque `.parallaxInner` se mueve por debajo con el scroll y
+   el número tiene que quedarse quieto en la esquina del marco. */
+.frame {
+  position: absolute;
+  right: var(--space-1);
+  bottom: var(--space-1);
+  z-index: 2;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.1em;
+  pointer-events: none;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-night-text);
+  text-shadow: 0 1px 10px color-mix(in srgb, var(--color-scrim) 60%, transparent);
+  /* Presente pero callado. No arranca invisible: un dato que solo existe al
+     pasar el ratón no existe en una pantalla táctil, que es donde se mira
+     una boda en la cama. */
+  opacity: 0.55;
+}
+.frameTotal {
+  font-size: 0.8em;
+  opacity: 0.7;
+}
+@media (hover: hover) and (pointer: fine) {
+  .frame {
+    transition: opacity var(--duration-fast) var(--ease-standard);
+  }
+  .item:hover .frame,
+  .item:focus-within .frame {
+    opacity: 1;
+  }
+}
+
+/* El acercamiento al pasar por encima va sobre la IMAGEN, dentro del recorte
+   del marco: el marco no se mueve, no empuja a sus vecinos y no obliga a
+   recalcular la maquetación del flujo. Es un `transform` distinto del que
+   escribe GSAP en `.parallaxInner`, así que no se pisan. */
+@media (prefers-reduced-motion: no-preference) {
+  .imageButton img {
+    transition: transform var(--duration-base) var(--ease-standard);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .imageButton:hover img {
+      transform: scale(1.04);
+    }
+  }
+}
+
+/* El cierre del reportaje. Dos filetes cortos y una palabra: en un reportaje
+   de veinticinco fotografías, quien llega abajo necesita saber que se ha
+   acabado y no que le falta por cargar. */
+.end {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-block: var(--space-4) 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--color-muted);
+}
+.endRule {
+  display: block;
+  width: clamp(2rem, 8vw, 5rem);
+  height: 1px;
+  background: var(--color-hairline);
+}

@@ -14,12 +14,12 @@ describe('ProjectGallery', () => {
   });
 
   it('renders a VideoPreview for video gallery items and opens the lightbox on click', () => {
-    // boda-real-01 has a video cover (rendered by ProjectGallery itself,
+    // andrea-y-jesus has a video cover (rendered by ProjectGallery itself,
     // see the component) plus two video gallery items (the ground-level
     // edit and the aerial highlight), so there are three "Reproducir"
     // buttons total sharing one Lightbox — assert the count reflects
     // cover + gallery videos, and that clicking a gallery one opens it.
-    const project = projects.find((p) => p.slug === 'boda-real-01')!;
+    const project = projects.find((p) => p.slug === 'andrea-y-jesus')!;
     render(<ProjectGallery project={project} />);
     const playButtons = screen.getAllByRole('button', { name: /reproducir/i });
     const videoGalleryCount = project.gallery.filter((m) => m.type === 'video').length;
@@ -29,8 +29,8 @@ describe('ProjectGallery', () => {
   });
 
   it('renders the video cover and opens the same shared lightbox on click', () => {
-    const project = projects.find((p) => p.slug === 'boda-real-01')!;
-    if (project.cover.type !== 'video') throw new Error('fixture assumption: boda-real-01 has a video cover');
+    const project = projects.find((p) => p.slug === 'andrea-y-jesus')!;
+    if (project.cover.type !== 'video') throw new Error('fixture assumption: andrea-y-jesus has a video cover');
     render(<ProjectGallery project={project} />);
     const playButtons = screen.getAllByRole('button', { name: /reproducir/i });
     fireEvent.click(playButtons[0]);
@@ -80,22 +80,26 @@ describe('ProjectGallery', () => {
     spans.forEach((s) => expect(['full', 'wide', 'half']).toContain(s));
   });
 
-  it('marks only the first two image gallery items as priority (eager-loaded), regardless of interleaved video items', () => {
-    // boda-real-01's gallery starts with two videos before any images
-    // (video, video, image, image, image, image) — "first two images"
-    // must count image-type items only, skipping the leading videos, so
-    // this is a real regression guard against an index-only off-by-type bug.
-    const project = projects.find((p) => p.slug === 'boda-real-01')!;
+  it('never steals load priority from the cover: every gallery photograph is lazy', () => {
+    // Hace falta un reportaje que MEZCLE vídeo e imagen, porque lo que se
+    // comprueba es que «las dos primeras imágenes» cuente solo las de tipo
+    // imagen y no las posiciones del array. Era andrea-y-jesus, pero esa
+    // ficha se quedó sin fotografías el 2026-09-11 (decisión del cliente: la
+    // ficha de vídeo enseña solo vídeo), así que la prueba se quedó sin
+    // materia y buscaba imágenes donde ya no hay ninguna.
+    // virginia-y-jorge es ahora el único reportaje mixto: tres clips seguidos
+    // y quince fotografías detrás, que es exactamente el caso que esto
+    // protege.
+    const project = projects.find((p) => p.slug === 'virginia-y-jorge')!;
+    expect(project.gallery.filter((m) => m.type === 'video').length).toBeGreaterThan(0);
+    expect(project.gallery.filter((m) => m.type === 'image').length).toBeGreaterThan(2);
     render(<ProjectGallery project={project} />);
     const imgs = screen.getAllByRole('img');
     const imageItems = project.gallery.filter((m) => m.type === 'image');
     expect(imgs.length).toBe(imageItems.length);
-    imgs.forEach((img, i) => {
-      if (i < 2) {
-        expect(img.getAttribute('loading')).not.toBe('lazy');
-      } else {
-        expect(img.getAttribute('loading')).toBe('lazy');
-      }
-    });
+    // La portada del reportaje es la imagen que mide el LCP de esta página.
+    // Ninguna de las de abajo -- todas fuera de pantalla al cargar -- puede
+    // pedir prioridad alta y quitarle ancho de banda mientras se pinta.
+    imgs.forEach((img) => expect(img.getAttribute('loading')).toBe('lazy'));
   });
 });

@@ -5,6 +5,16 @@ export interface SiteInfo {
   /** One-line positioning used in titles and descriptions. */
   tagline: string;
   legalCity: string;
+  /**
+   * El NIF del titular. Lo exige la LSSI-CE (art. 10) en un sitio comercial, y
+   * hasta que el estudio lo dio, el aviso legal y la política de privacidad
+   * decían «pendiente de indicar por el titular» a la vista de cualquiera.
+   *
+   * Vive aquí y no escrito en las dos páginas por el motivo de siempre: dos
+   * copias de un dato legal se separan, y la que se quede vieja es la que
+   * nadie mira.
+   */
+  legalNif: string;
   email: string;
   instagramUrl: string;
   instagramHandle: string;
@@ -30,7 +40,7 @@ export interface SiteInfo {
   bodasNetUrl: string;
   bodasNetRating: number;
   bodasNetReviewCount: number;
-  bodasNetCoupleCount: number;
+  coupleCount: number;
 }
 
 export type ServiceSlug = 'boda' | 'video';
@@ -52,15 +62,32 @@ export interface Service {
   route: string;
   /** El `<h1>` de esa página. El `name` es la etiqueta corta de un enlace. */
   heading: string;
+  /**
+   * Texto del botón en el panel a pantalla completa de la home.
+   *
+   * No es `ctaLabel` (ese es el de la página del servicio, y lleva a
+   * /contacto) ni un genérico "Ver servicio": los dos paneles de la home son
+   * visualmente idénticos y con la misma etiqueta el enlace no decía a cuál
+   * de los dos pertenecía, ni en pantalla ni para un lector de voz.
+   */
+  panelCtaLabel: string;
   /** `<title>` y `description` propios: es media razón para separarlas. */
   metaTitle: string;
   metaDescription: string;
   tagline: string;
   includes: string[];
+  /**
+   * Lo que NO va en todos los packs y se contrata aparte (álbum, preboda,
+   * tráiler). Separado de `includes` a propósito: mezclarlos convierte una
+   * opción en una promesa, y la pareja que contrató el pack sin álbum llega
+   * a la entrega esperando uno. Opcional -- un servicio sin extras no
+   * declara el campo.
+   */
+  alsoAvailable?: string[];
   idealFor: string;
   process: { step: number; title: string; description: string }[];
   ctaLabel: string;
-  // Path under public/, e.g. '/videos/posters/real-boda-01-full.webp'. Not
+  // Path under public/, e.g. '/videos/posters/andrea-y-jesus-full.webp'. Not
   // every service has a matching asset yet — absent means "no image", not a
   // stock placeholder to fill the gap. See content/services.ts for which
   // services have a real vs. placeholder image and why.
@@ -102,6 +129,25 @@ export type ProjectCategory = ServiceSlug;
 export interface ProjectMedia {
   type: 'image' | 'video';
   src: string;
+  /**
+   * Apaga el etalonado que el navegador aplica ENCIMA de la fotografía.
+   *
+   * Todo el sitio pinta sus imágenes con `filter: var(--photo-grade)`
+   * --`saturate(1.06) contrast(1.04) brightness(1.01)`, styles/tokens.css--,
+   * que es lo que le da unidad al conjunto. En una toma a contraluz sobre
+   * fondo blanco ese mismo filtro es lo que la vuelve anaranjada: no hay
+   * color que saturar, sólo una dominante cálida que se subraya.
+   *
+   * Con esto a `true`, quien renderiza la pieza le pone
+   * `--photo-grade: none` en línea. Funciona porque es una PROPIEDAD
+   * PERSONALIZADA y se hereda: no hay que tocar ninguna de las veinte reglas
+   * que ya escriben `filter: var(--photo-grade)`.
+   *
+   * Es la excepción, no una opción de estilo: el fichero tiene que venir ya
+   * etalonado a mano (ver scripts/desetalonar.py) o se verá plano al lado de
+   * sus vecinas.
+   */
+  sinEtalonar?: boolean;
   poster?: string;
   alt: string;
   isPlaceholderMedia: boolean;
@@ -154,7 +200,26 @@ export interface ProjectMedia {
 export interface Project {
   slug: string;
   title: string;
+  /**
+   * Categoría PRINCIPAL: la que se pinta como etiqueta debajo del nombre.
+   * Es una sola a propósito -- un reportaje no puede llevar dos rótulos.
+   */
   category: ProjectCategory;
+  /**
+   * Categorías ADICIONALES, solo a efectos de filtro.
+   *
+   * Existe porque un reportaje puede estar entregado en las dos cosas y la
+   * fila de filtros dice precisamente eso: en qué se entrega. Virginia y
+   * Jorge tiene dieciséis fotografías y cuatro clips con tráiler; con un
+   * único campo había que elegir, y elegir significaba esconderla de una de
+   * las dos pestañas y encima etiquetarla mal. Aquí se declara la segunda
+   * pertenencia y el filtro la encuentra por las dos vías, sin tocar la
+   * etiqueta.
+   *
+   * NO es una lista de temas ni un cajón de sastre: solo vale para decir
+   * «esto también se entregó así».
+   */
+  alsoIn?: ProjectCategory[];
   year: number;
   client: string;
   location: string;

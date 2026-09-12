@@ -7,7 +7,7 @@ contrast(1.04) brightness(1.01) that is applied on top in the browser):
   1. filmic tone curve with a slightly lifted black point (matte, "print" feel)
      and soft highlight roll-off — never crushes shadows, never clips whites
   2. split toning: warm highlights (Sevilla light), cool-neutral shadows
-  3. gentle desaturation (-6%) so colours read filmic, not digital
+  3. viraje + un 2% de saturación: los colores leen filmicos, no digitales
   4. very light vignette + fine luminance grain
   5. B&W frames get the tone curve + grain only (no tint), so they stay B&W
 

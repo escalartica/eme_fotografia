@@ -1,10 +1,15 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { CONSENTIMIENTO_TEXTO, CONSENTIMIENTO_VERSION, POLITICA_VERSION } from '@/content/consentimiento';
 
 export interface ContactSubmission {
   nombre: string;
   email: string;
+  /** OPCIONAL. Va junto al correo en el formulario: es la misma pregunta y no
+   * merece un paso propio. Opcional porque obligarlo espanta a quien sólo
+   * quiere saber si la fecha está libre. */
+  telefono?: string;
   /** When the wedding is. REQUIRED. Together with `lugar`, this is the whole
    * of what the studio needs to answer "that date is free" -- which is what
    * every page of the site promises. Both used to be optional, so a couple
@@ -24,6 +29,22 @@ export interface ContactSubmission {
    * to be required and blocked the form on step 3 of 8, before they had said
    * a word about their wedding. */
   comoNosConociste?: string;
+  /**
+   * CONSENTIMIENTO RGPD. Lo único que manda el formulario es la marca de que
+   * la casilla estaba puesta; el TEXTO y la VERSIÓN los escribe el servidor
+   * desde content/consentimiento.ts, nunca desde la petición -- si viajaran
+   * en el cuerpo, cualquiera podría afirmar haber aceptado algo distinto de
+   * lo que la web enseñó, y entonces el registro no probaría nada.
+   * Obligatorio desde 2026-09-12. Los mensajes guardados antes no lo llevan,
+   * y por eso es opcional en el tipo: el fichero de un mensaje de 2025 tiene
+   * que seguir leyéndose en /admin/mensajes.
+   */
+  consentimiento?: 'si';
+  consentimientoVersion?: string;
+  consentimientoTexto?: string;
+  /** Versión del documento de /privacidad vigente al aceptar. Ver
+   * content/consentimiento.ts para por qué no basta con la del texto. */
+  politicaVersion?: string;
   /** No longer collected by the form. `numeroInvitados` is not among the
    * price variables the site declares, and `presupuesto`/`queEsperas` were
    * folded away (its placeholder, "Ej. 1500-2500€", was the only rate
@@ -50,11 +71,16 @@ export class ContactValidationError extends Error {}
 const MAX_LENGTHS: Record<string, number> = {
   nombre: 120,
   email: 254, // el máximo real de una dirección de correo (RFC 5321)
+  telefono: 24, // holgado para un prefijo internacional con espacios
   fecha: 40,
   lugar: 160,
   tipoEvento: 60,
   mensaje: 2000,
   comoNosConociste: 120,
+  // 2 caracteres: el valor es literalmente "si". Va en esta tabla porque
+  // `sanitise` descarta cualquier clave que no esté aquí, así que sin la
+  // entrada el campo nunca llegaría a la validación.
+  consentimiento: 2,
   numeroInvitados: 40,
   presupuesto: 60,
   queEsperas: 500,
@@ -112,6 +138,15 @@ export async function saveContactSubmission(
   if (!EMAIL_RE.test(clean.email)) {
     throw new ContactValidationError('La dirección de correo no es válida.');
   }
+  // El servidor lo exige aparte del formulario, y no por desconfianza: esta
+  // ruta es una API pública y cualquiera puede publicar contra ella sin pasar
+  // por la casilla. Un mensaje guardado sin constancia de consentimiento es
+  // un dato personal que el estudio no puede justificar tener.
+  if (clean.consentimiento !== 'si') {
+    throw new ContactValidationError(
+      'Falta aceptar la política de privacidad para poder responderos.'
+    );
+  }
   // 0o700 / 0o600: estos ficheros son datos personales (nombre, correo,
   // teléfono y texto libre de una pareja). En un servidor compartido, el modo
   // por defecto (0o755/0o644) los deja legibles para cualquier otra cuenta de
@@ -121,7 +156,17 @@ export async function saveContactSubmission(
   // Spread payload first so the server-generated id/receivedAt always win —
   // a client-supplied id or receivedAt in the request body must never override them.
   const receivedAt = new Date().toISOString();
-  const record = { ...clean, id, receivedAt };
+  // El texto y la versión los pone el servidor, encima de lo que viniera en
+  // la petición: es la mitad del registro que tiene que ser creíble. Y
+  // `receivedAt` hace de fecha del consentimiento, que es el mismo instante.
+  const record = {
+    ...clean,
+    consentimientoVersion: CONSENTIMIENTO_VERSION,
+    consentimientoTexto: CONSENTIMIENTO_TEXTO,
+    politicaVersion: POLITICA_VERSION,
+    id,
+    receivedAt,
+  };
   await fs.writeFile(path.join(dir, `${id}.json`), JSON.stringify(record, null, 2), { mode: 0o600 });
   return { id, receivedAt };
 }

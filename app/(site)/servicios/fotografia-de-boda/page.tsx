@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { services } from '@/content/services';
-import { breadcrumbSchema } from '@/lib/schema';
-import { buildMetadata } from '@/lib/seo';
+import { breadcrumbSchema, jsonLd } from '@/lib/schema';
+import { buildMetadata, ogImage } from '@/lib/seo';
 import { ServicioDetalle } from '../ServicioDetalle';
 import styles from '../page.module.css';
 
@@ -12,6 +12,12 @@ export const metadata = service
       title: service.metaTitle,
       description: service.metaDescription,
       path: service.route,
+      // La tarjeta de enlace es la MISMA fotografía que abre la página, la que
+      // el propio servicio declara en content/services.ts. Antes era el
+      // logotipo: la página que vende fotografía se compartía por WhatsApp
+      // como un wordmark. `ogImage()` cambia la extensión al derivado JPEG de
+      // 1200x630 que vive al lado (WhatsApp no pinta WebP; ver lib/seo.ts).
+      image: ogImage(service.previewImage),
     })
   : {};
 
@@ -22,13 +28,15 @@ export default function Page() {
   if (!service) notFound();
   return (
     <div className={styles.page}>
-      {/* Sin migas visibles: el sitio no las tiene y con dos niveles serían
-          mobiliario. El marcado sí, que es lo que Google pinta en el
-          resultado -- mismo tratamiento que la ficha de reportaje. */}
+      {/* La vuelta al índice es un enlace suelto arriba del todo
+          (components/ui/VolverA), no una miga de pan: una miga enseña la ruta
+          entera y con dos niveles eso es mobiliario. Aquí va el MARCADO de
+          `BreadcrumbList`, que es otra cosa -- lo que Google pinta en el
+          resultado de búsqueda, donde sí sirve ver la jerarquía. */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(
+          __html: jsonLd(
             breadcrumbSchema([
               { name: 'Inicio', path: '/' },
               { name: 'Servicios', path: '/servicios' },

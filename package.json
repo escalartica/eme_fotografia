@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "pentest": "node scripts/pentest.mjs"
   },
   "dependencies": {
     "focus-trap": "^8.2.2",
@@ -15,7 +16,8 @@
     "lenis": "^1.3.26",
     "next": "16.3.3",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",
@@ -28,7 +30,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
     "jsdom": "^27.0.1",
-    "sharp": "^0.35.4",
     "typescript": "^5",
     "vitest": "^4.1.11"
   }

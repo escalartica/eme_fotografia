@@ -18,3 +18,34 @@
   letter-spacing: 0.08em;
   white-space: nowrap;
 }
+
+/* EL DISCO DE REPRODUCIR. Translúcido y con desenfoque detrás en vez de un
+   relleno macizo: va siempre sobre una fotografía, y un círculo opaco le hace
+   un agujero. El anillo fino lo sostiene cuando debajo cae un vestido blanco o
+   un traje negro, que es el rango real de una boda. */
+.disco {
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  padding: 0;
+  background: color-mix(in srgb, var(--color-scrim) 52%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-night-text) 55%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .disco {
+    background: color-mix(in srgb, var(--color-scrim) 72%, transparent);
+  }
+}
+.play {
+  width: 1.6rem;
+  height: 1.6rem;
+  /* Constante en los dos temas: el triángulo cae sobre la fotografía, no
+     sobre el papel de la página. */
+  fill: var(--color-night-text);
+  /* El triángulo pesa hacia la izquierda; medio punto a la derecha lo centra
+     ópticamente dentro del círculo. */
+  margin-inline-start: 0.12em;
+}

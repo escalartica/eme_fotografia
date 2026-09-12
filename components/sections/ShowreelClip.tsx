@@ -20,11 +20,31 @@ export function ShowreelClip({ src, poster, alt, fill = false }: { src: string; 
     if (reducedMotion || !videoRef.current) return;
     const el = videoRef.current;
     el.muted = true;
+
     // `play()` returns a Promise in every current browser, but not in every
     // environment: jsdom returns undefined, and so did Safari before 10.
     // Calling .catch() on undefined threw at mount, which took down the
     // whole /servicios page the moment a service gained a preview video.
-    void el.play()?.catch(() => {});
+    const arranca = () => void el.play()?.catch(() => {});
+
+    // EL VÍDEO NO EMPIEZA HASTA QUE SE VE. Sin esto, `preload="none"` no
+    // sirve de nada: llamar a `play()` al montar obliga al navegador a
+    // descargar el clip entero aunque esté tres pantallas más abajo, y en
+    // /servicios/video-de-boda eso son 18 MB que salen antes que nada de lo
+    // que el visitante está mirando. Mismo patrón que AmbientVideo.
+    if (typeof IntersectionObserver !== 'function') {
+      arranca();
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) arranca();
+        else el.pause();
+      },
+      { threshold: 0.35 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [reducedMotion]);
 
   return (

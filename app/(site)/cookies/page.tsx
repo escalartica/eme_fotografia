@@ -67,7 +67,7 @@ export default function Page() {
       <h2>2. Cómo cambiar tu decisión</h2>
       <p>
         Puedes aceptar o rechazar las cookies analíticas en cualquier momento desde aquí:{' '}
-        <CookiePreferencesButton className={styles.pending} />. También puedes borrarlas o bloquearlas desde la
+        <CookiePreferencesButton className={styles.botonCookies} />. También puedes borrarlas o bloquearlas desde la
         configuración de tu navegador.
       </p>
 

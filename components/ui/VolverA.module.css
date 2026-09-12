@@ -1,0 +1,35 @@
+.volver {
+  composes: eyebrow from global;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.6em;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-muted);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+.volver:hover,
+.volver:focus-visible {
+  color: var(--color-ink);
+}
+
+/* La flecha se retira un paso al pasar por encima: el mismo gesto que las
+   flechas «→» del resto del sitio, en el sentido contrario. */
+.flecha {
+  display: inline-block;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.volver:hover .flecha,
+.volver:focus-visible .flecha {
+  transform: translateX(-0.25em);
+}
+@media (prefers-reduced-motion: reduce) {
+  .volver,
+  .flecha {
+    transition: none;
+  }
+  .volver:hover .flecha {
+    transform: none;
+  }
+}

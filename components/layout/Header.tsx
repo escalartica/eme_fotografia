@@ -1,13 +1,14 @@
 'use client';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { BrandMark } from '@/components/ui/BrandMark';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { site } from '@/content/site';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import { useLenis } from '@/lib/hooks/useLenis';
 import { MenuIcon, CloseIcon } from '@/components/ui/Icon';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { Magnetic } from '@/components/motion/Magnetic';
 import { MobileMenu } from './MobileMenu';
 import styles from './Header.module.css';
 
@@ -107,31 +108,11 @@ export function Header() {
         aria-label={`${site.brandName} - inicio`}
         onClick={goHomeTop}
       >
-        {/* Dos versiones del logotipo, una por tema, y el CSS enseña la que
-            toca. El original es tinta oscura sobre transparente: en modo
-            noche se quedaba invisible sobre la barra oscura, que es como la
-            mira la mayoría de las parejas. No se resuelve con `invert()`
-            porque el trazo tiene medios tonos y salían grises apagados; la
-            versión clara conserva la forma y se repinta con el color de
-            texto sobre fondo oscuro. */}
-        <Image
-          src="/images/logo/eme-logo.png"
-          alt={site.brandName}
-          width={168}
-          height={79}
-          /* No `priority`. A 168px wordmark is never the Largest
-             Contentful Paint element, and preloading it only takes
-             bandwidth away from the photograph that is. */
-          className={`${styles.logo} ${styles.logoDark}`}
-        />
-        <Image
-          src="/images/logo/eme-logo-light.png"
-          alt=""
-          aria-hidden="true"
-          width={168}
-          height={79}
-          className={`${styles.logo} ${styles.logoLight}`}
-        />
+        {/* El logotipo y su versión para fondo oscuro, en un componente:
+            este patrón vivía sólo aquí, escrito a mano, y las cinco pantallas
+            privadas se lo habían perdido -- en modo noche enseñaban un trazo
+            de tinta sobre un fondo casi negro. Ver components/ui/BrandMark. */}
+        <BrandMark alto={2.25} className={styles.marca} />
       </Link>
 
       <nav className={styles.desktopNav} aria-label="Navegación principal">
@@ -154,16 +135,22 @@ export function Header() {
       </nav>
 
       <div className={styles.controls}>
-        <Link
-          href={CONTACT.href}
-          className={styles.contactLink}
-          aria-current={isActive(CONTACT.href) ? 'page' : undefined}
-        >
-          <span className={styles.roll}>
-            <span className={styles.rollText}>{CONTACT.label}</span>
-            <span className={styles.rollText} aria-hidden="true">{CONTACT.label}</span>
-          </span>
-        </Link>
+        {/* Se inclina hacia el puntero al acercarse, como la llamada a la
+            acción del cierre de la home. Radio corto: en la barra hay un
+            interruptor de tema y un botón de menú a dos dedos de distancia,
+            y un radio largo haría que se moviera al ir a por ellos. */}
+        <Magnetic radius={64} strength={0.22}>
+          <Link
+            href={CONTACT.href}
+            className={styles.contactLink}
+            aria-current={isActive(CONTACT.href) ? 'page' : undefined}
+          >
+            <span className={styles.roll}>
+              <span className={styles.rollText}>{CONTACT.label}</span>
+              <span className={styles.rollText} aria-hidden="true">{CONTACT.label}</span>
+            </span>
+          </Link>
+        </Magnetic>
         <ThemeToggle />
         <button
           ref={menuButtonRef}

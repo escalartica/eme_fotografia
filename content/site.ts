@@ -28,6 +28,9 @@ export const site: SiteInfo = {
   siteUrl: SITE_URL,
   tagline: 'Fotógrafo y vídeo de bodas en Sevilla',
   legalCity: 'Sevilla',
+  // Dado por el estudio. Comprobada la letra de control contra el número
+  // (algoritmo del DNI: número módulo 23 sobre la tabla TRWAGMYFPDXBNJZSQVHLCKE).
+  legalNif: '53284928T',
   email: 'info@emefotografiasevilla.com',
   instagramUrl: 'https://www.instagram.com/eme_fotografia_sevilla',
   instagramHandle: '@eme_fotografia_sevilla',
@@ -61,5 +64,12 @@ export const site: SiteInfo = {
   bodasNetUrl: 'https://www.bodas.net/fotografos/eme-fotografia-sevilla--e71289',
   bodasNetRating: 5.0,
   bodasNetReviewCount: 67,
-  bodasNetCoupleCount: 125,
+  // EL RECUENTO DE PAREJAS ES DEL ESTUDIO, NO DE BODAS.NET, y por eso ya no
+  // se llama `bodasNetCoupleCount`. La ficha de Bodas.net dice "más de 125":
+  // ésa es la cuenta de las parejas que llegaron POR LA PLATAFORMA, que es
+  // lo único que la plataforma puede contar. El estudio lleva más de
+  // trescientas bodas, cifra que confirmó el cliente. Mezclar las dos bajo un
+  // nombre que empieza por `bodasNet` era la forma segura de que alguien
+  // acabara citando la de dentro como si la avalara la de fuera.
+  coupleCount: 300,
 };

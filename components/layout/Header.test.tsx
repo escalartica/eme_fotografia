@@ -35,7 +35,7 @@ describe('Header — current-route indicator', () => {
   });
 
   it('marks the section link current on nested routes below it (e.g. a project detail page)', () => {
-    vi.mocked(usePathname).mockReturnValue('/trabajos/boda-real-01');
+    vi.mocked(usePathname).mockReturnValue('/trabajos/eva-y-rafa');
     render(<Header />);
     expect(screen.getByRole('link', { name: 'Trabajos' })).toHaveAttribute('aria-current', 'page');
   });

@@ -4,7 +4,25 @@ import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import styles from './Cursor.module.css';
 
-const LABELS: Record<string, string> = { ver: 'VER', reproducir: 'REPRODUCIR', abrir: 'ABRIR', explorar: 'EXPLORAR' };
+/**
+ * Qué enseña el puntero sobre cada cosa.
+ *
+ * «Reproducir» era la única que se escribía pudiendo dibujarse. Un disco negro
+ * con la palabra REPRODUCIR en versalitas, plantado encima de una fotografía de
+ * boda y a la vez que el botón blanco que decía lo mismo en el centro del
+ * cuadro, es el mismo mensaje dos veces y tapando el trabajo. El triángulo lo
+ * dice igual, no tiene idioma y ocupa una cuarta parte.
+ *
+ * Las otras tres siguen con palabra porque no tienen símbolo que se entienda
+ * sin aprenderlo: «ver», «abrir» y «explorar» no son operaciones de un
+ * reproductor, son intenciones.
+ */
+const PISTAS: Record<string, { texto?: string; glifo?: 'play' }> = {
+  ver: { texto: 'VER' },
+  reproducir: { glifo: 'play' },
+  abrir: { texto: 'ABRIR' },
+  explorar: { texto: 'EXPLORAR' },
+};
 
 /**
  * The label that follows the pointer over a photograph.
@@ -23,7 +41,7 @@ export function Cursor() {
   // A real pointer, read as external state rather than assumed-false and
   // then corrected from an effect on the first paint.
   const enabled = useMediaQuery('(pointer: fine)');
-  const [label, setLabel] = useState<string | null>(null);
+  const [pista, setPista] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
 
@@ -46,8 +64,9 @@ export function Cursor() {
     };
     const over = (e: MouseEvent) => {
       const target = (e.target as HTMLElement)?.closest('[data-cursor]');
-      const next = target ? LABELS[target.getAttribute('data-cursor') ?? ''] ?? null : null;
-      setLabel((prev) => (prev === next ? prev : next));
+      const clave = target?.getAttribute('data-cursor') ?? '';
+      const next = clave in PISTAS ? clave : null;
+      setPista((prev) => (prev === next ? prev : next));
     };
 
     document.addEventListener('mousemove', move, { passive: true });
@@ -63,9 +82,24 @@ export function Cursor() {
   // who asked for less of it does not want.
   if (!enabled || reducedMotion) return null;
 
+  const actual = pista ? PISTAS[pista] : null;
+
   return (
     <div ref={ref} className={styles.cursor} aria-hidden="true">
-      {label && <span data-testid="cursor-label" className={styles.label}>{label}</span>}
+      {actual && (
+        <span
+          data-testid="cursor-label"
+          className={`${styles.label} ${actual.glifo ? styles.disco : ''}`}
+        >
+          {actual.glifo === 'play' ? (
+            <svg viewBox="0 0 24 24" className={styles.play} aria-hidden="true">
+              <path d="M9 6.5v11l9-5.5z" />
+            </svg>
+          ) : (
+            actual.texto
+          )}
+        </span>
+      )}
     </div>
   );
 }

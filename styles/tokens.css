@@ -164,6 +164,41 @@
      Kept as an identity value so any module still referencing it is a
      no-op rather than a build error. */
   --photo-grade: saturate(1.06) contrast(1.04) brightness(1.01);
+
+  /* El punto de partida del "ken burns de scroll": la fotografía entra un
+     poco más grande que su marco y se asienta en su encuadre real mientras
+     cruza la pantalla (Belle Photo y Arthur Petrillo hacen exactamente esto
+     con cada plancha). Es el peldaño que le faltaba a este fichero: el gesto
+     ya existía en la home escrito a mano y con dos números distintos para el
+     mismo trabajo -- 1.1 en la foto del bloque de estudio
+     (SobreEmePreview.module.css) y nada en el carrete de trabajos, que lo
+     resolvía con un desplazamiento de GSAP.
+     1.08 y no 1.1: por encima de ese punto el recorte inicial empieza a
+     comerse los bordes de un encuadre que la fotógrafa ya había decidido, y
+     en un retrato vertical eso es la coronilla. */
+  --photo-zoom-from: 1.08;
+
+  /* EL PRESUPUESTO DE SCROLL DE UNA SECUENCIA ANCLADA.
+     Cuánto recorrido vertical se lleva una sección que se queda pegada a la
+     pantalla mientras algo se mueve dentro de ella (hoy, el carrete
+     horizontal de trabajos destacados: SelectedReel.module.css). Es un
+     peldaño de RITMO, hermano de --space-5 y de --header-h, y por eso vive
+     aquí y no dentro del módulo: es la clase de número que un segundo
+     bloque anclado tendría que copiar, y dos copias de un ritmo es como
+     empiezan a divergir.
+
+     260svh, no 200 ni 400. El carrete mide en un portátil de 1440x900 unos
+     5.500 px de ancho, o sea unos 4.050 px de recorrido horizontal; con
+     260svh (2.340 px de scroll) salen 1,7 px de foto por cada píxel de
+     rueda. Por debajo de 1,5 el carrete se arrastra y el visitante nota que
+     la página no avanza; por encima de 2,5 las fotografías pasan tan
+     deprisa que no da tiempo a mirar ninguna, que en la web de una
+     fotógrafa es el peor resultado posible.
+
+     En svh y no en vh a propósito: en un móvil la barra del navegador
+     aparece y desaparece, y con vh el recorrido cambiaría de tamaño a
+     mitad del gesto. */
+  --pin-travel: 260svh;
 }
 
 /* ---------------------------------------------------------------
@@ -191,6 +226,16 @@
   --color-ink-rgb: 242, 241, 234;
   --color-paper: #141412;
   --color-night: #000000;
+  /* EL REVELADO, UN PUNTO MENOS DE BRILLO EN MODO NOCHE.
+     El `brightness(1.01)` del tema claro está ahí para compensar un fondo de
+     papel: sobre uno casi negro no compensa nada, sólo deslumbra, y en una
+     pantalla a oscuras eso se nota en cada fotografía a sangre.
+     SE TOCA EL BRILLO Y NADA MÁS. La saturación y el contraste SÍ son el
+     revelado de la casa --el mismo que llevan los ficheros-- y no pueden
+     depender de un ajuste del navegador: una fotografía no cambia de color
+     porque el visitante apague la luz. */
+  --photo-grade: saturate(1.06) contrast(1.04) brightness(0.98);
+
   --color-muted: #9C9C93;
   --color-hairline: color-mix(in srgb, var(--color-ink) 16%, transparent);
   /* #B3261E on a near-black paper falls under 4.5:1; this is the same hue

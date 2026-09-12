@@ -1,42 +1,193 @@
-/* Three columns: pinned text | the reel | pinned notes. On narrow screens
-   the side columns collapse above and below the reel. */
+/* CARRETE HORIZONTAL ANCLADO.
+   =====================================================================
+   La sección se pega a la pantalla y las fotografías pasan de derecha a
+   izquierda mientras el visitante baja. Dos piezas, y tienen que ser dos:
+
+     .stage    -- alto = 100svh + --pin-travel. Es el SUJETO de la línea de
+                  tiempo (`view-timeline-name: --reelPan`) y quien aporta el
+                  recorrido de rueda que consume el desfile.
+     .viewport -- `position: sticky; top: 0; height: 100svh`. Es lo que se
+                  queda quieto en pantalla.
+
+   Si la línea de tiempo se declarase sobre .viewport o sobre el carril, no
+   avanzaría nunca: un elemento anclado no se mueve respecto a la pantalla,
+   así que su progreso `view()` se queda clavado. Por eso el nombre se declara
+   en .stage y el carril lo referencia por nombre, que es la única forma de
+   que un descendiente lea la línea de tiempo de un antepasado.
+
+   EL TRAMO ES `contain`, no `entry` ni `cover`. Para un sujeto MÁS ALTO que
+   la pantalla, `contain` es exactamente el intervalo durante el cual el
+   sujeto la cubre entera -- que es, píxel a píxel, el mismo intervalo durante
+   el cual .viewport está anclado. Empieza cuando el borde superior de .stage
+   toca el borde superior de la pantalla y acaba cuando su borde inferior toca
+   el inferior. Ni un fotograma de desfile fuera del anclaje, ni un píxel de
+   anclaje sin desfile.
+
+   EL RECORRIDO ES EXACTO, NO ESTIMADO. El fotograma final es
+   `translateX(calc(100vw - 100%))`: los porcentajes de `translate` se miden
+   sobre el propio elemento, así que `-100%` es "todo tu ancho" y sumarle
+   100vw deja el borde derecho del carril justo en el borde derecho de la
+   pantalla. No hay que saber cuánto miden las fotos, ni medirlas en
+   JavaScript, ni volver a medirlas al girar el teléfono: la última imagen
+   cierra donde tiene que cerrar en cualquier ancho.
+
+   --pin-travel (styles/tokens.css) es entonces sólo el mando de VELOCIDAD:
+   el desfile completo ocupa siempre todo el anclaje, dure éste lo que dure.
+
+   =====================================================================
+   Y AHORA LO QUE PASA CUANDO EL EFECTO NO ESTÁ, que es la mitad importante.
+
+   El estado POR DEFECTO de .viewport no es una caja recortada esperando a que
+   algo la mueva -- eso dejaría diez de las once bodas inalcanzables en cuanto
+   el navegador no soportase las líneas de tiempo. Por defecto es una TIRA QUE
+   SE ARRASTRA CON EL DEDO (`overflow-x: auto` + anclaje de desplazamiento),
+   que en un teléfono de 375 px no es un respaldo sino la mejor versión del
+   gesto: nativa, interrumpible y con la inercia del sistema.
+
+   El anclaje se enciende sólo si se cumplen las TRES condiciones:
+     - >= 900 px de ancho (en un móvil, 4.000 px de foto en dos pantallas y
+       media de rueda pasan tan deprisa que no se ve ninguna),
+     - `prefers-reduced-motion: no-preference`,
+     - soporte real de `animation-timeline` Y de `view-timeline-name`.
+   Se comprueban las dos propiedades y no sólo la primera a propósito: si un
+   navegador soportase `view()` pero no las líneas con nombre, el carril se
+   quedaría quieto DENTRO de una caja ya recortada, que es justo el fallo que
+   este bloque existe para no tener. Al fallar la comprobación, no se aplica
+   nada y queda la tira deslizable.
+
+   No hay ni un `opacity: 0` en reposo en todo el fichero. */
+
 .section {
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-4);
-  padding: var(--space-5) var(--gutter);
+  padding-block-start: var(--space-5);
 }
-@media (min-width: 900px) {
-  .section {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr);
-    gap: var(--space-4);
-    padding-block: var(--space-5);
+
+/* ---------- la entradilla y la fotografía que la acompaña ----------
+   LA SECCIÓN ES DE DOS COLUMNAS A PARTIR DE 1100 px, y no por gusto: la
+   entradilla está topada a 48rem para que el titular y la prosa se lean, así
+   que en un escritorio ancho dejaba media pantalla vacía a su derecha. Ese
+   hueco es el que el estudio rodeó en rojo pidiendo meter ahí la fotografía
+   del perro en vez de darle una banda para ella sola.
+
+   `align-items: start` y no `center`: la entradilla es corta y la fotografía
+   alta; centradas, el titular quedaría flotando a media altura sin nada
+   encima. Alineadas arriba, las dos empiezan en la misma línea, que es lo que
+   hace que se lean como una sola pieza y no como dos cosas puestas al lado.
+
+   Por debajo de 1100 px la fotografía pasa debajo del texto y se topa a 26rem
+   centrada: una vertical de 2:3 a todo el ancho de un teléfono mide pantalla
+   y media y obligaría a hacer scroll sólo para pasarla. */
+.cabecera {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+  margin-block-end: var(--space-4);
+}
+@media (min-width: 1100px) {
+  .cabecera {
+    /* LA COLUMNA DE LA FOTOGRAFÍA ES ELÁSTICA, no de ancho fijo. Con `auto`
+       se resolvía a los 28rem del marco pase lo que pase, y justo encima del
+       breakpoint eso dejaba la columna de texto en unos 450 px: el titular
+       está afinado a 18ch para caer en dos líneas llenas y ahí pasaba a tres
+       con una palabra suelta al final, que es exactamente lo que ese ajuste
+       existe para evitar. Con `clamp` la foto cede ancho donde no sobra y
+       recupera sus 28rem en un monitor. El hueco cede con ella. */
+    grid-template-columns: minmax(0, 1fr) clamp(18rem, 26vw, 28rem);
+    column-gap: clamp(var(--space-3), 4vw, var(--space-5));
+    padding-inline: var(--gutter);
   }
 }
 
-.side {
-  position: relative;
-}
-.sideInner {
-  position: sticky;
-  top: 0;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.intro {
+  display: grid;
+  justify-items: start;
   gap: var(--space-2);
-  padding-block: var(--space-4);
+  padding-inline: var(--gutter);
+  max-width: 48rem;
 }
-@media (max-width: 899px) {
-  .sideInner {
-    position: static;
-    min-height: 0;
-    padding-block: 0;
+@media (min-width: 1100px) {
+  .intro {
+    padding-inline: 0;
   }
-  .sideRight {
-    display: none;
+}
+
+.retrato {
+  position: relative;
+  /* La forma del fichero. Sin recorte: es justo por lo que esta fotografía
+     salió del carrete, que recorta las verticales de 2:3 a 3:4. */
+  aspect-ratio: 1707 / 2560;
+  width: min(100% - var(--gutter) * 2, 26rem);
+  margin-inline: auto;
+  /* clip y no hidden: `hidden` haría de esta caja un contenedor de scroll y
+     la línea de tiempo de la imagen se mediría contra ella. */
+  overflow: hidden;
+  overflow: clip;
+  background: var(--color-hairline);
+}
+@media (min-width: 1100px) {
+  .retrato {
+    /* Llena su pista, que ya viene acotada por el `clamp` de la rejilla. */
+    width: 100%;
+    margin-inline: 0;
   }
+}
+
+.retratoEnlace {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+/* Hacia dentro: `.retrato` recorta con `overflow: clip`, así que un aro
+   dibujado por fuera de la caja del enlace --que rellena el marco entero--
+   se recortaría sin dejar rastro. */
+.retratoEnlace:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: -4px;
+}
+
+.retratoImagen {
+  object-fit: cover;
+  filter: var(--photo-grade);
+  transition: scale var(--duration-slow) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .retratoEnlace:hover .retratoImagen {
+    /* `scale` y no `transform`: la animación de scroll de aquí abajo anima
+       `transform` con `fill: both` y lo mantiene aplicado también fuera de su
+       tramo, así que un hover escrito en `transform` no se vería nunca. */
+    scale: 1.02;
+  }
+}
+
+/* Se descubre al entrar, como el resto de marcos del sitio: un cuarto de
+   recorte por abajo, nunca la imagen entera, así que lo que hay dentro se ve
+   desde el primer fotograma. Y se posa a la vez. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .retrato {
+      animation: retratoAbre linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 30%;
+    }
+    .retratoImagen {
+      animation: retratoPosa linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 55%;
+    }
+  }
+}
+@keyframes retratoAbre {
+  from { clip-path: inset(0 0 22% 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+@keyframes retratoPosa {
+  from { transform: scale(1.04); }
+  to   { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .retratoImagen { transition: none; }
+  .retratoEnlace:hover .retratoImagen { scale: none; }
 }
 
 .eyebrow {
@@ -45,72 +196,102 @@
 
 .statement {
   font-family: var(--font-serif);
-  font-size: var(--type-h2-sm);
+  font-size: var(--type-h2);
   line-height: 1.05;
   margin: 0;
-  max-width: 14ch;
+  /* 18ch: el titular mide 37 caracteres y a esta medida cae en dos líneas
+     llenas, sin dejar una palabra suelta en la última. */
+  max-width: 18ch;
   font-variation-settings: 'wght' 400;
+  text-wrap: balance;
 }
 .statement em {
   font-style: italic;
   color: var(--color-muted);
 }
 
+/* Lo único de la entradilla que se lee como prosa, así que va en el color
+   apagado y a la medida de lectura. */
+.lead {
+  color: var(--color-muted);
+  max-width: 44ch;
+  margin: 0;
+}
+
 .arrow {
   composes: arrowLink from global;
   color: var(--color-accent);
-  align-self: flex-start;
-  margin-block-start: var(--space-1);
 }
 
-.note {
-  composes: eyebrow from global;
-  max-width: 18ch;
-  align-self: flex-end;
-  text-align: right;
-  line-height: 1.5;
-}
-.noteBottom {
-  margin-block-start: auto;
+/* ---------- el escenario y el carril ---------- */
+.stage {
+  position: relative;
 }
 
-/* ---------- the reel ---------- */
-.reel {
+.viewport {
+  /* Ver la cabecera del fichero: por defecto, una tira que se arrastra. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  /* Que el gesto horizontal no se propague y acabe navegando hacia atrás en
+     el historial del navegador a mitad del carrete. */
+  overscroll-behavior-x: contain;
+}
+
+/* La barra de scroll horizontal se esconde SÓLO en pantallas estrechas, y
+   esa distinción no es estética. En un teléfono el dedo es el mando y la
+   barra es cromo que sobra. En un escritorio, en cambio, esta tira sólo
+   aparece cuando el anclaje NO se ha activado -- porque el visitante ha
+   pedido movimiento reducido, o porque su navegador no soporta las líneas de
+   tiempo guiadas por el scroll --, y entonces la barra es la única señal
+   visible de que ahí dentro hay diez bodas más. Esconderla ahí sería
+   esconder el contenido. */
+@media (max-width: 899px) {
+  .viewport {
+    scrollbar-width: none;
+  }
+  .viewport::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.track {
   list-style: none;
   margin: 0;
-  padding: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: clamp(2rem, 5vw, 5rem);
+  gap: clamp(1.25rem, 3vw, 3.5rem);
+  padding-inline: var(--gutter);
+  /* El pie de cada fotograma va en posición absoluta bajo su marco, así que
+     no ocupa sitio: este relleno inferior es el hueco donde cae, y está
+     DENTRO de la caja de relleno, o sea que `overflow-y: hidden` no lo
+     recorta. */
+  padding-block-end: var(--space-4);
+  width: max-content;
 }
 
 .frame {
   position: relative;
-  width: 100%;
-  will-change: transform, opacity;
+  flex: 0 0 auto;
+  scroll-snap-align: center;
+  /* El desnivel vertical de cada fotograma respecto a sus vecinas. En cero
+     salvo donde el bloque de escritorio lo cambia: en la tira deslizable de
+     un teléfono un desnivel sólo desperdicia altura. */
+  margin-block-start: var(--offset, 0px);
+  /* EN LA TIRA DESLIZABLE MANDA EL ANCHO. Todos los fotogramas ocupan lo
+     mismo de ancho -- 78vw, o sea que se ve uno entero y se asoma el
+     siguiente -- y cada uno se hace tan alto como pida su forma. Es lo
+     correcto en un teléfono, donde lo que es escaso es el ancho.
+     En el carrete anclado se invierte: manda el alto y el ancho lo pone la
+     forma, que es lo que hace que la fila lea como un contacto de
+     laboratorio -- copias de la misma altura y anchuras distintas -- y no
+     como una galería de miniaturas. Ver el bloque de anclaje al final. */
+  height: auto;
+  width: min(78vw, 22rem);
 }
-.portrait {
-  max-width: 24rem;
-  aspect-ratio: 3 / 4;
-}
-.landscape {
-  max-width: 32rem;
-  aspect-ratio: 4 / 3;
-}
-.square {
-  max-width: 24rem;
-  aspect-ratio: 1;
-}
-@media (min-width: 900px) {
-  /* Landscape frames overhang the column slightly, like the reference's
-     wider "Vertical" items. */
-  .landscape {
-    width: 120%;
-    max-width: none;
-    margin-inline: -10%;
-  }
-}
+.portrait { aspect-ratio: 3 / 4; }
+.landscape { aspect-ratio: 3 / 2; }
+.square { aspect-ratio: 1; }
 
 .link {
   position: absolute;
@@ -124,24 +305,27 @@
   outline-offset: 4px;
 }
 
+/* La ventana del fotograma. `overflow: clip` con `hidden` delante como
+   respaldo para lo anterior a `clip`: `hidden` convertiría esta caja en un
+   contenedor de scroll y cualquier línea de tiempo medida dentro se mediría
+   contra ELLA en vez de contra la pantalla. `clip` recorta igual sin crear
+   scrollport. Mismo hallazgo que documentan SobreEmePreview.module.css y
+   StackedSections.module.css. */
 .clip {
   position: absolute;
   inset: 0;
   display: block;
   overflow: hidden;
+  overflow: clip;
   background: var(--color-hairline);
 }
-/* Taller than its clip so the scroll drift never shows an edge. Kept to 3%
-   (and the drift to 2.5%) because this overhang is dead space: whatever the
-   media hides at the top of a landscape frame is a band the viewer never
-   sees, and at 6% + 5% of drift it was reaching 11% of the photograph --
-   enough to cut the top of a head. */
+
 .media {
   position: absolute;
-  inset: -3% 0;
+  inset: 0;
   display: block;
-  will-change: transform;
 }
+
 .image {
   object-fit: cover;
   filter: var(--photo-grade);
@@ -154,26 +338,22 @@
   }
 }
 
-/* Caption below the frame: index, title, meta -- appears on hover/focus,
-   always present for keyboard and assistive tech. */
+/* Pie de foto bajo el marco: número, boda, lugar y año. Siempre visible --
+   en un carrete que se recorre con el dedo no hay hover que lo destape.
+   El apagado en reposo se hace con COLOR y no con `opacity`, porque
+   `opacity` multiplicaría también a .meta, que ya parte de --color-muted, y
+   lo hundiría por debajo del 4,5:1 de WCAG 1.4.3 en los dos temas. */
 .caption {
   composes: eyebrow from global;
   position: absolute;
   top: 100%;
   left: 0;
+  right: 0;
   display: flex;
-  gap: var(--space-2);
+  flex-wrap: wrap;
+  gap: var(--space-0) var(--space-2);
   align-items: baseline;
   padding-top: var(--space-1);
-  white-space: nowrap;
-  /* El apagado en reposo se hace con color, no con `opacity`. `opacity`
-     multiplica también a .meta, que ya parte de --color-muted: medido,
-     muted al 55 % daba 2,16:1 en claro y 2,86:1 en oscuro, muy por debajo
-     del 4,5:1 de WCAG 1.4.3 -- y fallaba en los DOS temas, no solo en
-     oscuro. Con color el pie se apaga igual de visiblemente (ink al 65 %:
-     6,09:1 en claro, 7,35:1 en oscuro) y .meta conserva intacto su propio
-     contraste (4,92:1 y 6,67:1). La jerarquía no cambia: en reposo el
-     título sigue pesando más que el pie. */
   color: color-mix(in srgb, var(--color-ink) 65%, transparent);
   transition: color var(--duration-fast) var(--ease-standard);
   line-height: 1.5;
@@ -182,20 +362,18 @@
 .link:focus-visible .caption {
   color: var(--color-ink);
 }
-/* No hover on touch: the caption is always fully visible and wraps
-   instead of running off the 375px frame. */
-@media (max-width: 899px) {
-  .reel {
-    gap: var(--space-4);
-  }
-  .caption {
-    right: 0;
-    flex-wrap: wrap;
-    gap: var(--space-0) var(--space-1);
-    white-space: normal;
-    color: var(--color-ink);
-  }
+/* EL NOMBRE DE LA BODA. Esta clase se usaba desde el componente
+   (`styles.title`) y NO ESTABA DEFINIDA aquí: `styles.title` valía
+   `undefined`, React omitía el atributo y el nombre de la pareja salía con el
+   estilo del pie entero, indistinguible del lugar y del año que van al lado.
+   No cantaba porque el pie ya era legible -- por eso llevaba así desde que se
+   escribió --, pero el nombre de la pareja es lo único del pie que se lee de
+   verdad, y ahora lo parece: tinta plena y medio peso más, contra el gris de
+   `.meta`. */
+.title {
+  font-weight: 500;
 }
+
 .index {
   font-family: var(--font-serif);
   text-transform: none;
@@ -207,11 +385,110 @@
   letter-spacing: 0.04em;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .frame,
-  .media {
-    will-change: auto;
+/* La última tarjeta del carrete: la nota de cierre del estudio. No lleva
+   marco ni fotografía -- después de once copias, un rectángulo de papel con
+   una frase es lo que dice "aquí se acaba". */
+.endCard {
+  display: flex;
+  align-items: center;
+  aspect-ratio: auto;
+  min-height: 12rem;
+}
+.note {
+  composes: eyebrow from global;
+  max-width: 26ch;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* =====================================================================
+   EL ANCLAJE. Tres condiciones (ver la cabecera del fichero).
+   ===================================================================== */
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) and (view-timeline-name: --probe) {
+    .stage {
+      height: calc(100svh + var(--pin-travel));
+      view-timeline-name: --reelPan;
+      view-timeline-axis: block;
+    }
+
+    .viewport {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      overflow: clip;
+      scroll-snap-type: none;
+    }
+
+    .track {
+      animation: reelPan linear both;
+      animation-timeline: --reelPan;
+      animation-range: contain 0% contain 100%;
+      /* Sin `will-change`. Una animación guiada por el scroll con `fill:
+         both` está activa desde que carga la página, así que el navegador ya
+         promociona el elemento por su cuenta; declararlo además a mano sólo
+         garantiza una capa de compositor permanente a cambio de nada. Mismo
+         criterio que RevealWords.module.css. */
+    }
+
+    /* Alto fijo y ancho derivado: la fila de copias. 46svh acotado entre 17 y
+       26rem -- por debajo de 17rem una boda deja de verse y por encima de
+       26rem el pie de foto se sale de la pantalla en un portátil de 900 px de
+       alto. */
+    .frame {
+      height: clamp(17rem, 46svh, 26rem);
+      width: auto;
+    }
+
+    /* El desnivel. Cinco posiciones que no se repiten hasta la sexta foto,
+       para que la fila no caiga en un zigzag de dos tiempos. Los valores son
+       pequeños a propósito: el carrete tiene que leerse como una fila, no
+       como una nube. */
+    .frame:nth-child(5n + 2) { --offset: -5svh; }
+    .frame:nth-child(5n + 3) { --offset: 4svh; }
+    .frame:nth-child(5n + 4) { --offset: -2svh; }
+    .frame:nth-child(5n + 5) { --offset: 6svh; }
+
+    /* LA PROFUNDIDAD: la fotografía se desplaza dentro de su propia ventana,
+       en sentido contrario a la que tiene al lado, mientras el carril
+       desfila. Es lo que impide que las once copias se lean como una sola
+       lámina rígida que se arrastra.
+       Sólo en apaisadas y cuadradas, NUNCA en verticales: para dar margen al
+       desplazamiento la capa se ensancha un 4% por lado, y en un marco
+       vertical ensanchar la caja obliga a `object-fit: cover` a recortar MÁS
+       por arriba y por abajo -- justo donde este proyecto tiene medidos 303
+       puntos focales para no cortar cabezas. En apaisada y en cuadrada el
+       recorte que sobra es horizontal, así que el margen es gratis y el
+       encuadre vertical no se toca ni un píxel.
+       3% de recorrido dentro de un 4% de margen: nunca puede asomar el
+       borde. */
+    .landscape .media,
+    .square .media {
+      inset: 0 -4%;
+      animation: reelDrift linear both;
+      animation-timeline: --reelPan;
+      animation-range: contain 0% contain 100%;
+    }
+    .frame:nth-child(even) .media {
+      --drift: -1;
+    }
   }
+}
+
+@keyframes reelPan {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(calc(100vw - 100%), 0, 0); }
+}
+
+@keyframes reelDrift {
+  from { transform: translate3d(calc(var(--drift, 1) * 3%), 0, 0); }
+  to   { transform: translate3d(calc(var(--drift, 1) * -3%), 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
   .image {
     transition: none;
   }

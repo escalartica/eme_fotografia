@@ -1,6 +1,7 @@
 import { site } from '@/content/site';
 import { services } from '@/content/services';
 import type { FaqEntry, Project } from '@/content/types';
+import { perteneceA } from '@/lib/project-filter';
 
 const SITE_URL = site.siteUrl;
 
@@ -215,7 +216,12 @@ export function siteGraph() {
  */
 export function creativeWorkSchema(project: Project) {
   const imageSrc = project.cover.type === 'image' ? project.cover.src : project.cover.poster;
-  const isVideoPage = project.category === 'video' && project.cover.type === 'video';
+  // `perteneceA`, no `===`: Virginia y Jorge lleva etiqueta de Fotos (son
+  // dieciséis fotografías frente a cuatro clips) pero abre con el tráiler y
+  // tiene película entregada. Con la comparación estricta dejaba de emitir su
+  // VideoObject el día que se le corrigió la etiqueta, y eso es perder un
+  // resultado enriquecido en Google por un cambio de rótulo.
+  const isVideoPage = perteneceA(project, 'video') && project.cover.type === 'video';
   const hasRealUploadDate = Boolean(project.videoUploadDate);
   return {
     '@context': SCHEMA_CONTEXT,
@@ -272,4 +278,42 @@ export function faqSchema(entries: FaqEntry[]) {
       acceptedAnswer: { '@type': 'Answer', text: f.answer },
     })),
   };
+}
+
+/**
+ * SERIALIZA UN BLOQUE JSON-LD PARA METERLO EN UN `<script>`.
+ *
+ * `JSON.stringify` a secas NO es seguro dentro de un `<script>`, y es un fallo
+ * que pasa desapercibido porque el JSON sale perfectamente válido: el
+ * analizador de HTML corta el bloque en cuanto ve la secuencia `</script`, sin
+ * importar que esté dentro de una cadena JSON. Un título de reportaje, una
+ * respuesta de las preguntas frecuentes o cualquier texto que algún día venga
+ * de fuera y contenga `</script><script>…` se convierte en código ejecutable
+ * en el dominio del estudio.
+ *
+ * Hoy todo lo que entra aquí sale de ficheros de content/, o sea que lo
+ * escribimos nosotros y no hay agujero. Esto existe para el día que deje de
+ * ser así --el nombre de una pareja, una reseña, un campo del panel-- que es
+ * exactamente cuando nadie se acuerda de revisar este fichero.
+ *
+ * Se escapan tres cosas y ninguna cambia el significado del JSON, porque las
+ * tres son secuencias de escape Unicode válidas dentro de una cadena:
+ *   `<`  cierra cualquier intento de abrir o cerrar una etiqueta;
+ *   `>`  por simetría, y cubre el cierre de un comentario HTML;
+ *   `&`  impide que una entidad HTML se cuele por otro camino.
+ * `U+2028` y `U+2029` se escapan además porque son saltos de línea para
+ * JavaScript aunque no lo sean para JSON, y romperían el script.
+ */
+export function jsonLd(datos: unknown): string {
+  return JSON.stringify(datos)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    // Escapados con `\u2028`, NO con el carácter literal: dentro de una
+    // expresión regular, U+2028 ES un salto de línea para JavaScript, así que
+    // escribirlo a pelo deja la expresión sin cerrar y el fichero no compila.
+    // Es la misma trampa que esta función existe para evitar, una capa más
+    // abajo.
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
 }

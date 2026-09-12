@@ -96,7 +96,10 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin-block-start: var(--space-3);
+  /* Pegados a la cita: son SUS controles. Antes estaban a la misma distancia
+     de la cita que del enlace de abajo, y tres bloques equidistantes se leen
+     como tres cosas sin relación entre sí. */
+  margin-block-start: var(--space-2);
 }
 
 .controls button {
@@ -164,20 +167,63 @@
    is the only affordance, matching this site's restrained link style. */
 .statLine {
   composes: eyebrow from global;
-  margin: var(--space-4) 0 0;
+  margin: var(--space-3) 0 0;
   line-height: 1.5;
+  /* El párrafo se ajusta al enlace en vez de ocupar los 60rem de la sección:
+     así el enlace, que va centrado, no tiene ancho de sobra donde partirse. */
+  display: flex;
+  justify-content: center;
 }
+/* inline-flex, no inline: el icono era un elemento en línea suelto detrás de
+   un rótulo en versalitas con tracking, así que en cuanto el rótulo llenaba
+   la línea el icono se caía solo al renglón de abajo, centrado y huérfano.
+   Como caja flexible, texto e icono son una sola pieza. */
+/* Pastilla con filete, no una línea de texto suelta. Con el tratamiento
+   anterior el rótulo y su icono flotaban entre los controles del carrusel y
+   la fila de sellos, sin nada que dijera que aquello se podía pulsar — y el
+   icono, al ser un elemento en línea detrás de un rótulo con tracking, se
+   caía al renglón de abajo en cuanto el texto llenaba la línea. Como caja
+   flexible con `nowrap`, texto e icono no se pueden separar nunca. */
 .statLine a {
-  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  gap: 0.6em;
+  color: color-mix(in srgb, var(--color-ink) 80%, transparent);
   text-decoration: none;
+  border: 1px solid var(--color-hairline);
+  border-radius: 999px;
+  padding: 0.8em 1.5em;
+  min-height: 2.75rem;
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
 }
 .statLine a:hover,
 .statLine a:focus-visible {
-  text-decoration: underline;
+  color: var(--color-paper);
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .statLine a {
+    transition: none;
+  }
+}
+/* A 375 px el rótulo con tracking no cabe entero en una pastilla con relleno
+   horizontal: se estrecha el relleno antes que dejar que desborde. */
+@media (max-width: 419px) {
+  .statLine a {
+    padding-inline: var(--space-1);
+    gap: 0.45em;
+  }
 }
 .externalIcon {
-  margin-left: 0.35em;
-  vertical-align: -0.05em;
+  /* El hueco lo pone el `gap` del enlace. */
+  flex: none;
+  opacity: 0.7;
 }
 
 /* Row of real third-party badges (see Testimonios.tsx's own comment) --
@@ -188,8 +234,15 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: var(--space-3);
-  margin-block-start: var(--space-4);
+  /* --space-2, no --space-3: siete piezas con 32 px de aire entre ellas se
+     leían como siete objetos sueltos y no como una fila. El filete de arriba
+     las separa del enlace y las presenta como grupo. */
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+  padding-block-start: var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+  width: 100%;
+  max-width: 44rem;
 }
 
 /* Deliberately NOT given the photo treatment: these are official
@@ -197,9 +250,25 @@
    issued. Sized by height, not width: seven real files at seven slightly
    different native ratios stay visually even in the row this way, where a
    shared width would leave the taller ones looking larger than the rest. */
+/* Van algo apagados a propósito: son prueba, no reclamo, y compiten con la
+   fotografía de al lado. Recuperan su color entero al pasar por encima. */
 .trustBadge {
   display: block;
   width: auto;
-  height: 64px;
-  opacity: 0.85;
+  height: 56px;
+  opacity: 0.72;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+.trustRow:hover .trustBadge {
+  opacity: 1;
+}
+@media (max-width: 599px) {
+  .trustBadge {
+    height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trustBadge {
+    transition: none;
+  }
 }

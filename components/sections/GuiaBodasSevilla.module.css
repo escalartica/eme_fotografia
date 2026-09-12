@@ -1,8 +1,52 @@
-/* The one prose block on the home. Set as a two-column editorial spread on
-   desktop so ~650 words read as a magazine sidebar rather than as a wall
-   of SEO text under the photographs; a single measure-limited column on
-   phones. Hairline rules, no cards -- the rest of this page has no boxed
-   containers and this section should not introduce them. */
+/* LAS SEIS PREGUNTAS, COMO PILA ANCLADA.
+   =====================================================================
+   Misma construcción que Manifiesto.module.css, que es la referencia que
+   trajo el estudio: cada fila se pega bajo la cabecera fija y la siguiente
+   sube por debajo y la tapa.
+
+   LO QUE HACE QUE FUNCIONE, y no es el `sticky`: es el FONDO OPACO. Una fila
+   pegada se pinta después que sus hermanas anteriores, así que un fondo de
+   papel es lo que hace que la 02 TAPE a la 01 en vez de superponerse a ella
+   en un revoltijo ilegible.
+
+   Y LA CUENTA DE ALTURA ES EL SENTIDO DE LA SECCIÓN: el documento sólo crece
+   lo que suman las seis filas, porque el apilado ocurre DENTRO de esa
+   distancia en vez de sumarse a ella. Seiscientas cincuenta palabras que
+   antes eran un muro de dos columnas pasan a leerse de una en una sin costar
+   ni un píxel más de recorrido.
+
+   TAMBIÉN SE APILA EN EL TELÉFONO, que es lo que pidió el estudio: «quiero
+   que tengan el mismo efecto para mostrarse y ocultarse que el apartado de
+   menos protocolo, la magia real». Antes se desactivaba por debajo de 900 px
+   y la razón era buena, aunque la solución fuera gruesa: una fila pegada MÁS
+   ALTA QUE LA VENTANA deja su final por debajo del borde y sin forma de
+   alcanzarlo, porque se queda clavada ahí mientras se baja. Es el fallo
+   clásico del `sticky` alto, y la respuesta más larga de las seis --la de los
+   plazos, con sus tres pares y el párrafo de cierre-- ronda los 590 px en un
+   teléfono de 390 px de ancho.
+
+   Así que la condición deja de ser el ANCHO y pasa a ser el ALTO, que es la
+   medida de la que de verdad depende el fallo.
+
+   Y EL UMBRAL DESCUENTA LA CABECERA, que es la mitad de la cuenta que se
+   olvida. El hueco de una fila pegada no es la ventana: es la ventana menos
+   `--header-h` menos el respiro de `top`, o sea unos 5,75rem menos. Con el
+   umbral puesto en la altura bruta --40rem-- un teléfono de 640 px dejaba
+   unos 548 px útiles para una fila de 590: negativo, justo el fallo que esta
+   condición existe para evitar, y en los aparatos que caen encima del
+   umbral. 45rem son 720 px, que dan 628 px útiles y sí caben.
+   El 45 va escrito a mano porque `var()` no se admite dentro de una media
+   query: si algún día cambia `--header-h`, este número cambia con él. En un escritorio manda el ancho como
+   siempre, y por eso la condición es una O y no una Y.
+
+   Y en el teléfono las filas van además más apretadas (ver el bloque de
+   599 px): menos relleno y el numeral en su propia línea, que es lo que baja
+   la fila más larga por debajo del hueco disponible.
+
+   Con `prefers-reduced-motion`: filas estáticas, como siempre. La altura de
+   la sección no cambia en ninguno de los dos casos --las filas miden lo mismo
+   se peguen o no--, así que nada de lo que hay debajo se mueve. */
+
 .section {
   padding: var(--space-5) var(--gutter);
   max-width: 84rem;
@@ -10,69 +54,160 @@
   border-top: 1px solid var(--color-hairline);
 }
 
+.encabezado {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
+  margin-block-end: var(--space-4);
+  max-width: 46rem;
+}
+
 .eyebrow {
   composes: eyebrow from global;
-  margin: 0 0 var(--space-1);
+  color: var(--color-muted);
+  margin: 0;
 }
 
-.heading {
-  composes: display from global;
-  /* --type-h2-sm en vez de clamp(1.75rem, 3.4vw, 3.25rem): el término medio
-     era vw puro, así que este titular ignoraba el tamaño de letra del
-     usuario y no crecía con el zoom (WCAG 1.4.4) -- la escalera de
-     styles/tokens.css existe justamente para eso. Mismo suelo (1.75rem) y
-     techo 3rem en lugar de 3.25rem, un peldaño real del sistema. */
+.titulo {
+  font-family: var(--font-serif);
   font-size: var(--type-h2-sm);
-  max-width: 18ch;
-  margin: 0 0 var(--space-4);
+  line-height: 1.08;
+  font-weight: 400;
+  font-variation-settings: 'wght' 400;
+  margin: 0;
+  max-width: 20ch;
+  text-wrap: balance;
 }
 
-.columns {
+/* ---------- la pila ---------- */
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.item {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-4);
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-3);
+  align-items: start;
+  padding-block: var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+  /* Opaco, y es lo que sostiene todo el gesto: ver la cabecera del fichero. */
+  background: var(--color-paper);
+}
+.item:last-child {
+  border-bottom: 1px solid var(--color-hairline);
 }
 
-@media (min-width: 900px) {
-  .columns {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: var(--space-5);
-    row-gap: var(--space-4);
+@media (prefers-reduced-motion: no-preference) {
+  /* Una O, no una Y: en un escritorio manda el ancho; en un teléfono, el
+     alto. Ver la cabecera del fichero para por qué la condición cambió de
+     una cosa a la otra. */
+  @media (min-width: 900px), (min-height: 45rem) {
+    .item {
+      position: sticky;
+      /* Despeja la barra fija, más un respiro para que la fila pegada no
+         quede a ras del filete de la cabecera. */
+      top: calc(var(--header-h) + var(--space-2));
+    }
   }
 }
 
-.block {
-  display: grid;
-  gap: var(--space-1);
-  padding-block-start: var(--space-2);
-  border-top: 1px solid var(--color-hairline);
+@media (max-width: 599px) {
+  /* En un teléfono la columna del numeral se come un tercio de la medida de
+     lectura. El número pasa encima, en su propia fila.
+     Y el relleno baja un peldaño: con el apilado activo aquí, cada píxel de
+     relleno es un píxel más de fila pegada, y la fila más larga tiene que
+     caber bajo la cabecera fija. */
+  .item {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-1);
+    padding-block: var(--space-2);
+  }
+  /* El apretado de `.cuerpo` NO va aquí: su regla base está más abajo en el
+     fichero y, a igual especificidad, la posterior gana --una media query no
+     sube la especificidad--. Estaba escrito aquí y no hacía nada, que es
+     grave porque de ese hueco depende que la fila más larga quepa en la
+     pantalla. Vive al final, detrás de `.cuerpo`. */
 }
 
-.subheading {
+/* El numeral usa la misma voz de «índice» que Cifras, el manifiesto y las
+   páginas de servicio, así que esta sección no estrena un lenguaje propio. */
+.numero {
+  composes: chapterNumber from global;
+  font-size: var(--type-label);
+  line-height: 1.7;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.textos {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+/* La frase que abre el bloque: es lo que se lee. */
+.subtitulo {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  /* 1.15, no 1.1: son titulares de dos y tres líneas, y a 1.1 las mayúsculas
+     acentuadas de una línea rozaban las minúsculas con descendente de la
+     anterior. */
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  font-weight: 400;
+  font-variation-settings: 'wght' 400;
+  margin: 0;
+  max-width: 28ch;
+  text-wrap: balance;
+}
+
+/* La pregunta que responde el bloque, dentro del mismo encabezado: es lo que
+   la pareja escribe en un buscador, así que tiene que estar en el esquema del
+   documento y no suelta en un párrafo debajo. */
+.pregunta {
+  display: block;
   font-family: var(--font-sans);
   font-size: var(--type-label);
   text-transform: uppercase;
   letter-spacing: var(--tracking-label);
+  line-height: 1.6;
   color: var(--color-muted);
   font-weight: 500;
-  margin: 0 0 var(--space-1);
   max-width: 34ch;
 }
 
-.block p {
+/* ---------- la respuesta ---------- */
+.cuerpo {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-1);
+  max-width: 66ch;
+}
+@media (max-width: 599px) {
+  /* Detrás de la regla base a propósito: a igual especificidad manda el
+     orden. Cada peldaño de hueco que se ahorra aquí es altura que la fila
+     pegada deja de ocupar, y de eso depende que la respuesta más larga quepa
+     entera bajo la cabecera fija. */
+  .cuerpo {
+    gap: var(--space-1);
+  }
+}
+
+.cuerpo p {
   font-family: var(--font-sans);
   font-size: var(--type-body);
   line-height: var(--leading-body);
   text-wrap: pretty;
   max-width: 62ch;
-  margin: 0 0 var(--space-1);
+  margin: 0;
 }
 
-.block p:last-child {
-  margin-bottom: 0;
-}
-
-.block a {
+.cuerpo a {
   color: var(--color-ink);
   text-decoration: underline;
   text-underline-offset: 0.22em;
@@ -81,13 +216,67 @@
   transition: text-decoration-color var(--duration-fast) var(--ease-standard);
 }
 
-.block a:hover,
-.block a:focus-visible {
+.cuerpo a:hover,
+.cuerpo a:focus-visible {
   text-decoration-color: var(--color-accent);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .block a { transition: none; }
+/* Plazos de entrega: pares término/valor, no una lista con topos. El término
+   es el plazo, que es el dato que se busca, y por eso va primero y en tinta. */
+.plazos {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  max-width: 62ch;
+}
+.plazo {
+  display: grid;
+  gap: 0.15em;
+  padding-block-start: var(--space-0);
+  border-top: 1px solid var(--color-hairline);
+}
+.plazo dt {
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--color-ink);
+}
+.plazo dd {
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  color: var(--color-muted);
+  margin: 0;
+}
+
+/* El puente al formulario. Antes era un párrafo suelto con un enlace
+   subrayado en medio, y el remate de una sección de seiscientas palabras
+   quedaba en nada. Ahora es un bloque propio: titular, una frase y un enlace
+   con flecha al final, la misma pieza con la que cierran las demás secciones
+   de la home. */
+.closingBlock {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+  margin-block-start: var(--space-5);
+  padding-block-start: var(--space-4);
+  border-top: 1px solid var(--color-hairline);
+}
+@media (min-width: 900px) {
+  /* En escritorio se centra bajo la lista: pegado a la izquierda se lee como
+     una séptima fila del índice, no como el final de la sección. */
+  .closingBlock {
+    justify-items: center;
+    text-align: center;
+  }
+}
+.closingHeading {
+  font-family: var(--font-serif);
+  font-size: var(--type-h2-sm);
+  line-height: 1.1;
+  margin: 0;
+  text-wrap: balance;
 }
 
 .closing {
@@ -97,14 +286,54 @@
   color: var(--color-muted);
   text-wrap: pretty;
   max-width: 62ch;
-  margin: var(--space-4) 0 0;
-  padding-block-start: var(--space-2);
-  border-top: 1px solid var(--color-hairline);
+  margin: 0;
 }
 
+/* Con cuerpo de botón, no una línea de texto subrayada. Es el único paso al
+   formulario en toda esta sección y con el tratamiento de enlace corriente
+   se perdía entre seiscientas palabras de prosa. El relleno se invierte al
+   pasar por encima, que es el gesto que dice "esto se pulsa". */
 .closingLink {
+  composes: arrowLink from global;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
   color: var(--color-ink);
-  text-decoration: underline;
-  text-underline-offset: 0.22em;
-  text-decoration-thickness: 1px;
+  border: 1px solid var(--color-ink);
+  border-radius: 999px;
+  padding: 0.85em 1.6em;
+  min-height: 2.75rem;
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+}
+/* arrowLink pinta una regla bajo el texto; dentro de una pastilla sobra. */
+.closingLink::after {
+  display: none;
+}
+.closingLink:hover,
+.closingLink:focus-visible {
+  color: var(--color-paper);
+  background: var(--color-ink);
+}
+/* EL ANILLO DE FOCO, EN TINTA. El anillo global es `1px solid currentColor`
+   4 px por fuera, y aquí `:focus-visible` acababa de poner `currentColor` en
+   color papel: se dibujaba una línea del color del papel SOBRE el papel, o
+   sea contraste cero, y como `::after` está apagado (la pastilla no quiere el
+   subrayado de arrowLink) lo único que quedaba era la inversión de fondo,
+   idéntica al hover. Quien navega con teclado no podía distinguir «encima» de
+   «enfocado». */
+.closingLink:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+/* Quien pide movimiento reducido no pierde ninguna palabra: las seis filas
+   dejan de apilarse (ver la regla de `.item`, que sólo se pega cuando hay
+   preferencia por el movimiento) y se leen como una lista corriente. Aquí
+   sólo se apagan las transiciones de color que quedan. */
+@media (prefers-reduced-motion: reduce) {
+  .closingLink,
+  .cuerpo a {
+    transition: none;
+  }
 }

@@ -44,11 +44,11 @@ describe('buildProjectSpreads', () => {
     }
   });
 
-  it('routes the video project (boda-real-01) through its own cover media, not a still substitute', () => {
-    const videoSpread = spreads.find((s) => s.project.slug === 'boda-real-01');
+  it('routes the video project (andrea-y-jesus) through its own cover media, not a still substitute', () => {
+    const videoSpread = spreads.find((s) => s.project.slug === 'andrea-y-jesus');
     expect(videoSpread).toBeDefined();
     expect(videoSpread!.images[0].type).toBe('video');
-    expect(videoSpread!.images[0].src).toBe('/videos/previews/real-boda-01-preview.mp4');
+    expect(videoSpread!.images[0].src).toBe('/videos/previews/andrea-y-jesus-preview.mp4');
   });
 
   it('assigns panoramic to at least one real photo, not only the video cover (final review, finding I1)', () => {

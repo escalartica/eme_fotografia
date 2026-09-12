@@ -17,7 +17,16 @@
   justify-items: center;
   align-items: end;
   padding-block-end: var(--space-4);
+  /* `clip`, con `hidden` delante como respaldo. `hidden` convierte el panel
+     en un contenedor de scroll, y entonces cualquier `animation-timeline:
+     view()` de dentro (el revelado del titular en la franja) se mide contra
+     ESTE recuadro de 100svh en vez de contra la pantalla: el titular está
+     siempre entero dentro de él, el progreso se queda clavado en el 100% y
+     la animación no llega a correr nunca. `clip` recorta exactamente igual
+     sin crear scrollport. Mismo hallazgo que ya documenta
+     SobreEmePreview.module.css. */
   overflow: hidden;
+  overflow: clip;
   isolation: isolate;
   color: var(--color-night-text);
 }
@@ -47,6 +56,7 @@
 
 /* The strip: one band of paper across the frame, in two halves. */
 .strip {
+  position: relative;
   grid-row: 2;
   width: calc(100% - 2 * var(--gutter));
   max-width: 96rem;
@@ -71,6 +81,9 @@
   gap: var(--space-2);
 }
 .number {
+  /* Bloque, no en línea: un `transform` no se aplica a una caja en línea, y
+     este rótulo sube desde detrás de su ventana. */
+  display: block;
   font-family: var(--font-serif);
   font-size: var(--type-h3);
   line-height: 0.85;
@@ -98,6 +111,8 @@
 }
 .label {
   composes: eyebrow from global;
+  /* Bloque, por el mismo motivo que .number. */
+  display: block;
 }
 .name {
   font-family: var(--font-serif);
@@ -110,6 +125,97 @@
   composes: arrowLink from global;
   color: var(--color-accent);
   margin-block-start: var(--space-1);
+}
+
+/* ---------------------------------------------------------------------
+   LA FRANJA SE MONTA SOLA
+   ---------------------------------------------------------------------
+   Tres rótulos -- el número, la promesa y la etiqueta -- suben desde detrás
+   de su propia ventana mientras el panel entra, escalonados, y acaban de
+   posarse justo cuando la tarjeta se ancla. Es el mismo mecanismo del
+   revelado por palabras que ya lleva el nombre del servicio
+   (components/motion/RevealWords), aplicado a los rótulos que llegaban ya
+   puestos.
+
+   LAS REGLAS DE LA CASA, INTACTAS:
+   - EL TEXTO SE VE EN REPOSO. No hay ni un `opacity: 0` por defecto. Todo
+     vive dentro de la doble puerta (`prefers-reduced-motion: no-preference`
+     y `@supports`), así que donde no hay soporte la declaración ni se lee y
+     los tres rótulos están ahí, quietos y enteros.
+   - Sólo `transform`. Cero JavaScript: esto no añade un byte al cliente.
+
+   POR QUÉ ESTOS TRAMOS. Para un panel de exactamente 100svh, `entry 100%` es
+   el instante en que su borde inferior alcanza el borde inferior de la
+   pantalla -- o sea, el fotograma en que la tarjeta llena el encuadre y
+   StackedSections la ancla. Cerrar en el 60/68/76% deja los tres rótulos
+   colocados un momento ANTES de ese anclaje: la franja está terminada cuando
+   la tarjeta se para, no montándose mientras el visitante ya la lee.
+   El escalón de 8 puntos se ve como cascada sin que la etiqueta de la derecha
+   llegue notoriamente sola.
+   El orden es el del ojo: número, promesa, etiqueta.
+
+   POR QUÉ NO SE MUEVE LA FRANJA ENTERA. Un `transform` sobre `.strip` la
+   desplazaría con todo lo que hay dentro, y dentro está el <h2> con su
+   revelado por palabras, que mide su propia posición contra la pantalla: un
+   antepasado que se mueve mientras un descendiente se mide es el fallo de
+   reveals anidados que este proyecto ya documenta en tres sitios. Las
+   ventanas son hermanas de ese titular, nunca sus antepasados. */
+.mask {
+  display: block;
+  overflow: hidden;
+  overflow: clip;
+  /* Holgura para lo que el recorte se comería de las letras con descendente.
+     Los tres rótulos van en versales y no las tienen, pero el margen cuesta
+     cero y protege de un cambio de copia. */
+  padding-block-end: 0.14em;
+  margin-block-end: -0.14em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .number,
+    .promise,
+    .label {
+      animation: stripRise linear both;
+      animation-timeline: view();
+      /* Sin `will-change`: una animación guiada por el scroll con `fill:
+         both` ya está activa desde la carga y el navegador promociona el
+         elemento por su cuenta. Mismo criterio que RevealWords. */
+    }
+    .number { animation-range: entry 10% entry 60%; }
+    .promise { animation-range: entry 18% entry 68%; }
+    .label { animation-range: entry 26% entry 76%; }
+
+    /* Y la propia franja se traza: la línea de un píxel de su borde superior
+       se dibuja de izquierda a derecha mientras los rótulos suben. Es un
+       `scaleX`, así que no toca la maquetación de nada. */
+    .strip::before {
+      content: '';
+      position: absolute;
+      inset-inline: 0;
+      top: 0;
+      height: 1px;
+      background: var(--color-hairline);
+      transform: scaleX(0);
+      transform-origin: left center;
+      animation: stripRule linear both;
+      animation-timeline: view();
+      animation-range: entry 6% entry 62%;
+    }
+  }
+}
+
+/* 108% de su propia altura, no 100%: por encima del 100 el rótulo arranca de
+   verdad por debajo del borde de su ventana y no asoma un pelo de tinta al
+   principio. Mismo número y misma razón que RevealWords.module.css. */
+@keyframes stripRise {
+  from { transform: translate3d(0, 108%, 0); }
+  to   { transform: none; }
+}
+
+@keyframes stripRule {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {

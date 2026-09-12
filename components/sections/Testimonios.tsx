@@ -10,6 +10,7 @@ import { motion } from '@/lib/motion-tokens';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import { ExternalLinkIcon } from '@/components/ui/Icon';
 import styles from './Testimonios.module.css';
+import { RevealWords } from '@/components/motion/RevealWords';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -130,7 +131,10 @@ export function Testimonios() {
     <section aria-labelledby="testimonios-heading" className={styles.section}>
       <ScrollReveal>
         <h2 id="testimonios-heading">
-          <em className={styles.emphasis}>Lo que dicen</em> de nosotros
+          <RevealWords
+            segments={[{ text: 'Lo que dicen', em: true }, { text: ' de nosotros' }]}
+            emClassName={styles.emphasis}
+          />
         </h2>
       </ScrollReveal>
       <div ref={stageRef} className={styles.stage}>
@@ -207,7 +211,7 @@ export function Testimonios() {
       <ScrollReveal delay={0.1}>
         <p className={styles.statLine}>
           <a href={site.bodasNetUrl} target="_blank" rel="noopener noreferrer">
-            Leer las opiniones en Bodas.net
+            Leer todas las opiniones
             <ExternalLinkIcon className={styles.externalIcon} size={12} />
             <span className={styles.visuallyHidden}> (se abre en una pestaña nueva)</span>
           </a>

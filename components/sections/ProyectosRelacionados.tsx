@@ -3,9 +3,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Project } from '@/content/types';
 import { CATEGORY_LABELS } from '@/lib/category-labels';
-import { focusOf } from '@/lib/focal';
+import { focusOf, sinEtalonarStyle } from '@/lib/focal';
 import { pickRelated } from '@/lib/related';
 import styles from './ProyectosRelacionados.module.css';
+import { RevealWords } from '@/components/motion/RevealWords';
 
 /**
  * Three more weddings at the foot of every reportaje.
@@ -41,9 +42,15 @@ export function ProyectosRelacionados({ project, projects }: { project: Project;
           tres de la sierra con una de Sevilla colada. Es un <h2> indexable
           afirmando un hecho falso. */}
       <h2 id="relacionados-heading" className={styles.heading}>
-        {related.every((p) => p.location === project.location)
-          ? `Más bodas en ${project.location}`
-          : 'Otros reportajes'}
+        <RevealWords
+          segments={[
+            {
+              text: related.every((p) => p.location === project.location)
+                ? `Más bodas en ${project.location}`
+                : 'Otros reportajes',
+            },
+          ]}
+        />
       </h2>
       <ul className={styles.grid}>
         {related.map((p) => {
@@ -65,7 +72,7 @@ export function ProyectosRelacionados({ project, projects }: { project: Project;
                     fill
                     sizes="(max-width: 700px) 46vw, 30vw"
                     className={styles.image}
-                    style={focusOf(src, p.cover.focus)}
+                    style={{ ...focusOf(src, p.cover.focus), ...sinEtalonarStyle(p.cover) }}
                   />
                 </span>
                 <span className={styles.name}>{p.title}</span>

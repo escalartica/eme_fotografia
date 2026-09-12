@@ -191,18 +191,35 @@ export function HeroMosaic({ play = true }: { play?: boolean }) {
     };
   }, [reducedMotion, lenis]);
 
-  // Entrance: the whole band settles from a slight zoom while frames fade in.
+  // LA ENTRADA: la banda se posa desde un ligero acercamiento mientras cada
+  // columna abre su cortina.
+  //
+  // Lo que había aquí antes ponía las veinte fotografías a `opacity: 0` desde
+  // JavaScript y esperaba a que un `tween` se las devolviera. Es exactamente
+  // el patrón que este proyecto ya desterró de ScrollReveal y de SelectedReel,
+  // y en el sitio peor posible: la primera pantalla de la web de una
+  // fotógrafa. Si GSAP tarda, falla, o el efecto se limpia a mitad de camino,
+  // el visitante se queda mirando papel en blanco donde tenía que haber cinco
+  // bodas. Ahora la apertura la hace un `clip-path` declarado en CSS
+  // (HeroMosaic.module.css) con `backwards`, o sea que el estado de reposo de
+  // cada columna es VISIBLE y la animación sólo puede quitarlo mientras corre.
+  //
+  // Aquí queda únicamente el asentamiento de la banda entera, que es un
+  // `transform` y por tanto no puede esconder nada: si no se ejecuta, la
+  // banda está donde tiene que estar.
+  //
+  // 1,1 y 1 s, no 1,18 y 1,6: la coreografía de entrada entera son 1,2 s (ver
+  // Hero.tsx), y un acercamiento del 18% tardando 1,6 s dejaba la portada
+  // moviéndose medio segundo después de que todo lo demás se hubiera posado.
+  // El retardo de 0,16 s es el encabalgado: la fotografía entra un pelo
+  // después de que el masthead haya empezado a escribirse, no a la vez.
   useEffect(() => {
     if (reducedMotion || !play) return;
     const band = bandRef.current;
     if (!band) return;
-    const frames = band.querySelectorAll(`.${styles.media}`);
     const ctx = gsap.context(() => {
-      gsap.set(band, { scale: 1.18, y: '4vh', transformOrigin: 'center top' });
-      gsap.set(frames, { opacity: 0 });
-      const tl = gsap.timeline();
-      tl.to(frames, { opacity: 1, duration: 0.8, ease: 'power1.out', stagger: 0.04 }, 0);
-      tl.to(band, { scale: 1, y: 0, duration: 1.6, ease: 'power2.out' }, 0);
+      gsap.set(band, { scale: 1.1, y: '3vh', transformOrigin: 'center top' });
+      gsap.to(band, { scale: 1, y: 0, duration: 1, delay: 0.16, ease: 'power2.out' });
     });
     return () => ctx.revert();
   }, [reducedMotion, play]);
@@ -295,7 +312,7 @@ export function HeroMosaic({ play = true }: { play?: boolean }) {
   };
 
   return (
-    <div ref={bandRef} className={styles.band} data-testid="hero-mosaic">
+    <div ref={bandRef} className={styles.band} data-testid="hero-mosaic" data-enter={play ? 'true' : undefined}>
       <div ref={innerRef} className={styles.inner}>
         <div className={styles.grid} role="list" aria-label="Bodas destacadas">
           {columns.map((col, i) => {

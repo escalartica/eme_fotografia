@@ -27,7 +27,7 @@ export default function Page() {
       <ul>
         <li>Responsable: {site.brandName} ({site.founderName})</li>
         <li>
-          NIF: <span className={styles.pending}>pendiente de indicar por el titular</span>
+          NIF: {site.legalNif}
         </li>
         <li>
           Domicilio: {site.streetAddress}, {site.postalCode} {site.addressLocality} ({site.legalCity}), España

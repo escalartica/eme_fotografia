@@ -89,4 +89,17 @@ describe('VideoPreview', () => {
     fireEvent.click(screen.getByRole('button', { name: /reproducir/i }));
     expect(onOpenFull).toHaveBeenCalledTimes(1);
   });
+
+  // El botón no vuelve a ser una píldora con texto. Era blanca, maciza y en el
+  // centro exacto del cuadro: sobre una fotografía de boda tapa justo lo que
+  // hay que mirar. Sigue teniendo nombre accesible -- lo que se retira es la
+  // palabra pintada encima de la foto, no la etiqueta que oye un lector de
+  // pantalla.
+  it('marks the play control with a symbol, not a word painted over the photograph', () => {
+    vi.mocked(useReducedMotion).mockReturnValue(true);
+    render(<VideoPreview media={media} onOpenFull={() => {}} />);
+    const button = screen.getByRole('button', { name: /reproducir/i });
+    expect(button).toHaveTextContent('');
+    expect(button.querySelector('svg')).not.toBeNull();
+  });
 });

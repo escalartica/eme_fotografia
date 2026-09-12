@@ -7,8 +7,8 @@ const landscape = { type: 'image' as const, src: '/images/landscape.jpg', alt: '
 const detail = { type: 'image' as const, src: '/images/detail.jpg', alt: 'Detalle de las alianzas', width: 1000, height: 1500 };
 const video = {
   type: 'video' as const,
-  src: '/videos/previews/real-boda-01-full.mp4',
-  poster: '/videos/posters/real-boda-01-full.webp',
+  src: '/videos/previews/andrea-y-jesus-full.mp4',
+  poster: '/videos/posters/andrea-y-jesus-full.webp',
   alt: 'Vídeo de la boda de Eva y Rafa',
   width: 1600,
   height: 1066,

@@ -217,6 +217,12 @@
 }
 .privacy a {
   color: var(--color-ink);
+  /* El color solo no basta: sobre texto apagado el salto es 3.73:1 en claro
+     pero 2.44:1 en oscuro, por debajo del 3:1 que exige distinguir un enlace
+     por color. Y aquí el enlace es la dirección a la que escribir cuando te
+     has quedado fuera, que es lo último que puede pasar desapercibido. */
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 /* ---------- FAQ ---------- */

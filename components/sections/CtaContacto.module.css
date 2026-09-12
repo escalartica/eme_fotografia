@@ -41,7 +41,10 @@
   justify-items: center;
   text-align: center;
   gap: var(--space-2);
-  max-width: 46rem;
+  /* 54rem, no 46: el titular pasó de 18 caracteres a 41 y a la medida
+     anterior caía en seis líneas de tipo gigante que tapaban la foto entera.
+     Con más medida y un cuerpo menor son dos o tres. */
+  max-width: 54rem;
 }
 
 /* Small, italic, lowercase, sitting on top of the statement: the pairing
@@ -60,10 +63,20 @@
 .heading {
   composes: display from global;
   color: var(--color-night-text);
-  font-size: var(--type-h1);
-  line-height: 1.02;
+  /* --type-h2, no --type-h1: con la frase larga, el escalón mayor rompía en
+     seis líneas y la fotografía dejaba de verse. Este cierre funciona porque
+     el titular y la foto se ven a la vez. */
+  font-size: var(--type-h2);
+  line-height: 1.04;
   margin: 0;
+  text-wrap: balance;
 }
+
+/* La ventana de cada palabra y su animación VIVEN EN
+   components/motion/RevealWords.module.css, que es de donde salieron: aquí
+   había una copia literal del mismo gesto, con dos diferencias que ya se
+   habían quedado atrás (0,12em de compensación de descendente en vez de
+   0,16, y un `will-change` por palabra). Ver el comentario del componente. */
 
 .body {
   margin: 0;
@@ -75,9 +88,21 @@
   text-wrap: pretty;
 }
 
+/* El margen y la alineación viven en el envoltorio magnético, no en el
+   enlace: la caja que <Magnetic> mide para decidir desde dónde atrae es la
+   suya, y con el margen dentro el centro de atracción quedaba medio espacio
+   por debajo del rótulo. */
+.ctaMagnet {
+  margin-top: var(--space-2);
+  /* `center`, no `start`: .content centra todo lo demás (`justify-items:
+     center`) y esta era la única pieza alineada a la izquierda, así que la
+     flecha de cierre de la portada quedaba descolgada bajo un bloque de texto
+     centrado. */
+  justify-self: center;
+  align-self: start;
+}
 .cta {
   composes: arrowLink from global;
-  margin-top: var(--space-2);
   color: var(--color-night-text);
 }
 

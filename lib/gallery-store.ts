@@ -100,6 +100,19 @@ export function galleryPhotosDir(slug: string): string {
   return path.join(galleryDir(slug), 'photos');
 }
 
+/**
+ * Dónde se guardan las copias reducidas de cada foto (ver
+ * lib/gallery-derivatives.ts). Hermana de `photos/`, y por el mismo motivo
+ * fuera de public/: una miniatura de una boda privada es tan privada como su
+ * original, y bajo public/ no habría forma de comprobar la sesión.
+ *
+ * Es una caché: se puede borrar entera en caliente y se vuelve a rellenar
+ * sola con la siguiente visita.
+ */
+export function galleryDerivativesDir(slug: string): string {
+  return path.join(galleryDir(slug), 'derivados');
+}
+
 export async function listGallerySlugs(): Promise<string[]> {
   try {
     const entries = await fs.readdir(GALLERIES_DIR, { withFileTypes: true });
@@ -119,6 +132,40 @@ export async function getGalleryMeta(slug: string): Promise<GalleryMeta | null> 
   }
 }
 
+/**
+ * Escribe meta.json de forma ATÓMICA: primero un temporal al lado, luego un
+ * rename, que dentro del mismo sistema de ficheros es indivisible.
+ *
+ * Sin esto, un proceso que muriera a media escritura dejaba un meta.json
+ * truncado; `getGalleryMeta` capturaba el error de JSON, devolvía null, y la
+ * galería pasaba a ser un 404 permanente con las fotos intactas al lado e
+ * inalcanzables. Es un modo de fallo irreversible que cuesta una línea evitar.
+ */
+async function escribirMetaAtomico(dir: string, meta: GalleryMeta): Promise<void> {
+  const destino = path.join(dir, 'meta.json');
+  const tmp = `${destino}.${process.pid}-${Date.now()}.tmp`;
+  try {
+    await fs.writeFile(tmp, JSON.stringify(meta, null, 2), { mode: 0o600 });
+    await fs.rename(tmp, destino);
+  } catch (err) {
+    await fs.rm(tmp, { force: true }).catch(() => {});
+    throw err;
+  }
+}
+
+/**
+ * Actualiza la ficha de una galería que YA EXISTE, sin crear nada si no
+ * existe. Ver el comentario de `updateGalleryPasswordHash` para por qué esa
+ * distinción importa.
+ */
+async function escribirMetaExistente(slug: string, meta: GalleryMeta): Promise<void> {
+  const dir = galleryDir(slug);
+  // Comprobación explícita y justo antes de escribir: reduce la ventana a lo
+  // mínimo que permite un almacén en ficheros sin un bloqueo de verdad.
+  await fs.access(path.join(dir, 'meta.json'));
+  await escribirMetaAtomico(dir, meta);
+}
+
 export async function saveGalleryMeta(meta: GalleryMeta): Promise<void> {
   const dir = galleryDir(meta.slug);
   // 0o700/0o600: meta.json guarda el hash de la contraseña de la galería y el
@@ -126,7 +173,7 @@ export async function saveGalleryMeta(meta: GalleryMeta): Promise<void> {
   // cualquier otra cuenta de la máquina, que en un hosting compartido son
   // desconocidos.
   await fs.mkdir(dir, { recursive: true, mode: 0o700 });
-  await fs.writeFile(path.join(dir, 'meta.json'), JSON.stringify(meta, null, 2), { mode: 0o600 });
+  await escribirMetaAtomico(dir, meta);
 }
 
 export async function getSelection(slug: string): Promise<Selection | null> {
@@ -146,6 +193,83 @@ export async function saveSelection(slug: string, items: SelectionItem[]): Promi
   // del resto de cuentas del servidor: mismo 0o600 que meta.json.
   const record: Selection = { items, submittedAt: new Date().toISOString() };
   await fs.writeFile(path.join(dir, 'selection.json'), JSON.stringify(record, null, 2), { mode: 0o600 });
+}
+
+/**
+ * BORRA UNA GALERÍA ENTERA, con todo lo que cuelga de ella.
+ *
+ * Antes de esto no había forma de quitar una galería del panel, y eso no era
+ * sólo una comodidad que faltaba: una boda entregada se quedaba en el disco
+ * para siempre --con las fotos, el nombre del cliente y el hash de su
+ * contraseña--, un error de dedo al crearla obligaba a empezar con otro slug
+ * dejando el anterior muerto e inalcanzable, y no existía manera de atender
+ * una petición de supresión del RGPD sin entrar por SSH.
+ *
+ * SE BORRA EL DIRECTORIO ENTERO, no fichero a fichero: dentro van meta.json,
+ * selection.json, photos/ y derivados/, y borrar sólo lo que esta función
+ * conozca por su nombre dejaría huérfano cualquier fichero que se añada en el
+ * futuro. `recursive: true` sobre el directorio de la galería los cubre todos
+ * hoy y los que vengan.
+ *
+ * `force: false` a propósito: si el directorio no existe, `fs.rm` lanza y
+ * devolvemos false, para que la ruta pueda responder 404 en vez de fingir que
+ * ha borrado algo que nunca estuvo.
+ *
+ * Ojo: esto NO cierra las sesiones abiertas de esa galería. Eso lo hace la
+ * ruta, llamando a `destroySessionsForSubject` -- va aparte porque las
+ * sesiones viven en su propio almacén y esta función no debería saber nada de
+ * él.
+ */
+export async function deleteGallery(slug: string): Promise<boolean> {
+  if (!isValidSlug(slug)) return false;
+  try {
+    await fs.rm(galleryDir(slug), { recursive: true, force: false });
+    return true;
+  } catch (err) {
+    // SÓLO "no existía" devuelve false. Cualquier otro fallo --permisos, el
+    // fichero en uso, un borrado recursivo que murió a mitad-- se propaga
+    // para que la ruta responda 500.
+    // Tragárselo todo era peor de lo que parece: la ruta traducía ese false a
+    // un 404 "Galería no encontrada", no cerraba las sesiones, y el estudio
+    // leía que no había pasado nada cuando en realidad podía quedar el
+    // directorio medio vaciado y la pareja dentro durante treinta días.
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return false;
+    throw err;
+  }
+}
+
+/**
+ * Cambia la contraseña de una galería, dejando el resto de la ficha intacta.
+ *
+ * Existe porque el panel sólo enseñaba la contraseña UNA vez, al crear la
+ * galería, y no había forma de volver a fijarla: si el estudio no la apuntó y
+ * la pareja la perdía, esa galería quedaba inaccesible para siempre y --antes
+ * de `deleteGallery`-- tampoco se podía borrar. Pasa el primer mes de uso
+ * real.
+ *
+ * Recibe el hash ya calculado y no la contraseña en claro: que este fichero
+ * no sepa nada de scrypt es lo que mantiene el hasheo en un solo sitio
+ * (lib/auth/password.ts) y evita que una segunda llamada acabe guardando algo
+ * con otro coste o sin sal.
+ */
+export async function updateGalleryPasswordHash(
+  slug: string,
+  passwordHash: string
+): Promise<boolean> {
+  const meta = await getGalleryMeta(slug);
+  if (!meta) return false;
+  // ESCRIBE SOBRE UN FICHERO QUE TIENE QUE EXISTIR YA, y no pasa por
+  // `saveGalleryMeta`, que empieza por un `mkdir` incondicional.
+  //
+  // La diferencia no es de estilo: entre el `getGalleryMeta` de arriba y esta
+  // escritura cabe un borrado. Con el `mkdir`, ese hueco recreaba
+  // data/galleries/<slug>/meta.json con el nombre del cliente, su usuario y
+  // un hash de contraseña -- datos personales que acababan de borrarse por
+  // una petición de supresión volvían al disco, y la galería reaparecía vacía
+  // en el panel. Con `flag: 'r+'` sobre un fichero que ya no está, la
+  // escritura falla y no resucita nada.
+  await escribirMetaExistente(slug, { ...meta, passwordHash });
+  return true;
 }
 
 /** Extensiones que este proyecto acepta subir y sirve después. */

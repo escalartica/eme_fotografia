@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import Image from 'next/image';
+import { BrandMark } from '@/components/ui/BrandMark';
 import Link from 'next/link';
 import { getAdminSession } from '@/lib/auth/require-session';
 import { listGallerySlugs, getGalleryMeta, getSelection } from '@/lib/gallery-store';
@@ -62,7 +62,7 @@ export default async function AdminDashboardPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <Link href="/" className={styles.brand} aria-label={`${site.brandName} - inicio`}>
-          <Image src="/images/logo/eme-logo.png" alt={site.brandName} width={100} height={47} priority />
+          <BrandMark alto={2.2} priority />
         </Link>
         <div className={styles.headerActions}>
           <ThemeToggle />

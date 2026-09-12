@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { saveContactSubmission } from './contact-store';
+import { CONSENTIMIENTO_TEXTO, CONSENTIMIENTO_VERSION } from '@/content/consentimiento';
 
 /**
  * Carga útil mínima que el servidor acepta hoy. `fecha` y `lugar` entraron en
@@ -20,6 +21,10 @@ const validPayload = {
   lugar: 'Carmona',
   tipoEvento: 'foto-y-video',
   mensaje: 'Hola',
+  // Obligatorio desde que el formulario pide el consentimiento expreso
+  // (RGPD art. 7.1): sin esta marca el servidor rechaza el envío con un 400.
+  // Ver content/consentimiento.ts y el bloque de pruebas del final.
+  consentimiento: 'si' as const,
 };
 
 // Use a unique per-file temp directory (rather than the real
@@ -87,5 +92,54 @@ describe('saveContactSubmission', () => {
     const content = JSON.parse(await fs.readFile(path.join(DIR, files[0]), 'utf-8'));
     expect(content.comoNosConociste).toBe('instagram');
     expect(content.lugar).toBe('Carmona');
+  });
+});
+
+
+/**
+ * EL REGISTRO DE CONSENTIMIENTO (RGPD art. 7.1).
+ *
+ * Lo que se comprueba aquí no es que exista una casilla --eso es del
+ * formulario-- sino que el servidor no guarda un dato personal sin poder
+ * justificar por qué lo tiene. Esta ruta es una API pública: cualquiera puede
+ * publicar contra ella sin pasar por la casilla, así que la exigencia tiene
+ * que vivir también aquí.
+ */
+describe('consentimiento', () => {
+  it('rechaza un envío sin la marca de consentimiento', async () => {
+    const { consentimiento: _, ...sinConsentimiento } = validPayload;
+    await expect(
+      saveContactSubmission(sinConsentimiento as typeof validPayload, DIR)
+    ).rejects.toThrow(/política de privacidad/i);
+  });
+
+  it('rechaza un valor que no sea exactamente "si"', async () => {
+    await expect(
+      saveContactSubmission({ ...validPayload, consentimiento: 'no' } as never, DIR)
+    ).rejects.toThrow();
+    await expect(
+      saveContactSubmission({ ...validPayload, consentimiento: 'on' } as never, DIR)
+    ).rejects.toThrow();
+  });
+
+  /**
+   * La parte que hace que el registro sirva de prueba: el texto y la versión
+   * los escribe el SERVIDOR desde content/consentimiento.ts. Si vinieran en la
+   * petición, cualquiera podría afirmar haber aceptado algo distinto de lo que
+   * la web enseñó.
+   */
+  it('guarda el texto y la versión desde el servidor, ignorando lo que mande el cliente', async () => {
+    const { id } = await saveContactSubmission(
+      {
+        ...validPayload,
+        consentimientoTexto: 'acepto cualquier cosa',
+        consentimientoVersion: '1999-01-01',
+      } as never,
+      DIR
+    );
+    const guardado = JSON.parse(await fs.readFile(path.join(DIR, `${id}.json`), 'utf-8'));
+    expect(guardado.consentimientoTexto).toBe(CONSENTIMIENTO_TEXTO);
+    expect(guardado.consentimientoVersion).toBe(CONSENTIMIENTO_VERSION);
+    expect(guardado.receivedAt).toBeTruthy();
   });
 });

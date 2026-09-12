@@ -39,11 +39,36 @@
   text-underline-offset: 0.2em;
   text-decoration-thickness: 1px;
 }
-.pending {
-  display: inline-block;
-  padding: 0 0.35em;
-  border: 1px dashed var(--color-muted);
-  color: var(--color-muted);
+/* AQUÍ VIVÍA `.pending`: un recuadro gris a rayas que marcaba los datos
+   legales que el estudio todavía no había dado (el NIF). Ya no falta ninguno,
+   así que el marcador sobra.
+   Lo que sí se queda es el botón de las cookies, que estaba tomando prestado
+   ese mismo estilo -- y era doblemente equivocado: por el nombre, que decía
+   «pendiente» de un control que funciona, y por el aspecto, porque un
+   recuadro a rayas se lee como un hueco sin rellenar y ése es el ÚNICO botón
+   de toda la página. Ahora se parece a lo que es. */
+.botonCookies {
+  font: inherit;
+  font-size: var(--type-small);
+  display: inline-flex;
+  align-items: center;
+  /* WCAG 2.5.8: el objetivo táctil mínimo son 24x24 px, y este botón va
+     incrustado en mitad de un párrafo. */
+  min-height: 2.25rem;
+  padding: 0.35em 0.9em;
+  color: var(--color-paper);
+  background: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.botonCookies:hover {
+  background: none;
+  color: var(--color-ink);
+}
+.botonCookies:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
 }
 .table {
   width: 100%;

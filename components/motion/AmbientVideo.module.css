@@ -1,0 +1,12 @@
+/* Llena su marco como lo haría una fotografía con `object-fit: cover`, y deja
+   pasar el ratón: quien manda es el enlace de alrededor. La gradación es la
+   misma que la del resto de imágenes del sitio, para que un vídeo y una foto
+   puestos uno al lado del otro tengan el mismo color. */
+.video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: var(--photo-grade);
+  pointer-events: none;
+}

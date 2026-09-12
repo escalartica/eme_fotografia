@@ -37,13 +37,27 @@ describe('/servicios index', () => {
     }
   });
 
-  it('numbers the two services in the order of content/services.ts', () => {
+  it('lists the services in the order of content/services.ts, each with its tagline', () => {
     render(<Page />);
+    const filas = screen.getAllByRole('listitem');
+    expect(filas).toHaveLength(services.length);
     services.forEach((service, index) => {
-      const heading = screen.getByRole('heading', { name: service.name, level: 2 });
-      const card = heading.closest('li') as HTMLElement;
-      expect(within(card).getByText(String(index + 1).padStart(2, '0'))).toBeInTheDocument();
-      expect(within(card).getByText(service.tagline)).toBeInTheDocument();
+      const fila = filas[index];
+      expect(within(fila).getByRole('heading', { level: 2 })).toHaveTextContent(service.name);
+      expect(within(fila).getByText(service.tagline)).toBeInTheDocument();
     });
+  });
+
+  // SIN NUMERAL DECORATIVO. Aquí había un «01» / «02» pintado a --type-h1,
+  // un escalón MÁS GRANDE que el nombre del servicio que tenía al lado: el
+  // adorno le ganaba en tamaño al contenido. Y no numeraba nada -- dos
+  // servicios no son una secuencia que haya que leer en orden, son una
+  // elección. Si vuelve a aparecer, es que alguien ha reintroducido el
+  // patrón.
+  it('does not decorate the services with numbering that encodes nothing', () => {
+    render(<Page />);
+    for (const n of ['01', '02', '03']) {
+      expect(screen.queryByText(n)).toBeNull();
+    }
   });
 });

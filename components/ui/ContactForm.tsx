@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, FormEvent, KeyboardEvent } from 'react';
 import Link from 'next/link';
 import { gsap } from 'gsap';
 import { site } from '@/content/site';
+import { CONSENTIMIENTO_TEXTO } from '@/content/consentimiento';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import { motion } from '@/lib/motion-tokens';
 import styles from './ContactForm.module.css';
@@ -55,11 +56,28 @@ function FieldError({ name, message }: { name: string; message?: string }) {
 
 export function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
+  const successRef = useRef<HTMLDivElement>(null);
   // Distingue "enviado" de "guardado pero no entregado": la ruta devuelve 200
   // con delivered:false cuando no hay proveedor de correo configurado.
   const [delivered, setDelivered] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  /**
+   * El día de hoy, para el `min` del campo de fecha.
+   *
+   * Se calcula en el CLIENTE y con estado perezoso, no durante el render del
+   * servidor: esta página se sirve estática, así que una fecha calculada allí
+   * se queda congelada en el HTML cacheado y al día siguiente el campo
+   * rechazaría hoy. Con `useState(() => ...)` se evalúa una sola vez por
+   * montaje, que en la práctica es una vez por visita.
+   *
+   * `toLocaleDateString('en-CA')` da el formato ISO que pide un
+   * `<input type="date">` (AAAA-MM-DD) usando la ZONA HORARIA DEL NAVEGADOR.
+   * Con `toISOString()` --que es UTC-- una pareja escribiendo desde España a
+   * las once de la noche vería el `min` puesto ya en el día siguiente y no
+   * podría elegir mañana.
+   */
+  const [hoy] = useState(() => new Date().toLocaleDateString('en-CA'));
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const reducedMotion = useReducedMotion();
@@ -137,6 +155,7 @@ const MENSAJES_ERROR: Record<string, string> = {
   lugar: 'Escribid el sitio y, si todavía no lo tenéis, la zona.',
   tipoEvento: 'Elegid una opción para saber qué necesitáis.',
   mensaje: 'Contadnos algo de vuestra boda, aunque sean dos líneas.',
+  consentimiento: 'Necesitamos vuestro permiso para guardar estos datos y poder contestaros.',
 };
 
 function mensajeDeError(field: { name: string; validationMessage: string }): string {
@@ -166,15 +185,33 @@ function mensajeDeError(field: { name: string; validationMessage: string }): str
     setErrors((prev) => (prev[name] ? { ...prev, [name]: '' } : prev));
   }
 
-  function fieldProps(name: string) {
+  /**
+   * `hasHint`: hay un `<p class="fieldHint">` debajo de este campo.
+   *
+   * La pista se pintaba en un párrafo suelto sin `id`, y `aria-describedby`
+   * solo apuntaba al error -- y solo cuando había error. Quien usa lector de
+   * pantalla oía «Fecha, obligatorio» y nada más, justo en el campo donde la
+   * pista dice que vale una fecha aproximada. Ahora la descripción es la
+   * pista SIEMPRE, y el error se le suma cuando aparece: ese orden es el que
+   * hace que se lea primero qué se espera y después qué ha fallado.
+   */
+  function fieldProps(name: string, hasHint = false) {
     const message = errors[name];
+    const described = [hasHint ? `${name}-hint` : null, message ? `${name}-error` : null]
+      .filter(Boolean)
+      .join(' ');
     return {
       'aria-invalid': message ? (true as const) : undefined,
-      'aria-describedby': message ? `${name}-error` : undefined,
+      'aria-describedby': described || undefined,
       onInput: (e: FormEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
         clearError(name, e.currentTarget.checkValidity()),
     };
   }
+
+  // Lleva el foco al panel de respuesta en cuanto sustituye al formulario.
+  useEffect(() => {
+    if (submitted) successRef.current?.focus();
+  }, [submitted]);
 
   function goBack() {
     setStep((s) => Math.max(s - 1, 0));
@@ -186,8 +223,15 @@ function mensajeDeError(field: { name: string; validationMessage: string }): str
   function handleStepKeyDown(e: KeyboardEvent<HTMLFieldSetElement>) {
     if (e.key !== 'Enter') return;
     if ((e.target as HTMLElement).tagName === 'TEXTAREA') return;
+    // El `preventDefault()` iba fuera del `if` y el `goNext()` dentro, así que
+    // en el último paso -- el desplegable de «cómo nos conocisteis» -- Intro
+    // cancelaba el envío implícito del navegador y no hacía nada a cambio: la
+    // tecla quedaba muerta justo en el paso que envía el formulario. Ahora
+    // solo se cancela cuando hay un paso siguiente al que ir; en el último,
+    // Intro envía como en cualquier formulario.
+    if (step >= TOTAL_STEPS - 1) return;
     e.preventDefault();
-    if (step < TOTAL_STEPS - 1) goNext();
+    goNext();
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -256,7 +300,19 @@ function mensajeDeError(field: { name: string; validationMessage: string }): str
 
   if (submitted) {
     return (
-      <div role="status" className={styles.success}>
+      /**
+       * `tabIndex={-1}` + foco (ver el efecto de abajo), y NO solo
+       * `role="status"`. Una región en vivo se monta a la vez que su
+       * contenido: los lectores de pantalla anuncian los CAMBIOS dentro de
+       * una región que ya existía, así que insertar región y texto en la
+       * misma mutación no se anuncia de forma fiable en NVDA ni en VoiceOver.
+       * Y aquí además desaparece el formulario entero, así que el foco caía
+       * al <body> y el cursor virtual volvía al principio de la página: la
+       * pareja no oía nada y encima perdía el sitio. Llevando el foco al
+       * titular del panel, el resultado se lee siempre y el recorrido
+       * continúa donde estaba.
+       */
+      <div role="status" tabIndex={-1} ref={successRef} className={styles.success}>
         {delivered ? (
           <>
             <p className={styles.successTitle}>Mensaje enviado. Ya lo tenemos.</p>
@@ -345,6 +401,34 @@ function mensajeDeError(field: { name: string; validationMessage: string }): str
         <label htmlFor="email" className={styles.fieldLabel}>Correo electrónico</label>
         <input id="email" name="email" type="email" autoComplete="email" required {...fieldProps('email')} />
         <FieldError name="email" message={errors.email} />
+
+        {/* EL TELÉFONO, Y OPCIONAL. Va con el correo porque es la misma
+            pregunta --por dónde os localizamos-- y no merece un paso propio:
+            este formulario ya tiene seis y cada uno más es gente que se cae.
+            Opcional a propósito: obligarlo espanta a quien todavía está
+            comparando estudios y sólo quiere saber si la fecha está libre. Y
+            para quien lo deja, una llamada de cinco minutos resuelve lo que
+            por correo son cuatro días de ida y vuelta.
+            `pattern` deliberadamente ancho: dígitos, espacios, guiones,
+            paréntesis y el prefijo internacional, entre 9 y 20 caracteres. No
+            valida que el número exista --eso no lo valida nadie-- sino que lo
+            escrito parezca un teléfono y no una frase. */}
+        <label htmlFor="telefono" className={styles.fieldLabel}>
+          Teléfono <span className={styles.opcional}>(opcional)</span>
+        </label>
+        <input
+          id="telefono"
+          name="telefono"
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          pattern="[+()\d\s.-]{9,20}"
+          {...fieldProps('telefono', true)}
+        />
+        <p id="telefono-hint" className={styles.fieldHint}>
+          Si nos lo dejáis, os llamamos: para lo que se resuelve en cinco minutos, es más rápido.
+        </p>
+        <FieldError name="telefono" message={errors.telefono} />
       </fieldset>
 
       {/* Las dos preguntas que el estudio necesita para poder contestar, y
@@ -358,8 +442,12 @@ function mensajeDeError(field: { name: string; validationMessage: string }): str
       >
         <legend className={styles.question}>¿Cuándo y dónde es la boda?</legend>
         <label htmlFor="fecha" className={styles.fieldLabel}>Fecha</label>
-        <input id="fecha" name="fecha" type="date" required {...fieldProps('fecha')} />
-        <p className={styles.fieldHint}>Si todavía no está cerrada, poned la que estáis barajando.</p>
+        {/* `min` en el día de hoy: el campo aceptaba una boda en 2019. La
+            fecha se calcula al montar (ver `hoy`), no en el servidor, porque
+            un valor renderizado en el servidor se queda congelado en la
+            página cacheada y al día siguiente rechazaría el día de hoy. */}
+        <input id="fecha" name="fecha" type="date" min={hoy} required {...fieldProps('fecha', true)} />
+        <p id="fecha-hint" className={styles.fieldHint}>Si todavía no está cerrada, poned la que estáis barajando.</p>
         <FieldError name="fecha" message={errors.fecha} />
 
         <label htmlFor="lugar" className={styles.fieldLabel}>Lugar o pueblo</label>
@@ -368,9 +456,9 @@ function mensajeDeError(field: { name: string; validationMessage: string }): str
           name="lugar"
           placeholder="Ej. una hacienda en Sevilla"
           required
-          {...fieldProps('lugar')}
+          {...fieldProps('lugar', true)}
         />
-        <p className={styles.fieldHint}>Si aún estáis viendo sitios, decidnos la zona.</p>
+        <p id="lugar-hint" className={styles.fieldHint}>Si aún estáis viendo sitios, decidnos la zona.</p>
         <FieldError name="lugar" message={errors.lugar} />
       </fieldset>
 
@@ -434,6 +522,46 @@ function mensajeDeError(field: { name: string; validationMessage: string }): str
           <option value="feria">Feria de bodas</option>
           <option value="otro">Otro</option>
         </select>
+
+        {/* EL CONSENTIMIENTO, EN EL ÚLTIMO PASO Y JUNTO AL BOTÓN DE ENVIAR.
+            Ahí y no en el primero por una razón legal antes que de diseño: lo
+            que se consiente es el envío, así que la casilla tiene que estar a
+            la vista en el momento de enviar y no seis pantallas atrás, donde
+            nadie recuerda haberla marcado.
+
+            SIN MARCAR POR DEFECTO, y eso no es negociable: el RGPD dice que
+            el consentimiento es una acción afirmativa clara, y una casilla ya
+            puesta no es una acción de nadie.
+
+            `value="si"` explícito: una casilla sin `value` viaja como "on",
+            que es lo que el navegador inventa y no lo que este formulario
+            declara. El servidor compara contra "si" (ver lib/contact-store).
+
+            El texto sale de content/consentimiento.ts, el MISMO del que el
+            servidor guarda copia al recibir el mensaje: si se escribiera aquí
+            a mano, lo que la pareja lee y lo que queda registrado podrían
+            separarse sin que nadie se enterara, y entonces el registro no
+            probaría nada. */}
+        <div className={styles.consentimiento}>
+          <input
+            id="consentimiento"
+            name="consentimiento"
+            type="checkbox"
+            value="si"
+            required
+            className={styles.consentimientoCasilla}
+            {...fieldProps('consentimiento')}
+          />
+          <label htmlFor="consentimiento" className={styles.consentimientoTexto}>
+            {CONSENTIMIENTO_TEXTO}{' '}
+            <a href="/privacidad" target="_blank" rel="noopener noreferrer">
+              Leer la política de privacidad
+              <span className="sr-only"> (se abre en una pestaña nueva)</span>
+            </a>
+            .
+          </label>
+        </div>
+        <FieldError name="consentimiento" message={errors.consentimiento} />
       </fieldset>
 
       {error && <p role="alert">{error}</p>}

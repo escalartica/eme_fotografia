@@ -1,135 +1,185 @@
-'use client';
-import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { resolveFeaturedFrames } from '@/content/featured';
-import { projects } from '@/content/projects';
-import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
+import { RevealWords } from '@/components/motion/RevealWords';
 import { focusOf } from '@/lib/focal';
 import styles from './SelectedReel.module.css';
 
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger);
-}
-
-// Ten beats, one wedding each -- none of them repeated from the hero mosaic.
+// Eleven beats, one wedding each -- none of them repeated from the hero mosaic.
 const frames = resolveFeaturedFrames();
 
 /**
- * Selected work as a single vertical reel (Agentura's "case study"
- * section): one centred column of frames -- portrait, landscape, square,
- * alternating -- while two slim text columns stay pinned at the sides.
- * Every frame settles in from a slight zoom and blur as it reaches the
- * viewport, drifts a little slower than the page (parallax), and lifts on
- * hover. Each is a link to its wedding.
+ * Los trabajos seleccionados como un CARRETE HORIZONTAL ANCLADO: la sección
+ * se queda pegada a la pantalla y, mientras el visitante sigue bajando, las
+ * once fotografías desfilan de derecha a izquierda por delante de él.
+ *
+ * POR QUÉ ESTE GESTO Y NO OTRO. Era una columna vertical de fotogramas
+ * que se revelaban de uno en uno: correcta, y exactamente igual que la de
+ * cualquier plantilla. El desplazamiento horizontal atado al scroll es el
+ * único movimiento de esta página que un visitante no ha visto antes en otro
+ * sitio, y es el que dice sin decirlo que detrás hay alguien que diseña.
+ * Además la home ACORTA: la columna medía unos 4.800 px de recorrido; el
+ * carrete se lleva 100svh de pantalla más --pin-travel, y enseña lo mismo.
+ *
+ * SIGUE SIN JAVASCRIPT. Todo el anclaje es `position: sticky` y toda la
+ * traslación es una animación guiada por el scroll declarada con
+ * `view-timeline-name`, que el navegador corre en el compositor. Componente
+ * de servidor: cero bytes de cliente para esta sección, igual que antes.
+ *
+ * LO QUE PASA CUANDO EL EFECTO NO ESTÁ. Y aquí está la decisión que importa,
+ * porque la mayoría de esta clientela entra de noche y desde el teléfono: el
+ * carril NO es por defecto una caja recortada esperando a que una animación
+ * la mueva -- eso dejaría diez fotografías inalcanzables en cuanto algo
+ * fallara. Por defecto es una TIRA QUE SE ARRASTRA CON EL DEDO, con anclaje
+ * de desplazamiento, que es el gesto nativo y el mejor de los dos en una
+ * pantalla de 375 px. El anclaje sólo se activa a partir de 900 px, sin
+ * `prefers-reduced-motion` y con soporte comprobado de las líneas de tiempo
+ * guiadas por el scroll. Donde no se cumplen las tres condiciones, la
+ * sección es una tira deslizable perfectamente digna. Ver
+ * SelectedReel.module.css.
  */
 export function SelectedReel() {
-  const rootRef = useRef<HTMLElement>(null);
-  const reducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    if (reducedMotion || !rootRef.current) return;
-    const ctx = gsap.context(() => {
-      const items = gsap.utils.toArray<HTMLElement>(`.${styles.frame}`);
-      items.forEach((item, i) => {
-        const media = item.querySelector(`.${styles.media}`);
-        // No blur. A 10px blur on a full-bleed photograph is a compositing
-        // pass over a large surface, every frame, for an effect that reads
-        // as the image having failed to load rather than as craft. The
-        // scale settle alone is the entrance.
-        gsap.fromTo(
-          item,
-          { opacity: 0, scale: 0.94 },
-          {
-            opacity: 1,
-            scale: 1,
-            duration: 1.1,
-            ease: 'power3.out',
-            scrollTrigger: { trigger: item, start: 'top 88%', once: true },
-          }
-        );
-        // Gentle drift, always starting with the layer shifted down so the
-        // top of the frame (the faces) is what enters first; the amount
-        // alternates so neighbouring frames still separate as they pass.
-        gsap.fromTo(
-          media,
-          { yPercent: i % 2 ? 2.5 : 1.5 },
-          {
-            yPercent: i % 2 ? -2.5 : -1.5,
-            ease: 'none',
-            scrollTrigger: { trigger: item, start: 'top bottom', end: 'bottom top', scrub: true },
-          }
-        );
-      });
-    }, rootRef);
-    return () => ctx.revert();
-  }, [reducedMotion]);
-
   return (
-    <section ref={rootRef} className={styles.section} aria-labelledby="selected-work-heading">
-      <div className={styles.side}>
-        <div className={styles.sideInner}>
+    <section className={styles.section} aria-labelledby="selected-work-heading">
+      {/* LA ENTRADILLA Y UNA FOTOGRAFÍA, A DOS COLUMNAS.
+          La entradilla está topada a 48rem para que el titular y la prosa se
+          lean, y en un escritorio ancho eso dejaba media pantalla en blanco a
+          su derecha: el estudio la señaló en una captura, rodeada en rojo.
+          Ahí va ahora la fotografía que llevaban tres rondas pidiendo ver en
+          grande -- el perro con pajarita de la boda de Maite y Nerea.
+          Y VA AQUÍ Y NO EN UNA SECCIÓN PROPIA, que es lo que pidieron
+          textualmente: «no quiero que crees un contenedor para esta foto,
+          sino que la integres en algún apartado más vacío». Tenía una banda
+          a sangre para ella sola y era justo lo contrario de integrarla.
+          Aquí llena un hueco que ya existía y no alarga la portada ni un
+          píxel en un escritorio. */}
+      <div className={styles.cabecera}>
+        <div className={styles.intro}>
           <p className={styles.eyebrow}>Trabajos seleccionados</p>
-          {/* "Una colección de días irrepetibles" no decía nada que no
-              dijera cualquier web de bodas, y además repetía la idea que ya
-              abre /sobre-nosotros ("Un concierto no se repite. Vuestra boda
-              tampoco"). Esto cuenta lo que se ve debajo: una foto por boda y
-              diez bodas que no se parecen (content/featured.ts). */}
+          {/* Texto del estudio, literal -- partido en dos tramos sólo para
+            marcar la cursiva, sin cambiar una letra. El mismo revelado por
+            palabras del manifiesto y del cierre de la home.
+            El espacio tras la coma va DENTRO del tramo: los tramos se
+            concatenan tal cual, así que sin él "reales," e "historias" serían
+            una sola palabra y la frase perdería su espacio. */}
           <h2 id="selected-work-heading" className={styles.statement}>
-            {frames.length} bodas, <em>ninguna igual.</em>
+            <RevealWords
+              segments={[
+                { text: 'Bodas reales, ' },
+                { text: 'historias irrepetibles.', em: true },
+              ]}
+            />
           </h2>
+          <p className={styles.lead}>
+            Centenares de bodas a las espaldas. Aquí tienes una pequeña muestra
+            de todo lo que hemos vivido.
+          </p>
           <Link href="/trabajos" className={styles.arrow}>
-            Ver todos los reportajes
-            <span className="arrow" aria-hidden="true">↗</span>
+            Explorar más historias
+            <span className="arrow" aria-hidden="true">
+              ↗
+            </span>
+          </Link>
+        </div>
+
+        {/* SIN PIE. Llevaba uno --«La favorita de eme»-- y el estudio lo quitó:
+          una fotografía puesta en la portada de quien la hizo ya se está
+          presentando sola, y etiquetarla como favorita le pide al visitante
+          que la mire con una lupa que no necesita. El nombre de la pareja
+          está al otro lado del enlace.
+          La forma es la del fichero (1707x2560), así que se ve entera: es la
+          razón por la que esta foto salió del carrete, que recorta las
+          verticales a 3:4 y le mordía justo el primer plano. */}
+        <div className={styles.retrato}>
+          <Link
+            href="/trabajos/maite-y-nerea"
+            className={styles.retratoEnlace}
+            data-cursor="ver"
+          >
+            <Image
+              src="/images/trabajos/maite-y-nerea/cover.webp"
+              alt="Las dos novias besándose al final del camino del pinar, con el perro sentado en primer plano con pajarita y una corona de flores"
+              fill
+              /* Por debajo de 1100 el marco está topado a 26rem, así que un
+               92vw pelado pedía 942 px de origen en una tableta de 1024 para
+               pintar 416. */
+            sizes="(max-width: 1099px) min(92vw, 26rem), min(26vw, 28rem)"
+              className={styles.retratoImagen}
+            />
           </Link>
         </div>
       </div>
 
-      <ol className={styles.reel}>
-        {frames.map((frame, i) => {
-          // Portrait sources stay portrait; landscape ones alternate between
-          // a 4:3 frame and a square crop so the column keeps changing shape.
-          const shape = frame.width > frame.height ? (i % 3 === 2 ? 'square' : 'landscape') : 'portrait';
-          return (
-            <li key={frame.src} className={`${styles.frame} ${styles[shape]}`}>
-              <Link href={`/trabajos/${frame.project.slug}`} className={styles.link}>
-                <span className={styles.clip}>
-                  <span className={styles.media}>
-                    <Image
-                      src={frame.src}
-                      alt={frame.alt}
-                      fill
-                      sizes="(max-width: 900px) 86vw, 34vw"
-                      className={styles.image}
-                      style={focusOf(frame.src, frame.focus)}
-                    />
-                  </span>
-                </span>
-                <span className={styles.caption}>
-                  <span className={styles.index}>{String(i + 1).padStart(2, '0')}</span>
-                  <span className={styles.title}>{frame.project.title}</span>
-                  <span className={styles.meta}>
-                    {frame.project.location}, {frame.project.year}
-                  </span>
-                </span>
-              </Link>
+      {/* .stage es el SUJETO de la línea de tiempo (declara --reelPan) y quien
+          aporta el recorrido vertical; .viewport es lo que se ancla. Tienen
+          que ser dos elementos distintos: un elemento pegado con `sticky` no
+          se mueve respecto a la pantalla, así que si la línea de tiempo se
+          midiera contra él el progreso no avanzaría nunca. */}
+      <div className={styles.stage}>
+        <div className={styles.viewport}>
+          <ol className={styles.track}>
+            {frames.map((frame, i) => {
+              // Portrait sources stay portrait; landscape ones alternate between
+              // a 3:2 frame and a square crop so the strip keeps changing shape.
+              const shape =
+                frame.width > frame.height
+                  ? i % 3 === 2
+                    ? 'square'
+                    : 'landscape'
+                  : 'portrait';
+              return (
+                <li
+                  key={frame.src}
+                  className={`${styles.frame} ${styles[shape]}`}
+                >
+                  {/* data-cursor: el rótulo "VER" que ya sigue al puntero en
+                      todo el sitio (components/motion/Cursor.tsx) se enciende
+                      sobre el carrete sin una línea de código nueva. En táctil
+                      ese componente no se monta y el pie de foto, que aquí
+                      está siempre visible, hace su trabajo. */}
+                  <Link
+                    href={`/trabajos/${frame.project.slug}`}
+                    className={styles.link}
+                    data-cursor="ver"
+                  >
+                    <span className={styles.clip}>
+                      <span className={styles.media}>
+                        <Image
+                          src={frame.src}
+                          alt={frame.alt}
+                          fill
+                          sizes="(max-width: 899px) 78vw, 40vw"
+                          className={styles.image}
+                          style={focusOf(frame.src, frame.focus)}
+                        />
+                      </span>
+                    </span>
+                    <span className={styles.caption}>
+                      <span className={styles.index}>
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span className={styles.title}>
+                        {frame.project.title}
+                      </span>
+                      <span className={styles.meta}>
+                        {frame.project.location}, {frame.project.year}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+            {/* El final del carrete. Texto del estudio, literal: era la nota
+                de la columna derecha que esta sección tenía cuando era
+                vertical, y aquí cierra el recorrido en vez de flotar al
+                margen de él. */}
+            <li className={`${styles.frame} ${styles.endCard}`}>
+              <p className={styles.note}>
+                Entra en Trabajos y mira cómo vibra cada historia de principio a
+                fin.
+              </p>
             </li>
-          );
-        })}
-      </ol>
-
-      <div className={`${styles.side} ${styles.sideRight}`} aria-hidden="true">
-        <div className={styles.sideInner}>
-          {/* La línea anterior ("Fotografía que habla antes de que la
-              leas") tuteaba en medio de una web escrita en vosotros y no
-              afirmaba nada. Esta cuenta lo que hay al otro lado del enlace,
-              con la cifra calculada y no escrita a mano. */}
-          <p className={styles.note}>Hay {projects.length - frames.length} bodas más en Trabajos.</p>
-          <p className={`${styles.note} ${styles.noteBottom}`}>
-            Primero la imagen. Siempre la historia. Nada hecho sin una razón.
-          </p>
+          </ol>
         </div>
       </div>
     </section>

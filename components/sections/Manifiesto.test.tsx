@@ -7,25 +7,32 @@ describe('Manifiesto', () => {
     render(<Manifiesto />);
     const headings = screen.getAllByRole('heading', { level: 2 });
     expect(headings).toHaveLength(1);
-    expect(headings[0]).toHaveTextContent('No contamos bodas. Contamos vuestra historia.');
+    expect(headings[0]).toHaveTextContent('Menos protocolo. Más verdad.');
   });
 
   it('renders all three statements, in order, with their numbers and tags', () => {
     const { container } = render(<Manifiesto />);
     const rows = Array.from(container.querySelectorAll('section > div'));
     expect(rows).toHaveLength(3);
-    expect(rows.map((r) => r.textContent)).toEqual([
-      '01No contamos bodas. Contamos vuestra historia.Reportaje',
-      '02Lo que pasa cuando nadie mira a la cámara.El día completo',
-      '03La foto y la película, del mismo equipo.Foto y vídeo',
-    ]);
+    // Cada fila es número + (titular y párrafo) + etiqueta. El párrafo es lo
+    // que se añadió con el texto nuevo del estudio: si alguien lo quita, esta
+    // aserción cae y no pasa desapercibido.
+    const textos = rows.map((r) => r.textContent);
+    expect(textos[0]).toContain('01');
+    expect(textos[0]).toContain('Menos protocolo. Más verdad.');
+    expect(textos[0]).toContain('el instinto del fotoperiodismo');
+    expect(textos[0]).toContain('Reportaje');
+    expect(textos[1]).toContain('La magia real ocurre cuando nadie mira a la cámara.');
+    expect(textos[1]).toContain('El día completo');
+    expect(textos[2]).toContain('Fotografía y película nacidas del mismo ADN.');
+    expect(textos[2]).toContain('Foto y vídeo');
   });
 
   it('sets one emphasised word per statement in a real <em>', () => {
     render(<Manifiesto />);
-    expect(screen.getByText('vuestra', { selector: 'em' })).toBeInTheDocument();
+    expect(screen.getByText('verdad', { selector: 'em' })).toBeInTheDocument();
     expect(screen.getByText('cámara', { selector: 'em' })).toBeInTheDocument();
-    expect(screen.getByText('mismo', { selector: 'em' })).toBeInTheDocument();
+    expect(screen.getByText('ADN', { selector: 'em' })).toBeInTheDocument();
   });
 
   it('ships no animation code: the stack is pure CSS, so nothing here needs a motion branch', () => {

@@ -1,0 +1,133 @@
+/* Banda en marquesina: una frase de la marca que recorre el ancho de la
+   página sin fin, entre dos secciones.
+   ---------------------------------------------------------------------
+   Es la firma visual de las tres referencias que trajo el cliente
+   (danieleandmarilia.com repite "AUTHENTIC, EVOCATIVE IMAGES" a lo largo de
+   toda su galería), y es de las poquísimas cosas de esa familia que se
+   hacen enteras en CSS: dos copias idénticas de la misma tira, una traslación
+   del 50% del carril y un bucle. Cero JavaScript, cero bytes de cliente,
+   componente de servidor.
+
+   LAS TRES REGLAS QUE LA GOBIERNAN, y por qué:
+
+   1. NO PUEDE DESBORDAR. `overflow: clip` en la banda, no `hidden`: `hidden`
+      la convertiría en contenedor de scroll y rompería el `position: sticky`
+      de lo que tiene alrededor (el mismo motivo por el que styles/globals.css
+      recorta el body con `clip`). Y el carril va en `translate3d`, que no
+      añade ancho al documento.
+   2. SE PARA CON `prefers-reduced-motion`. Un texto que se desliza sin parar
+      por el ancho de la pantalla es exactamente el tipo de movimiento que
+      marea; parado, la frase se sigue leyendo desde el borde izquierdo, que
+      es el respaldo correcto y no uno degradado.
+   3. LA FRASE SE ANUNCIA UNA VEZ. El carril entero es `aria-hidden`: repetir
+      la misma línea doce veces en un lector de pantalla es ruido. El
+      componente imprime además una copia oculta a la vista con la frase una
+      sola vez, que es la que se lee y la que se indexa.
+
+   LA VELOCIDAD. `--marquee-duration` es el tiempo que tarda el carril en
+   recorrer una tira entera; como cada tira mide lo mismo en cualquier
+   pantalla (el tamaño de letra es un clamp), la velocidad aparente se
+   mantiene. 46 s da unos 100 px/s en un portátil: por debajo de 60 px/s la
+   frase parece parada y el efecto no se lee, y por encima de 150 px/s deja
+   de poder leerse la frase, que es lo único que la banda tiene que hacer.
+   El valor vive aquí y no en tokens.css siguiendo el mismo criterio que
+   `--recede-scale` en StackedSections.module.css: es una magnitud de este
+   componente y de ninguno más. */
+.band {
+  --marquee-duration: 46s;
+  position: relative;
+  overflow: hidden;
+  overflow: clip;
+  padding-block: var(--space-3);
+  /* Sólo la regla de abajo. La banda va colocada debajo de una sección que
+     ya cierra con su propia línea (la última fila del manifiesto), y dos
+     filetes pegados uno a otro no se leen como dos reglas: se leen como una
+     de 2 px que alguien se dejó a medio hacer. La de arriba, por tanto, la
+     pone quien esté encima. */
+  border-block-end: 1px solid var(--color-hairline);
+  /* Opaca a propósito: la banda se apoya entre dos secciones y varias de
+     ellas son fotografía a sangre. */
+  background: var(--color-paper);
+}
+
+/* El carril: DOS tiras idénticas, una detrás de otra. La traslación es del
+   50% de su ancho total, o sea exactamente una tira, así que en el momento
+   del salto el fotograma es idéntico al de partida y la costura no existe.
+   `width: max-content` para que las tiras no se compriman. */
+.track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .track {
+    animation: marqueeRun var(--marquee-duration) linear infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    will-change: auto;
+  }
+}
+
+/* `linear`, y es el único sitio del proyecto donde eso es correcto: un
+   movimiento constante que no empieza ni termina no tiene entrada ni salida
+   que suavizar, y cualquier curva se leería como un tirón periódico. */
+@keyframes marqueeRun {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.run {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+}
+
+/* La frase, en la Didone del sitio y en versales, como el masthead. No es
+   un titular -- no lleva jerarquía de encabezado, ni la puede llevar: la
+   home comprueba la lista exacta de sus <h2>. */
+.phrase {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding-inline-end: var(--space-3);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--type-h2-sm);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-display);
+  text-transform: uppercase;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+
+/* El separador entre repeticiones. Apagado a propósito: marca dónde acaba
+   una frase y empieza la siguiente sin competir con ellas. */
+/* La marca entre frase y frase. Va por altura y no por ancho para que
+   acompañe al cuerpo del texto sea cual sea el tamaño de pantalla, y algo
+   apagada: es un ritmo, no un reclamo. */
+.mark {
+  display: inline-block;
+  width: auto;
+  height: 0.62em;
+  margin-inline: 0.9em;
+  vertical-align: -0.02em;
+  opacity: 0.55;
+}
+/* Dos versiones, una por tema, y el CSS enseña la que toca. NO se resuelve
+   con `filter: invert()`: la marca lleva un punto rojo y al invertirlo sale
+   cian. La versión clara conserva ese punto. */
+.markLight {
+  display: none;
+}
+:global([data-theme='dark']) .markDark {
+  display: none;
+}
+:global([data-theme='dark']) .markLight {
+  display: inline-block;
+}

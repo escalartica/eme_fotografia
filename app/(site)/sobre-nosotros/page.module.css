@@ -2,15 +2,39 @@
   padding-block-end: 0;
 }
 
-/* ---------- hero: statement in two halves ---------- */
+/* ---------- LA APERTURA ----------
+   Dos columnas: el enunciado en una y la fotografía en la otra. Era un
+   titular sobre una banda a sangre, y esa banda le pedía al navegador el
+   ancho entero de la ventana para un fichero de 1600 px -- un 80% de
+   ampliación en un portátil normal. Aquí la fotografía tiene un tope de
+   38rem: a 2x son 1.216 px, por debajo de los 1.600 que tiene, así que no se
+   amplía. Ver el comentario del componente para el razonamiento completo. */
 .hero {
   padding-inline: var(--gutter);
   /* --space-4 arriba, como /trabajos, la ficha de boda, /contacto y los
      legales: la distancia entre la cabecera fija y el primer titular es lo
-     primero que se compara al saltar de una página a otra, y esta era la
-     única que abría un escalón más apretada. */
+     primero que se compara al saltar de una página a otra. */
   padding-block: var(--space-4) 0;
+  margin-block-end: var(--space-5);
+  max-width: 84rem;
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: end;
 }
+
+@media (min-width: 900px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 38rem);
+    column-gap: var(--space-5);
+  }
+}
+
+.heroCopy {
+  min-width: 0;
+}
+
 .heroTitle {
   margin: 0;
   font-family: var(--font-serif);
@@ -23,34 +47,43 @@
 .heroLine {
   display: block;
 }
+/* La segunda mitad de la frase, que antes iba impresa sobre la fotografía.
+   En cursiva y apagada: es el eco de la primera, no un titular nuevo. */
+.heroLineEm {
+  display: block;
+  font-style: italic;
+  color: var(--color-muted);
+}
 .heroLede {
-  margin: var(--space-2) 0 var(--space-3);
+  margin: var(--space-3) 0 0;
   max-width: 34rem;
   font-family: var(--font-sans);
   font-size: var(--type-body);
   line-height: var(--leading-body);
   color: var(--color-muted);
 }
+
 .heroFigure {
-  composes: breakout from global;
+  margin: 0;
+  min-width: 0;
+}
+
+.heroFrame {
   position: relative;
-  height: min(78vh, 820px);
-  /* clip, NOT hidden. `overflow: hidden` makes this element a scroll
-     container, so the `animation-timeline: view()` on the image inside it
-     resolved against THIS box instead of the viewport -- and since the image
-     is `fill` (absolute, inset 0) it exactly fills that scrollport, making the
-     entry/cover range degenerate. The settle animation below never ran. `clip`
-     crops identically without creating a scroll container. The `hidden` line
-     stays first as the fallback for anything that predates `clip`. */
+  /* SU PROPIA FORMA, 4:3, que es la del fichero. Con la banda de 1,76:1 que
+     había antes, `object-fit: cover` se comía una cuarta parte del alto: los
+     novios salían cortados por los pies y el pueblo del fondo desaparecía.
+     Tomando la forma de la fotografía no se recorta ni un píxel. */
+  aspect-ratio: 4 / 3;
+  /* clip, NO hidden: `hidden` convierte la caja en un contenedor de scroll y
+     cualquier línea de tiempo medida dentro pasa a medirse contra ELLA en vez
+     de contra la pantalla -- y la imagen, que es `fill`, la llena exacta, así
+     que el tramo se degenera y la animación no corre nunca. Mismo hallazgo
+     que SelectedReel y StackedSections. */
   overflow: hidden;
   overflow: clip;
-  margin-block-end: var(--space-5);
 }
-@media (max-width: 700px) {
-  .heroFigure {
-    height: min(60vh, 520px);
-  }
-}
+
 .heroImage {
   object-fit: cover;
   filter: var(--photo-grade);
@@ -66,31 +99,20 @@
 }
 @keyframes heroSettle {
   from {
-    transform: scale(1.12);
+    /* 1.04, no 1.12. El acercamiento de partida es un recorte: a 1.12 se
+       pierde un 11% de la fotografía justo en la página donde acabamos de
+       dejar de recortarla. */
+    transform: scale(1.04);
   }
   to {
     transform: scale(1);
   }
 }
-.heroScrim {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 50%, color-mix(in srgb, var(--color-scrim) 60%, transparent) 100%);
-  pointer-events: none;
-}
-.heroSecond {
-  position: absolute;
-  right: var(--gutter);
-  bottom: var(--space-3);
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: var(--type-h1);
-  line-height: 1;
-  color: var(--color-night-text);
-  text-align: right;
-}
-.heroSecond em {
-  font-style: italic;
+
+.heroCaption {
+  composes: eyebrow from global;
+  color: var(--color-muted);
+  margin-block-start: var(--space-1);
 }
 
 .chapterNumber {
@@ -98,12 +120,23 @@
   margin-block-end: var(--space-2);
 }
 
+.teamKicker {
+  composes: eyebrow from global;
+  display: block;
+  color: var(--color-muted);
+  margin-block-end: var(--space-1);
+}
+
 .heading {
   font-family: var(--font-serif);
   font-size: var(--type-h2);
-  line-height: 1;
+  line-height: 1.02;
   margin: 0;
   font-variation-settings: 'wght' 400;
+  /* Los titulares de esta página pasaron de ser etiquetas de una palabra a
+     ser frases; sin esto, una frase al escalón mayor rompe dejando una línea
+     huérfana de dos palabras. */
+  text-wrap: balance;
 }
 
 .lede {
@@ -126,68 +159,236 @@
   color: var(--color-accent);
 }
 
-/* ---------- 01 intro: statement + copy | team photo ---------- */
-/* ---------- 01 statement ---------- */
+/* ---------- 01 QUIÉN SOY ----------
+   El capítulo era una columna de 62rem con un párrafo de ciento treinta
+   palabras dentro. Ahora es un CAPÍTULO CON CABECERA FIJA: a la izquierda el
+   numeral, el título y los dos enlaces, que se quedan pegados mientras a la
+   derecha pasan los tres bloques. Así el lector siempre sabe en qué capítulo
+   está y los enlaces de salida están a mano en todo el recorrido, en vez de
+   esperar al final del texto -- que es donde estaban y donde no los veía
+   nadie que no llegara hasta abajo.
+
+   El anclaje es sólo de 900 px para arriba. En un teléfono una cabecera
+   pegada se come un tercio de la pantalla durante todo el capítulo; ahí la
+   cabecera va arriba y se va, como cualquier titular. */
 .statementSection {
   padding-inline: var(--gutter);
   margin-block-end: var(--space-5);
-  max-width: 62rem;
+  max-width: 84rem;
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
 }
+
+@media (min-width: 900px) {
+  .statementSection {
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    column-gap: var(--space-5);
+  }
+  .capituloCabecera {
+    position: sticky;
+    /* Bajo la cabecera fija del sitio, más un respiro. --header-h existe
+       justamente para esto (styles/tokens.css). */
+    top: calc(var(--header-h) + var(--space-3));
+    align-self: start;
+  }
+}
+
+.capituloCabecera {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+}
+/* El numeral trae su propio margen inferior de cuando vivía suelto; aquí el
+   aire lo pone el `gap` y sumar los dos abría un hueco de más. */
+.capituloCabecera .chapterNumber {
+  margin-block-end: 0;
+}
+
+.capituloCuerpo {
+  min-width: 0;
+}
+
+/* La frase de apertura. Sigue siendo serif grande y sigue llevando el
+   revelado palabra a palabra -- pero ahora son siete palabras, no ciento
+   treinta. */
 .scrub {
   font-family: var(--font-serif);
   font-size: var(--type-h2-sm);
-  line-height: 1.22;
-  margin: var(--space-2) 0 var(--space-3);
+  line-height: 1.15;
+  margin: 0 0 var(--space-4);
+  max-width: 20ch;
   font-variation-settings: 'wght' 400;
-  text-wrap: pretty;
-}
-.statementLinks,
-.teamLinks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
+  text-wrap: balance;
 }
 
-/* ---------- pair of portraits ---------- */
-.pair {
+/* LOS TRES TRAMOS, APILÁNDOSE CON EL SCROLL.
+   Fueron tres desplegables con un «+»: un clic por tramo para leer tres
+   párrafos que ya estaban escritos. Ahora es la misma construcción que el
+   manifiesto de la portada y que las seis preguntas de la guía -- cada tramo
+   se pega bajo la cabecera fija y el siguiente sube y lo tapa.
+
+   EL FONDO OPACO ES LO QUE HACE QUE FUNCIONE, no el `sticky`: una fila pegada
+   se pinta después que sus hermanas anteriores, así que un fondo de papel es
+   lo que hace que el tramo 02 TAPE al 01 en vez de superponerse a él.
+
+   Y NO SE APILA POR DEBAJO DE 900 px ni con movimiento reducido: en un
+   teléfono el tramo más largo ocupa casi la pantalla, y pegado dejaría su
+   final por debajo del borde sin forma de alcanzarlo. Ahí son una lista con
+   sus filetes, que se lee igual de bien y ocupa lo mismo. */
+.bloques {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 56ch;
+  position: relative;
+}
+
+.bloque {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-3);
-  padding-inline: var(--gutter);
-  margin-block-end: var(--space-5);
+  gap: var(--space-1);
+  padding-block: var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+  /* Opaco, y es lo que sostiene el gesto: ver arriba. */
+  background: var(--color-paper);
 }
-@media (min-width: 900px) {
-  .pair {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-4);
-  }
-  .pairItemOffset {
-    margin-top: var(--space-5);
+.bloque:last-child {
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .bloque {
+    position: sticky;
+    /* Bajo la cabecera fija, más un respiro. El mismo desfase que la cabecera
+       del capítulo, que también está anclada: los dos se quedan a la vista a
+       la vez, el título del capítulo a la izquierda y el tramo a la derecha. */
+    top: calc(var(--header-h) + var(--space-3));
   }
 }
-.pairItem {
+
+.bloqueTitulo {
+  font-family: var(--font-serif);
+  font-size: var(--type-h3);
+  line-height: 1.15;
+  font-weight: 400;
+  font-variation-settings: 'wght' 400;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.bloqueTexto {
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  color: var(--color-muted);
+  text-wrap: pretty;
   margin: 0;
 }
-.pairItem {
+
+/* ---------- la cita ----------
+   El remate del capítulo 01: la frase de Cartier-Bresson, a tamaño de
+   titular y sola en su ancho. No lleva comillas dibujadas ni filete: lo que
+   la separa del resto es el aire y el cambio de cuerpo, que es como se
+   maqueta una cita en papel. */
+.cita {
+  margin: var(--space-5) auto;
+  padding-inline: var(--gutter);
+  max-width: 68rem;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.citaTexto {
+  font-family: var(--font-serif);
+  font-size: var(--type-h2-sm);
+  line-height: 1.12;
+  font-variation-settings: 'wght' 400;
+  margin: 0;
+  max-width: 22ch;
+  /* `pretty`, no `balance`: son dieciséis palabras, que en un teléfono caen
+     en ocho o nueve líneas -- por encima del número de líneas a partir del
+     cual el navegador abandona el balanceo. Lo que sí sirve a esa medida es
+     evitar la línea huérfana del final. */
+  text-wrap: pretty;
+}
+
+.citaAutor {
+  composes: eyebrow from global;
+  color: var(--color-muted);
+}
+
+/* La tira de créditos: los sitios donde se hizo la escuela, de un vistazo.
+   Versalitas y separadores puestos desde el marcado (un `·` por hueco), no
+   con `::before`, para que al copiar el texto salgan los nombres separados
+   y no pegados. */
+.creditos {
+  composes: eyebrow from global;
+  color: var(--color-muted);
+  line-height: 1.7;
+  margin: var(--space-1) 0 0;
+  max-width: none;
+}
+.creditos span {
+  /* El punto medio no compite con los nombres. */
+  color: var(--color-hairline);
+  padding-inline: 0.15em;
+}
+
+/* La entrada guiada por scroll que tenían los tres bloques ha desaparecido
+   con ellos. Animaba `background-size` para dibujar el filete de cada uno --
+   una propiedad que NO es compositable, así que se recalculaba en el hilo
+   principal en cada fotograma, contra la regla que este proyecto declara en
+   ScrollReveal y en RevealWords (sólo `transform` y `opacity`). Ahora el
+   filete es parte del acordeón y lo que se mueve al abrir es la altura, que
+   el navegador sí sabe interpolar desde `interpolate-size`. */
+
+.statementLinks,
+/* `.teamLinks` vive más abajo, con el bloque del capítulo 02. Aquí había una
+   copia anterior, sin el hueco de fila ni el margen superior: CSS Modules
+   genera UN solo nombre por clase y por fichero, así que las dos reglas se
+   fusionaban y la de abajo ganaba en silencio. */
+
+/* ---------- el retrato del equipo ----------
+   Era un par de fotografías en paralelo -- el equipo y una boda -- que ahora
+   es sólo el equipo: en mitad de la presentación de las personas, una pareja
+   de novios no venía a cuento (ver el comentario del componente).
+   32rem de tope, y ese número no es estético: el fichero mide 896 px de
+   ancho, así que a densidad doble 512 px de caja piden 1.024 y la ampliación
+   se queda en un 14%. A la mitad de la página que ocupaba antes eran 690 px
+   de caja, o sea 1.380 reales: un 54%, que es de donde venía la blandura. */
+.retratoEquipo {
+  margin: 0 auto var(--space-5);
+  padding-inline: var(--gutter);
+  width: min(100%, calc(32rem + var(--gutter) * 2));
   display: grid;
   gap: var(--space-1);
 }
-.pairFrame {
+
+.retratoEquipoMarco {
   position: relative;
-  aspect-ratio: 3 / 4;
+  /* La forma del propio fichero (896x1195). Sin recorte ninguno. */
+  aspect-ratio: 896 / 1195;
   overflow: hidden;
+  overflow: clip;
   background: var(--color-hairline);
 }
-.pairImage {
+
+.retratoEquipoImagen {
   object-fit: cover;
   filter: var(--photo-grade);
 }
-.pairCaption {
+
+.retratoEquipoPie {
   composes: eyebrow from global;
   line-height: 1.5;
+  color: var(--color-muted);
+  margin: 0;
 }
 
-/* ---------- 02 principles + strip ---------- */
+/* ---------- 03 «Nuestra mirada»: los tres principios ---------- */
 .principles {
   display: grid;
   grid-template-columns: 1fr;
@@ -227,37 +428,152 @@
   color: var(--color-muted);
 }
 
-/* Film strip of real frames -- natural aspect ratios, one shared height,
-   horizontal scroll with snap on narrow viewports. Same device as
-   /servicios' strip, so the two pages read as one system. */
-.strip {
-  display: flex;
-  gap: var(--space-2);
-  height: clamp(14rem, 44svh, 32rem);
-  margin-block-start: var(--space-4);
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
-  scrollbar-width: none;
-}
-.strip::-webkit-scrollbar { display: none; }
-
-.stripItem {
-  position: relative;
-  flex: 0 0 auto;
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-  scroll-snap-align: start;
-}
-@media (min-width: 900px) {
-  .stripItem:nth-child(even) {
-    transform: translateY(var(--space-2));
+/* LOS TRES PRINCIPIOS, ENTRANDO DE UNO EN UNO.
+   Aparecían los tres a la vez y quietos, que en una rejilla de tres columnas
+   iguales se lee como un bloque y no como tres ideas. Ahora cada columna
+   llega un poco después que la anterior: no es adorno, es lo que hace que se
+   lean por separado.
+   Guiado por el scroll y nativo del navegador, tras la doble puerta de
+   siempre, y nunca desde `opacity: 0` -- el suelo es 0.55, que sobre este
+   papel sigue pasando el 4.5:1 de WCAG mientras el texto está en camino. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    /* El puesto lo pone el componente en `--turno` (lib/turno.ts) en vez de
+       una regla `nth-child` por columna: si algún día hay un cuarto
+       principio, entra en la cascada sin tocar esta hoja. */
+    .principle {
+      animation: principioEntra linear both;
+      animation-timeline: view();
+      /* Se desplaza el PRINCIPIO además del final. Variando sólo el final,
+         las tres columnas --que en una rejilla están a la misma altura--
+         arrancaban en el mismo fotograma y lo único que cambiaba era cuánto
+         tardaban: un abanico de duraciones, no un escalonado. */
+      animation-range:
+        entry calc(10% + var(--turno, 0) * 6%)
+        cover calc(34% + var(--turno, 0) * 8%);
+    }
+    /* El numeral, un paso por detrás de su columna. Va sobre otro elemento y
+       no sobre `.principle`, para no pelearse propiedad a propiedad con
+       `principioEntra`. */
+    .principle .itemNumber {
+      animation: numeralEntra linear both;
+      animation-timeline: view();
+      animation-range: entry 14% cover calc(40% + var(--turno, 0) * 8%);
+    }
   }
 }
-.stripImage {
+/* 0.55 Y NO 0.25. Es el suelo de la casa y no es un número cómodo: por
+   debajo, --color-muted sobre este papel deja de llegar al 4.5:1 mientras el
+   numeral está en camino. Y estos numerales no son decoración -- el de
+   capítulo es la única pieza de la página que dice por dónde vas. */
+@keyframes numeralEntra {
+  from { opacity: 0.55; transform: translateY(0.4em); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes principioEntra {
+  from {
+    opacity: 0.55;
+    transform: translate3d(0, 1.75rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ---------- 03 «Nuestra mirada»: el mural ----------
+   Era un carril horizontal con la barra escondida (cuatro de siete
+   fotografías invisibles en un escritorio) y necesitaba un `tabIndex` para
+   que el teclado pudiera recorrerlo.
+
+   Después fue una rejilla de columnas iguales, y ahí apareció el defecto que
+   el estudio describió como «las fotos de abajo están descolocadas»: en una
+   rejilla la fila mide lo que mida la foto más alta de esa fila, así que un
+   vertical de 1707x2560 junto a dos apaisadas dejaba dos huecos en blanco del
+   tamaño de media fotografía. `align-items: start` evita que las cortas se
+   estiren, pero el hueco que dejan debajo sigue ahí: es la fila, no la foto.
+
+   Ahora es maquetación por columnas (`columns`), que es lo que hace un
+   pliego de verdad: cada fotografía cae debajo de la anterior de su columna
+   en cuanto hay sitio, sin esperar a que la fila termine. No hay huecos
+   porque no hay filas. Cada una conserva la forma de su fichero.
+
+   `break-inside: avoid` es lo que impide que una fotografía se parta por la
+   mitad entre el pie de una columna y la cabeza de la siguiente. Y el aire
+   entre fotografías va como `margin-block-end` en cada una: `gap` en
+   maquetación por columnas sólo separa las columnas, no lo que hay dentro. */
+.mural {
+  columns: 1;
+  column-gap: var(--space-2);
+  margin-block-start: var(--space-4);
+}
+@media (min-width: 700px) {
+  .mural {
+    columns: 2;
+  }
+}
+/* La regla base VA ANTES de la media query, no después: las dos son de una
+   sola clase, así que tienen la misma especificidad y una media query no la
+   sube. Escrita debajo, `margin: 0 0 var(--space-2)` ganaba por orden y el
+   aire de --space-3 de tres columnas no se aplicaba nunca. */
+.muralItem {
+  position: relative;
+  margin: 0 0 var(--space-2);
+  break-inside: avoid;
+  overflow: hidden;
+  overflow: clip;
+  background: var(--color-hairline);
+}
+@media (min-width: 1100px) {
+  .mural {
+    columns: 3;
+    column-gap: var(--space-3);
+  }
+  .muralItem {
+    margin-block-end: var(--space-3);
+  }
+}
+
+.muralImagen {
   object-fit: cover;
   filter: var(--photo-grade);
+}
+
+/* CADA FOTOGRAFÍA SE DESCUBRE AL ENTRAR, y lo que se mueve es el borde de
+   abajo: un cuarto de recorte, no la imagen entera, así que lo que hay dentro
+   se ve desde el primer fotograma. Es la misma cortina que abre las filas del
+   índice de /servicios (`marcoAbre`).
+   Y la imagen se posa a la vez: entra un 5% acercada y acaba exacta.
+
+   El escalonado ya no se reparte por columnas: en maquetación por columnas el
+   orden del documento baja por la primera columna antes de saltar a la
+   segunda, así que `nth-child(3n)` no señala una columna. Se reparte por
+   posición en el documento, que es además el orden en el que el visitante las
+   va encontrando al bajar, y lo pone el componente en `--turno`: con
+   `nth-child(3n)` los ítems 1, 5 y 7 compartían tramo, que no es escalonar
+   nada. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .muralItem {
+      animation: muralAbre linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover calc(30% + var(--turno, 0) * 5%);
+    }
+
+    .muralImagen {
+      animation: muralPosa linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 60%;
+    }
+  }
+}
+@keyframes muralAbre {
+  from { clip-path: inset(0 0 22% 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+@keyframes muralPosa {
+  from { transform: scale(1.05); }
+  to   { transform: scale(1); }
 }
 
 /* ---------- 03 process ---------- */
@@ -277,6 +593,7 @@
 }
 
 .step {
+  position: relative;
   display: grid;
   grid-template-columns: auto 1fr;
   gap: var(--space-2);
@@ -307,37 +624,32 @@
 }
 
 /* ---------- 05 team ---------- */
+/* EL TEXTO ARRIBA, LAS PERSONAS DEBAJO Y A TODO EL ANCHO.
+   Esto eran dos columnas, 4/12 para el texto y 8/12 para la lista. Con la
+   lista convertida en dos columnas propias -- retrato anclado y nombres --
+   quedaban TRES columnas en la misma fila, y el retrato se comía en unos 300
+   px de ancho: seguía sin verse una cara. En vertical, el texto se lee en una
+   medida cómoda y el retrato tiene la anchura que necesita para ser el
+   retrato de alguien y no una miniatura grande. */
 .team {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-4);
-  align-items: center;
-}
-@media (min-width: 900px) {
-  .team {
-    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
-    gap: var(--space-5);
-    align-items: start;
-  }
+  align-items: start;
 }
 
 .teamCopy p {
-  max-width: 32rem;
+  max-width: 34rem;
   margin: 0 0 var(--space-2);
 }
-
-.teamName {
-  font-family: var(--font-serif);
-  font-size: var(--type-h3);
-  line-height: 1;
-  margin: var(--space-3) 0 var(--space-1) !important;
+@media (min-width: 900px) {
+  /* El bloque de texto no se estira a todo el ancho de la sección: una
+     columna de setenta caracteres no se lee. */
+  .teamCopy {
+    max-width: 46rem;
+  }
 }
 
-.teamRole {
-  composes: eyebrow from global;
-  margin-block-end: var(--space-3) !important;
-  line-height: 1.5;
-}
 
 .teamLinks {
   display: flex;
@@ -346,29 +658,6 @@
   margin-block-start: var(--space-2);
 }
 
-.teamFigure {
-  position: relative;
-  margin: 0;
-  overflow: hidden;
-}
-
-.teamImage {
-  object-fit: cover;
-  filter: var(--photo-grade);
-}
-.teamCaption {
-  composes: eyebrow from global;
-  position: absolute;
-  left: var(--space-2);
-  right: var(--space-2);
-  bottom: var(--space-2);
-  color: var(--color-night-text);
-  /* --color-scrim: este pie va sobre fotografía y ya usa la constante
-     --color-night-text (línea de arriba); la sombra que lo despega de la
-     foto tiene que ser igual de constante. Mismo valor, sin literal. */
-  text-shadow: 0 1px 10px color-mix(in srgb, var(--color-scrim) 60%, transparent);
-  line-height: 1.5;
-}
 
 /* Bloque "Próximamente", al pie del proceso. Se distingue del resto por un
    filete superior y el fondo de papel, no por un recuadro: es una nota al pie
@@ -392,4 +681,195 @@
   line-height: var(--leading-body);
   color: var(--color-muted);
   text-wrap: pretty;
+}
+
+
+/* ====================================================================
+   EL RESTO DE LA PÁGINA, ENTRANDO AL RITMO DEL SCROLL
+   ====================================================================
+   El estudio pidió más dinamismo en Equipo por segunda vez, y con razón: los
+   titulares se revelaban palabra a palabra pero TODO lo que colgaba de ellos
+   --los párrafos, los cuatro pasos del proceso, el retrato, el aviso de
+   «Próximamente»-- caía plantado y a la vez. Un titular que se compone
+   delante de un bloque que ya estaba entero no se lee como una página que se
+   va armando; se lee como un titular con un truco.
+
+   Es el mismo sistema que las páginas de servicio, con los mismos números y
+   el mismo suelo de opacidad (0.55, el punto por debajo del cual este gris
+   sobre este papel deja de llegar al 4.5:1 mientras el texto está en camino).
+   Nada arranca en `opacity: 0` y todo vive detrás de la doble puerta, así que
+   sin soporte o con «menos movimiento» la página se ve entera y quieta.
+
+   `--turno` lo ponen los componentes; ver lib/turno.ts. */
+
+/* LOS CUATRO PASOS, UNO DETRÁS DE OTRO, Y EL FILETE DIBUJÁNDOSE.
+   El filete pasa de `border` a fondo pintable para poder crecer de izquierda
+   a derecha dentro del MISMO fotograma que mueve la fila: una segunda regla
+   que volviera a declarar `animation-range` sobre `.step` ganaría la cascada
+   propiedad a propiedad y desarmaría el escalonado sin que se notara leyendo
+   ninguno de los dos bloques por separado. Este proyecto ya se rompió así una
+   vez, en /servicios. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    /* EL FILETE SE DIBUJA CON `transform: scaleX()`, NO CON `background-size`.
+       Esta misma hoja documenta, doscientas líneas más arriba, que se quitó
+       una animación de `background-size` por no ser una propiedad
+       compositable: basta con que UNA propiedad del fotograma no lo sea para
+       que Chromium baje la animación ENTERA al hilo principal -- también la
+       opacidad y el desplazamiento de la misma regla -- y aquí serían cuatro
+       filas recalculándose en cada fotograma de scroll. Un pseudo-elemento de
+       1px escalado en horizontal da exactamente el mismo dibujo y se queda en
+       el compositor. */
+    .step {
+      border-bottom-color: transparent;
+      animation: pasoEntra linear both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(var(--turno, 0) * 4%)
+        cover calc(20% + var(--turno, 0) * 4%);
+    }
+    .step::after {
+      content: '';
+      position: absolute;
+      inset-inline: 0;
+      inset-block-end: -1px;
+      height: 1px;
+      background: var(--color-hairline);
+      transform-origin: left;
+      animation: fileteTiende linear both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(var(--turno, 0) * 4%)
+        cover calc(20% + var(--turno, 0) * 4%);
+    }
+    .step .stepNumber {
+      animation: numeralEntra linear both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(5% + var(--turno, 0) * 4%)
+        cover calc(26% + var(--turno, 0) * 4%);
+    }
+  }
+}
+@keyframes pasoEntra {
+  from {
+    opacity: 0.55;
+    transform: translate3d(0, 1.1rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes fileteTiende {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* LOS PÁRRAFOS DEL CAPÍTULO 02 Y LA ENTRADILLA DEL 05, POR LÍNEAS. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .teamCopy p,
+    .lede {
+      animation: lineaEntra linear both;
+      animation-timeline: view();
+      animation-range:
+        entry calc(16% + var(--turno, 0) * 7%)
+        entry calc(62% + var(--turno, 0) * 7%);
+    }
+    /* El aviso de «Próximamente» llega el último del capítulo, que es su
+       sitio: es una nota al margen del proceso, no un quinto paso. */
+    .upcoming {
+      animation: lineaEntra linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 30%;
+    }
+  }
+}
+@keyframes lineaEntra {
+  from { opacity: 0.55; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* EL RETRATO DEL EQUIPO SE DESCUBRE, como el mural de aquí arriba y como los
+   marcos del índice de /servicios: un cuarto de recorte por abajo, nunca la
+   imagen entera, así que las cinco caras se ven desde el primer fotograma.
+   Y la imagen se posa a la vez.
+   NADA DE PARALAJE AQUÍ: esta figura ya tuvo uno y hubo que quitarlo -- la
+   capa se montaba más alta que su marco y `object-fit: cover` pagaba ese
+   margen recortando por los lados, justo por donde están Rafa y Manuel. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .retratoEquipoMarco {
+      animation: retratoAbre linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 32%;
+    }
+    .retratoEquipoImagen {
+      animation: retratoPosa linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 60%;
+    }
+  }
+}
+@keyframes retratoAbre {
+  from { clip-path: inset(0 0 20% 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+@keyframes retratoPosa {
+  from { transform: scale(1.04); }
+  to   { transform: scale(1); }
+}
+
+/* EL NUMERAL DEL CAPÍTULO, SUBIENDO, Y EL FILETE DE LA CABECERA DIBUJÁNDOSE.
+   Los cinco capítulos se anunciaban con un número quieto y nada más. El
+   número es la única pieza de la página que dice por dónde vas, así que es la
+   que merece moverse: sube a su sitio y debajo se tiende una línea que separa
+   la cabecera de lo que viene. */
+/* EL FILETE EXISTE SIEMPRE, tenga o no soporte el navegador y pida o no
+   menos movimiento: es parte de la maquetación, no del movimiento. Si sólo
+   viviera dentro de las dos puertas, la página se vería distinta según el
+   ajuste del sistema. Lo único que entra en la puerta es que se tienda. */
+.sectionHeader {
+  position: relative;
+}
+.sectionHeader::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: calc(var(--space-2) * -1);
+  height: 1px;
+  background: var(--color-hairline);
+  transform-origin: left;
+}
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .sectionHeader .chapterNumber {
+      animation: numeralEntra linear both;
+      animation-timeline: view();
+      animation-range: entry 8% entry 62%;
+    }
+    /* LÍNEA DE TIEMPO CON NOMBRE, Y NO `view()`. Aquí está el fallo que no se
+       ve leyendo: `view()` mide contra EL PROPIO ELEMENTO al que se le pone
+       la animación, y este elemento es un filete de 1px de alto. El tramo
+       `entry` de un sujeto de un píxel dura un píxel de scroll: `entry 10% ->
+       entry 78%` eran SETENTA CENTÉSIMAS DE PÍXEL, o sea un salto de vacío a
+       lleno indistinguible de no animar nada.
+       Con `view-timeline-name` el sujeto pasa a ser la cabecera entera, que
+       es la que de verdad recorre la pantalla. Un nombre se busca en el
+       elemento y en sus ancestros, y el padre de este pseudo-elemento es
+       justo `.sectionHeader`, así que resuelve sin `timeline-scope`. */
+    .sectionHeader {
+      view-timeline-name: --cabecera;
+    }
+    .sectionHeader::after {
+      animation: cabeceraTiende linear both;
+      animation-timeline: --cabecera;
+      animation-range: entry 10% entry 78%;
+    }
+  }
+}
+@keyframes cabeceraTiende {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
 }

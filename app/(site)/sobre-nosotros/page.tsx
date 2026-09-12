@@ -1,16 +1,18 @@
 import { focusOf } from '@/lib/focal';
+import { turno } from '@/lib/turno';
 import Image from 'next/image';
 import Link from 'next/link';
 import { site } from '@/content/site';
-import { buildMetadata } from '@/lib/seo';
+import { foto } from '@/content/seleccion';
+import { buildMetadata, ogImage } from '@/lib/seo';
 import { ShowreelClip } from '@/components/sections/ShowreelClip';
 import { Cifras } from '@/components/sections/Cifras';
 import { CtaContacto } from '@/components/sections/CtaContacto';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
-import { ScrollParallax } from '@/components/motion/ScrollParallax';
 import { ScrubWords } from '@/components/motion/ScrubWords';
 import { TeamList, type TeamMember } from '@/components/sections/TeamList';
 import styles from './page.module.css';
+import { RevealWords, pasoPara } from '@/components/motion/RevealWords';
 
 export const metadata = buildMetadata({
   // 40 + 17 de plantilla = 57 caracteres servidos; el anterior daba 65 y
@@ -22,6 +24,14 @@ export const metadata = buildMetadata({
   description:
     'Cinco especialistas en foto y vídeo de boda dirigidos por eme (María Leal): quince años, del fotoperiodismo y los conciertos a las bodas de Sevilla.',
   path: '/sobre-nosotros',
+  // LA TARJETA DE ENLACE ES UNA FOTOGRAFÍA, no el logotipo.
+  // Todas las páginas menos las fichas de boda compartían la misma tarjeta
+  // genérica --la marca sobre fondo oscuro-- así que un estudio de fotografía
+  // que se manda por WhatsApp aparecía como un wordmark. La imagen ES el
+  // producto y es lo único que se ve en una previsualización antes de decidir
+  // si se pincha. `ogImage()` cambia la extensión al derivado JPEG de 1200x630
+  // que vive al lado de cada foto (WhatsApp no pinta WebP; ver lib/seo.ts).
+  image: ogImage('/images/equipo/equipo.webp'),
 });
 
 // Three ways of looking that every EME wedding on this site shares. Copy is
@@ -52,156 +62,339 @@ const STEPS = [
     text: 'Repartimos ángulos, horarios y luces con vosotros y con el resto de proveedores. Cuando llega el día, cada uno del equipo ya sabe dónde se coloca y a quién mira.',
   },
   {
+    // «Cinco personas» aquí era una promesa de plantilla, y el estudio
+    // aclaró que no van los cinco a todas las bodas: quién va depende de lo
+    // contratado y del tamaño del día. La frase se queda con lo que sí es
+    // cierto siempre -- de dónde sale quien va -- y dice en voz alta de qué
+    // depende el número, que es además lo que la pareja necesita saber para
+    // leer su presupuesto.
     title: 'El día',
-    text: 'Llegamos con los primeros nervios de la mañana y nos vamos con el último baile. Cinco personas moviéndose sin que se note, con la cámara lista antes de que ocurra.',
+    text: 'Llegamos con los primeros nervios de la mañana y nos vamos con el último baile. No vamos siempre los cinco: cuántos somos ese día depende de lo que hayáis contratado y de cómo sea la boda, y lo acordamos antes de firmar. Vaya quien vaya, sale de este equipo y ya sabe dónde se coloca.',
   },
   {
+    // El tráiler y el álbum dependen del pack, y los plazos de antes (una
+    // semana, "dentro de diez años") no eran los reales. Lo que se promete
+    // aquí es lo que va en todas las entregas; lo demás se nombra como lo
+    // que es.
     title: 'Entrega',
-    text: 'Galería privada para vosotros y para vuestros invitados, tráiler para compartir la misma semana, película completa para volver a verla dentro de diez años, y el álbum impreso con la selección que hacemos juntos.',
+    text: 'Un adelanto de fotos en los días siguientes y, después, la galería privada completa para vosotros y vuestros invitados: entre tres y seis meses. La película, entre seis meses y un año, montada sobre hilo musical. El tráiler y el álbum impreso van según el pack que elijáis.',
   },
 ];
 
 // Real frames from projects already published on /trabajos.
-const STRIP = [
-  { src: '/images/trabajos/carmen-y-alberto/cover.webp', alt: 'Los novios bajo un arco de piedra con el velo extendido a la luz del atardecer', width: 1333, height: 2000 },
-  { src: '/images/trabajos/angelica-y-jesus/12.webp', alt: 'Vista cenital de los novios sobre la línea de la carretera con el velo extendido', width: 1600, height: 987 },
-  { src: '/images/trabajos/reyes-y-francisco/15.webp', alt: 'Primer baile entre bengalas frías', width: 1600, height: 1067 },
-  { src: '/images/trabajos/carmen-y-enrique/cover.webp', alt: 'Silueta de los novios bajo el velo frente a los faros del coche clásico', width: 1333, height: 2000 },
+// Cuatro fotos eran pocas para una sección que se titula «Nuestra mirada»:
+// el mural decía lo mismo que el resto de la página en vez de demostrarlo.
+// Las tres nuevas vienen de content/seleccion.ts -- bodas sin ficha propia en
+// /trabajos -- y están elegidas por lo que enseñan de la forma de mirar, no
+// por lo bonitas: el perro debajo de las sillas durante la ceremonia, el niño
+// tirado en el suelo mientras los novios salen detrás, y el velo cruzando el
+// encuadre con el viento. Ninguna de las tres se puede encargar, que es
+// justo lo que dice el principio 01 de aquí arriba.
+const MURAL = [
+  { src: '/images/trabajos/carmen-y-alberto/cover.webp', alt: 'Los novios bajo un arco de piedra con el velo extendido a la luz del atardecer', width: 1707, height: 2560 },
+  foto('perro-bajo-las-sillas'),
+  { src: '/images/trabajos/angelica-y-jesus/12.webp', alt: 'Vista cenital de los novios sobre la línea de la carretera con el velo extendido', width: 2560, height: 1579 },
+  foto('nino-en-el-suelo'),
+  { src: '/images/trabajos/reyes-y-francisco/15.webp', alt: 'Primer baile entre bengalas frías', width: 2560, height: 1707 },
+  foto('velo-al-viento-bajo-el-arbol'),
+  { src: '/images/trabajos/carmen-y-enrique/cover.webp', alt: 'Silueta de los novios bajo el velo frente a los faros del coche clásico', width: 1706, height: 2560 },
 ];
 
 // The people. Order matches the group photograph (left to right).
 //
-// ⚠️ TODO(cliente): los cuatro roles que NO son el de María Leal están
-// ASIGNADOS POR NOSOTROS, no confirmados por el estudio. El brief pidió
-// sustituir el genérico "Fotografía y vídeo" por un título propio para cada
-// uno, y estos son plausibles y coherentes con lo que la web ya cuenta —
-// pero quién dirige el vídeo, quién vuela el dron y quién hace segunda
-// cámara es un dato que solo tiene el estudio. Confirmadlos o cambiadlos
-// antes de publicar: un rol equivocado en la web es peor que uno genérico,
-// porque el genérico no afirma nada y este sí.
+// LOS CARGOS LOS HA DADO EL ESTUDIO, ya no son suposición nuestra. Estuvieron
+// un tiempo marcados con un aviso porque los habíamos asignado por
+// verosimilitud, que en una web es afirmar algo que no sabes; ahora vienen
+// del cliente y el aviso sobra. Que Rafa y Manuel compartan cargo no es un
+// error de copia: es lo que hay, dos personas haciendo lo mismo.
 const TEAM: TeamMember[] = [
   { name: 'eme · María Leal', role: 'Dirección creativa y fotografía', portrait: '/images/equipo/eme-retrato.webp', href: site.instagramUrl },
-  { name: 'Rafa', role: 'Realización audiovisual', portrait: '/images/equipo/rafa-retrato.webp' },
-  { name: 'Raúl', role: 'Operador de cámara y dron', portrait: '/images/equipo/raul-retrato.webp' },
-  { name: 'Antonio', role: 'Fotografía de reportaje', portrait: '/images/equipo/antonio-retrato.webp' },
-  { name: 'Manuel', role: 'Segunda cámara y edición', portrait: '/images/equipo/manuel-retrato.webp' },
+  { name: 'Rafa', role: 'Realización audiovisual y dron', portrait: '/images/equipo/rafa-retrato.webp' },
+  { name: 'Raúl', role: 'Videógrafo', portrait: '/images/equipo/raul-retrato.webp' },
+  { name: 'Antonio', role: 'Fotógrafo', portrait: '/images/equipo/antonio-retrato.webp' },
+  { name: 'Manuel', role: 'Realización audiovisual y dron', portrait: '/images/equipo/manuel-retrato.webp' },
 ];
 
 export default function Page() {
   return (
     <article className={styles.page}>
-      {/* Opener in the Lundani register: one statement in two halves. The
-          first half sits on paper above a full-bleed photograph of the team
-          at work; the second half is printed on the photograph itself. The
-          h1 carries the brand for search (visually hidden) plus the whole
-          statement, so the page still announces itself as EME. */}
+      {/* LA APERTURA. Un enunciado en dos mitades y la fotografía del equipo
+          trabajando, al lado.
+
+          POR QUÉ LA FOTO YA NO VA A SANGRE, que es la corrección que pidió el
+          estudio («dale más calidad a la imagen en la que sale eme entre dos
+          novios»). El fichero mide 1600x1200. En una banda a sangre el
+          navegador le pide el ancho entero de la ventana: en un portátil de
+          1440 px a 2x son 2880, o sea que se estaba ampliando un 80%. Y
+          además la banda era de 1,76:1 con una fotografía de 4:3 dentro, así
+          que `object-fit: cover` tiraba una cuarta parte del alto -- se
+          ampliaba Y se recortaba a la vez.
+          Aquí la fotografía ocupa una columna de 38rem como mucho. A 2x eso
+          son unos 1.216 px: POR DEBAJO de los 1.600 que tiene el fichero, o
+          sea que no se amplía nada y por primera vez se ve nítida. Y como el
+          marco toma su propio 4:3, tampoco se recorta: vuelven a estar los
+          dos novios enteros y el pueblo del fondo.
+          Esto NO sustituye a tener el original: con un fichero grande esta
+          foto podría volver a ir a sangre. Mientras tanto, nítida y mediana
+          es mejor que enorme y blanda en la web de un fotógrafo.
+
+          LA SEGUNDA MITAD DE LA FRASE BAJA A PAPEL. Estaba impresa sobre la
+          fotografía en `aria-hidden`, con el texto de verdad escondido en un
+          `sr-only`: dos copias de la misma frase para que el lector de
+          pantalla oyera una cosa y la pantalla enseñara otra. En una columna
+          de 38rem ese titular ya no cabe encima, y no hace falta -- puesto
+          debajo del primero, en cursiva, la frase se lee entera y una sola
+          vez, y el <h1> deja de necesitar copias ocultas. */}
       <header className={styles.hero}>
-        {/* El titular sale del CV real de eme, no de una figura retórica:
-            viene del fotoperiodismo y de fotografiar conciertos, o sea de
-            oficios donde la toma no se repite nunca. Esa es también la
-            promesa de una boda, y dicho así el argumento se entiende sin
-            explicarlo. Sustituye a "No hacemos fotos de boda. / Guardamos
-            recuerdos.", que además era la cuarta vez que el sitio usaba la
-            construcción "No X. Y." */}
-        <h1 className={styles.heroTitle}>
-          <span className="sr-only">{site.brandName}. </span>
-          <span className={styles.heroLine}>Un concierto no se repite.</span>
-          <span className="sr-only"> Vuestra boda tampoco.</span>
-        </h1>
-        <p className={styles.heroLede}>
-          Cinco especialistas en foto y vídeo cubriendo el mismo día a la vez, desde el suelo y desde el aire. Sin
-          estudio, sin poses de catálogo y sin un solo momento esperando a que alguien lo repita.
-        </p>
-        <div className={styles.heroFigure}>
-          <ScrollParallax strength={5}>
-            <Image
-              src="/images/equipo/eme-en-accion.webp"
-              alt="eme fotografiando a una pareja de novios sobre un mirador de cristal, con el pueblo y la sierra al fondo"
-              fill
-              sizes="100vw"
-              className={styles.heroImage}
-              priority
-            style={focusOf("/images/equipo/eme-en-accion.webp")}
-          />
-          </ScrollParallax>
-          <div className={styles.heroScrim} aria-hidden="true" />
-          <p className={styles.heroSecond} aria-hidden="true">
-            Vuestra boda <em>tampoco.</em>
+        <div className={styles.heroCopy}>
+          {/* El titular sale del CV real de eme, no de una figura retórica:
+              viene del fotoperiodismo y de fotografiar conciertos, o sea de
+              oficios donde la toma no se repite nunca. Esa es también la
+              promesa de una boda, y dicho así el argumento se entiende sin
+              explicarlo. */}
+          <h1 className={styles.heroTitle}>
+            <span className="sr-only">{site.brandName}. </span>
+            {/* Las dos mitades son UN SOLO titular de ocho palabras, y las dos
+                cosas que lo consiguen van juntas:
+                  - `offset` continúa la cuenta en la segunda línea en vez de
+                    reiniciarla («Un concierto no se repite.» son cinco), que
+                    es lo que haría que las dos frases se revelaran a la vez
+                    como si fueran dos titulares distintos.
+                  - y `paso` se calcula sobre EL TOTAL, porque si no cada mitad
+                    calcularía el suyo por su cuenta --5 la primera, 4,3 la
+                    segunda-- y la cascada cambiaría de ritmo a mitad de
+                    frase. */}
+            <span className={styles.heroLine}>
+              <RevealWords segments={[{ text: 'Un concierto no se repite.' }]} paso={pasoPara(8)} />
+            </span>{' '}
+            <span className={styles.heroLineEm}>
+              <RevealWords
+                segments={[{ text: 'Vuestra boda tampoco.' }]}
+                offset={5}
+                paso={pasoPara(8)}
+              />
+            </span>
+          </h1>
+          <p className={styles.heroLede}>
+            Cinco especialistas en foto y vídeo cubriendo el mismo día a la vez, desde el suelo y desde el aire. Sin
+            estudio, sin poses de catálogo y sin un solo momento esperando a que alguien lo repita.
           </p>
         </div>
+        <figure className={styles.heroFigure}>
+          {/* SIN ScrollParallax, y a propósito. Ese componente monta una capa
+              de `inset: -strength% 0`, o sea un 10% más alta que su marco,
+              para tener margen por donde desplazarse -- y `object-fit: cover`
+              paga ese margen recortando por los lados. En esta fotografía
+              concreta eso se lleva un 9% del ancho, que es justo por donde
+              están los dos novios. Aquí el movimiento lo pone el posado de
+              `heroSettle` (page.module.css), que es un 4% y vuelve a 1: la
+              imagen acaba exacta, sin un píxel de recorte. */}
+          <div className={styles.heroFrame}>
+            <Image
+              src="/images/equipo/eme-en-accion.webp"
+              alt="eme entre los dos novios, los tres con sus cámaras, sobre el mirador de cristal de un pueblo blanco"
+              fill
+              /* 38rem es el tope de la columna (ver .hero en la hoja); por
+                 encima de 900 px no crece más, así que pedir 100vw ahí sería
+                 pedir el doble de lo que se pinta. */
+              sizes="(max-width: 900px) 100vw, 608px"
+              className={styles.heroImage}
+              priority
+            />
+          </div>
+          <figcaption className={styles.heroCaption}>
+            eme, entre los novios, en mitad de un reportaje.
+          </figcaption>
+        </figure>
       </header>
 
-      {/* 01 -- the statement, read along with the scroll. */}
+      {/* 01 -- QUIÉN SOY.
+          Aquí había UN SOLO PÁRRAFO de ciento treinta palabras en serif
+          grande, con el revelado palabra a palabra encima. El estudio lo
+          señaló como «largo y tedioso de leer» y tenía razón dos veces:
+
+           1. Ciento treinta palabras en cuerpo de titular son ocho líneas
+              largas sin un punto de descanso, y lo que se cuenta ahí -- la
+              cámara del abuelo, la redacción, los conciertos, la moda, las
+              bodas, dónde trabajamos, los premios -- son SEIS asuntos
+              distintos metidos en una sola respiración.
+           2. Y el revelado palabra a palabra, que en una frase corta es un
+              gesto, en un párrafo largo es un freno: obliga a bajar despacio
+              justo donde el lector querría ir rápido. Se queda sólo en la
+              frase de apertura, que es de siete palabras y donde sí funciona.
+
+          Ahora son tres bloques con su propio rótulo, en el orden en que los
+          escribió el estudio: de dónde viene la forma de mirar, qué se hace
+          hoy con ella, y dónde. Y en primera persona, como los pasó el
+          cliente -- es el capítulo de eme, no el del estudio; el «nosotros»
+          empieza en el 02.
+
+          LOS CRÉDITOS NO SE PIERDEN, CAMBIAN DE FORMA. El Correo de
+          Andalucía, los tres artistas y Spagnolo estaban dentro del párrafo
+          entre guiones, que es donde más cuesta leerlos y donde menos pesan.
+          Puestos en una tira de nombres debajo del bloque que los explica se
+          leen de un vistazo, como la ficha de créditos de un cartel: es la
+          parte comprobable de todo este capítulo y ahora se ve sin leer una
+          línea. */}
       <section aria-labelledby="quienes-heading" className={styles.statementSection}>
-        <span className={styles.chapterNumber} aria-hidden="true">01</span>
-        <h2 id="quienes-heading" className="sr-only">
-          Quiénes somos
-        </h2>
-        {/* La historia, que hasta ahora no se contaba: de dónde sale esta
-            forma de trabajar. Todos los datos vienen del estudio (la cámara
-            del abuelo, El Correo de Andalucía, los conciertos, Spagnolo, la
-            titulación de 2010). Una corrección deliberada sobre el brief:
-            dice "galardonados consecutivamente", pero las cinco insignias que
-            esta misma web publica son 2019, 2021, 2022, 2023 y 2025 — faltan
-            2020 y 2024. "Cinco ediciones" dice lo mismo y es comprobable en el
-            perfil de Bodas.net que enlazamos aquí al lado; "consecutivamente"
-            sería una afirmación falsa a un clic de distancia. */}
-        <ScrubWords className={styles.scrub}>
-          Empezó con la cámara analógica del abuelo de eme y una niña de ocho años en Sevilla. De ahí a los estudios de
-          Arte, a la Titulación Superior en Imagen y a la redacción de El Correo de Andalucía, donde se aprende lo único
-          que no se enseña: que el instante bueno dura medio segundo y no avisa. Después llegaron los conciertos
-          —Beret, Marisol Bizcocho, Rafa Ruda—, las portadas de disco y los catálogos de Spagnolo. El directo enseña
-          ritmo; la moda, a mirar. Quince años más tarde, esa escuela se aplica entera a las bodas: por eso contamos la
-          vuestra con principio, tensión y final. Partimos de {site.addressLocality}, a las afueras de Sevilla, y nos
-          movemos por toda Andalucía. Cinco ediciones de los Wedding Awards, la imagen de Saal Digital en ferias y más
-          de {site.bodasNetCoupleCount} parejas dicen que funciona.
-        </ScrubWords>
-        <div className={styles.statementLinks}>
-          <Link href="/trabajos" className={styles.arrow}>
-            Ver los reportajes
-            <span className="arrow" aria-hidden="true">↗</span>
-          </Link>
-          <a href={site.bodasNetUrl} target="_blank" rel="noopener noreferrer" className={styles.arrow}>
-            Puntuación máxima en Bodas.net
-            <span className="arrow" aria-hidden="true">↗</span>
-          </a>
+        <div className={styles.capituloCabecera}>
+          <span className={styles.chapterNumber} aria-hidden="true">01</span>
+          {/* ESTE TITULAR NO LLEVA REVELADO POR PALABRAS, y no es un olvido.
+              Vive dentro de `.capituloCabecera`, que de 900 px para arriba es
+              `position: sticky`. El revelado de RevealWords se mide con
+              `animation-timeline: view()`, es decir contra la pantalla -- y un
+              elemento anclado NO se mueve respecto a la pantalla, así que su
+              progreso se congela en cuanto se pega y las palabras se quedarían
+              a medio subir durante todo el capítulo. Es el mismo hallazgo que
+              documenta SelectedReel.module.css sobre por qué la línea de
+              tiempo se declara en el escenario y no en lo anclado. */}
+          <h2 id="quienes-heading" className={styles.heading}>Quién soy</h2>
+          <div className={styles.statementLinks}>
+            <Link href="/trabajos" className={styles.arrow}>
+              Ver los reportajes
+              <span className="arrow" aria-hidden="true">↗</span>
+            </Link>
+            <a href={site.bodasNetUrl} target="_blank" rel="noopener noreferrer" className={styles.arrow}>
+              Puntuación máxima en Bodas.net
+              <span className="arrow" aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+
+        <div className={styles.capituloCuerpo}>
+          {/* La única frase que conserva el revelado palabra a palabra de
+              toda la página. Siete palabras: el gesto se lee entero antes de
+              que llegue a cansar. */}
+          <ScrubWords className={styles.scrub}>
+            Todo empezó con la cámara analógica de mi abuelo.
+          </ScrubWords>
+
+          {/* LOS TRES TRAMOS, APILÁNDOSE CON EL SCROLL.
+              Fueron tres tarjetas desplegables con un «+», y el estudio lo
+              corrigió con razón: «no quiero tener que darle al botón + para
+              verla». Un clic por tramo es un peaje para leer tres párrafos
+              que ya estaban escritos, y en la sección que cuenta quién está
+              detrás de la cámara ese peaje lo paga muy poca gente.
+
+              Ahora es el mismo gesto que el manifiesto de la portada y que
+              las seis preguntas: cada tramo se queda pegado bajo la cabecera
+              y el siguiente sube y lo tapa. Aparecen y desaparecen solos, sin
+              pulsar nada, y está todo visible desde el primer momento.
+              Todo `position: sticky` y un fondo opaco: cero JavaScript. */}
+          <ol className={styles.bloques}>
+            <li className={styles.bloque}>
+              <h3 className={styles.bloqueTitulo}>
+                <RevealWords segments={[{ text: 'El origen y la escuela' }]} />
+              </h3>
+              <p className={styles.bloqueTexto}>
+                De los estudios de Arte pasé al fotoperiodismo en El Correo de Andalucía, donde se
+                aprende lo único que no se enseña: que el instante bueno dura medio segundo y no
+                avisa. Después, la fotografía de conciertos me enseñó el ritmo, y las editoriales
+                de moda me enseñaron a mirar.
+              </p>
+              {/* Nombres reales, en una sola tira. Es la parte de este
+                  capítulo que cualquiera puede comprobar. */}
+              <p className={styles.creditos}>
+                El Correo de Andalucía <span aria-hidden="true">·</span> Beret{' '}
+                <span aria-hidden="true">·</span> Marisol Bizcocho <span aria-hidden="true">·</span>{' '}
+                Rafa Ruda <span aria-hidden="true">·</span> Balbino Bernal{' '}
+                <span aria-hidden="true">·</span> Spagnolo
+              </p>
+            </li>
+
+            <li className={styles.bloque}>
+              <h3 className={styles.bloqueTitulo}>
+                <RevealWords segments={[{ text: 'Quince años después' }]} />
+              </h3>
+              <p className={styles.bloqueTexto}>
+                Aplico esa escuela entera en cada boda. Por eso no hacemos posados tradicionales:
+                contamos vuestra historia con principio, tensión y final, como un documental.
+              </p>
+            </li>
+
+            <li className={styles.bloque}>
+              <h3 className={styles.bloqueTitulo}>
+                <RevealWords segments={[{ text: '¿Dónde estamos?' }]} />
+              </h3>
+              <p className={styles.bloqueTexto}>
+                Partimos de {site.addressLocality}, a las afueras de Sevilla, y recorremos toda
+                Andalucía. Más de {site.coupleCount} parejas, cinco Wedding Awards y ser la imagen
+                de Saal Digital en ferias confirman que este enfoque funciona.
+              </p>
+            </li>
+          </ol>
         </div>
       </section>
 
-      {/* Two portraits, side by side, drifting at different rates. */}
+      {/* LA CITA. Va aquí y no en otro sitio porque es el remate del capítulo
+          que acaba de contar de dónde sale esta forma de mirar: el
+          fotoperiodismo, el instante que dura medio segundo. Cartier-Bresson
+          es quien puso nombre a eso --el «instante decisivo»-- y su frase dice
+          en una línea lo que el capítulo entero acaba de explicar en tres
+          bloques. No es un adorno motivacional: es la escuela de la que viene
+          eme, citada con su autor.
+
+          «LA CABEZA», no «la mente». El original francés dice «mettre sur la
+          même ligne de mire LA TÊTE, l'œil et le cœur», y en una cita
+          atribuida a alguien la traducción libre deja de ser una licencia de
+          redacción para convertirse en una afirmación sobre lo que esa
+          persona dijo.
+
+          Y EL AUTOR VA EN TEXTO PLANO, no en <cite>. La especificación de HTML
+          es explícita: el nombre de una persona no es el título de una obra y
+          `<cite>` no debe usarse para nombres. El síntoma de que estaba mal
+          era tener que anular en el CSS lo único que `<cite>` aporta, que es
+          la cursiva. El <figcaption> fuera del <blockquote> sí es lo que pide
+          la norma, y eso se queda.
+
+          El revelado palabra a palabra es el de la casa, sin `em`: ese tramo
+          emite un `<em>` de verdad, o sea énfasis semántico, y un lector de
+          pantalla cambiaría la entonación en media frase que el autor no
+          enfatizó. */}
       <ScrollReveal>
-        <div className={styles.pair}>
-          <figure className={styles.pairItem}>
-            <div className={styles.pairFrame}>
-            <ScrollParallax strength={8}>
-              <Image
-                src="/images/equipo/equipo.webp"
-                alt="El equipo de EME con sus cámaras: Rafa, Raúl, eme, Antonio y Manuel"
-                fill
-                sizes="(max-width: 900px) 100vw, 48vw"
-                className={styles.pairImage}
-            style={focusOf("/images/equipo/equipo.webp")}
-          />
-            </ScrollParallax>
-            </div>
-            <figcaption className={styles.pairCaption}>El equipo. De izquierda a derecha: Rafa, Raúl, eme, Antonio y Manuel.</figcaption>
-          </figure>
-          <figure className={`${styles.pairItem} ${styles.pairItemOffset}`}>
-            <div className={styles.pairFrame}>
-            <ScrollParallax strength={5}>
-              <Image
-                src="/images/trabajos/carmen-y-alberto/cover.webp"
-                alt="Los novios bajo un arco de piedra con el velo extendido a la luz del atardecer"
-                fill
-                sizes="(max-width: 900px) 100vw, 48vw"
-                className={styles.pairImage}
-            style={focusOf("/images/trabajos/carmen-y-alberto/cover.webp")}
-          />
-            </ScrollParallax>
-            </div>
-            <figcaption className={styles.pairCaption}>Carmen y Alberto, Sevilla.</figcaption>
-          </figure>
-        </div>
+        <figure className={styles.cita}>
+          <blockquote className={styles.citaTexto}>
+            <RevealWords
+              segments={[
+                { text: 'Fotografiar es poner la cabeza, el ojo y el corazón sobre la misma línea de mira.' },
+              ]}
+            />
+          </blockquote>
+          <figcaption className={styles.citaAutor}>Henri Cartier-Bresson</figcaption>
+        </figure>
+      </ScrollReveal>
+
+      {/* EL RETRATO DEL EQUIPO, SOLO.
+          Aquí había dos fotografías en paralelo: el equipo a la izquierda y
+          una boda a la derecha. El estudio lo señaló y tiene razón: en mitad
+          de la presentación de las personas, una pareja de novios no viene a
+          cuento -- el lector acaba de leer quién es eme y está a punto de leer
+          quiénes son los cinco, y en medio se le enseña a unos clientes. Las
+          bodas tienen su sitio dos capítulos más abajo, en «Nuestra mirada»,
+          y toda una sección del sitio para ellas.
+
+          Y DE PASO SE VE NÍTIDA, que era el otro problema. El fichero mide
+          896x1195. En la mitad de la página se pintaba a unos 690 px, o sea
+          1.380 reales en densidad doble: un 54% de ampliación. En una columna
+          de 32rem son 1.024, un 14% -- imperceptible. También se le ha quitado
+          el desplazamiento de parallax: esa capa se monta un 8% más alta que
+          su marco y `object-fit: cover` paga ese margen recortando por los
+          lados, justo por donde están los dos de los extremos. */}
+      <ScrollReveal>
+        <figure className={styles.retratoEquipo}>
+          <div className={styles.retratoEquipoMarco}>
+            <Image
+              src="/images/equipo/equipo.webp"
+              alt="El equipo de EME con sus cámaras: Rafa, Raúl, eme, Antonio y Manuel"
+              fill
+              sizes="(max-width: 560px) 92vw, 512px"
+              className={styles.retratoEquipoImagen}
+            />
+          </div>
+          <figcaption className={styles.retratoEquipoPie}>
+            El equipo. De izquierda a derecha: Rafa, Raúl, eme, Antonio y Manuel.
+          </figcaption>
+        </figure>
       </ScrollReveal>
 
       {/* 02 -- the people. */}
@@ -209,18 +402,31 @@ export default function Page() {
         <section aria-labelledby="equipo-heading" className={`${styles.section} ${styles.team}`}>
           <div className={styles.teamCopy}>
             <span className={styles.chapterNumber} aria-hidden="true">02</span>
-            <h2 id="equipo-heading" className={styles.heading}>Equipo</h2>
-            <p>
-              Al frente está eme, {site.founderName}, dirigiendo un equipo permanente de especialistas en foto y vídeo.
-              No es un fotógrafo con refuerzos: son cinco profesionales que trabajan juntos todo el año, con los
-              ángulos repartidos antes de que empiece el día.
+            {/* EL TITULAR DICE ALGO, no nombra el apartado. «Equipo» era una
+                etiqueta: describe dónde está el lector, no por qué debería
+                importarle. La frase que de verdad diferencia a este estudio
+                estaba enterrada en la segunda línea del párrafo, que es donde
+                menos gente llega. Ahora es el titular, y el párrafo empieza
+                directamente por el dato. La palabra «Equipo» sigue en el
+                antetítulo, para quien viene buscándola. */}
+            <span className={styles.teamKicker}>Equipo</span>
+            <h2 id="equipo-heading" className={styles.heading}>
+              <RevealWords segments={[{ text: 'Cinco personas que trabajan juntas todo el año.' }]} />
+            </h2>
+            {/* Los tres párrafos llegaban a la vez debajo de un titular que
+                se revela palabra a palabra. `--turno` los pone en fila (ver
+                lib/turno.ts y `.teamCopy p` en la hoja). */}
+            <p style={turno(0)}>
+              Al frente está eme, {site.founderName}, dirigiendo un equipo permanente de especialistas en foto y vídeo,
+              con los ángulos repartidos antes de que empiece el día.
             </p>
-            <p>
+            <p style={turno(1)}>
               Mientras una cámara está en la cara de la novia, otra está en la de su padre. Mientras el dron abre el
-              plano de la finca, otro objetivo cierra sobre las manos. Ser cinco sirve para una cosa concreta: que
-              no exista el momento que nadie estaba cubriendo.
+              plano de la finca, otro objetivo cierra sobre las manos. Ser un equipo sirve para una cosa concreta: que
+              no exista el momento que nadie estaba cubriendo. Cuántos vamos a vuestra boda lo decide el día -- las
+              horas, el número de invitados, si lleváis vídeo -- y lo acordamos con vosotros antes de firmar.
             </p>
-            <p>Si queréis conocernos antes de decidir, escribidnos: la primera conversación es siempre sin compromiso.</p>
+            <p style={turno(2)}>Si queréis conocernos antes de decidir, escribidnos: la primera conversación es siempre sin compromiso.</p>
             <div className={styles.teamLinks}>
               <Link href="/contacto" className={styles.arrow}>
                 Escribirnos
@@ -240,23 +446,48 @@ export default function Page() {
         <section aria-labelledby="mirada-heading" className={styles.section}>
           <header className={styles.sectionHeader}>
             <span className={styles.chapterNumber} aria-hidden="true">03</span>
-            <h2 id="mirada-heading" className={styles.heading}>Nuestra mirada</h2>
+            <h2 id="mirada-heading" className={styles.heading}>
+              <RevealWords segments={[{ text: 'Nuestra mirada' }]} />
+            </h2>
           </header>
           <div className={styles.principles} role="list">
             {PRINCIPLES.map((p, i) => (
-              <div key={p.title} role="listitem" className={styles.principle}>
+              <div key={p.title} role="listitem" className={styles.principle} style={turno(i)}>
                 <span className={styles.itemNumber} aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
                 <h3 className={styles.principleTitle}>{p.title}</h3>
                 <p className={styles.principleText}>{p.text}</p>
               </div>
             ))}
           </div>
-          <div className={styles.strip} role="list" aria-label="Fotografías reales de nuestros reportajes">
-            {STRIP.map((item) => (
-              <figure key={item.src} role="listitem" className={styles.stripItem} style={{ aspectRatio: `${item.width} / ${item.height}` }}>
-                <Image src={item.src} alt={item.alt} fill sizes="(max-width: 900px) 70vw, 28vw" className={styles.stripImage}
-            style={focusOf(item.src)}
-          />
+{/* UN MURAL, NO UNA TIRA QUE HAY QUE ARRASTRAR.
+              Esto era un carril horizontal con la barra de scroll escondida:
+              en un escritorio se veían dos fotografías y media y las otras
+              cuatro sólo existían para quien adivinara que aquello se
+              arrastraba -- y necesitaba además un `tabIndex` para que el
+              teclado pudiera recorrerlo. En la sección que se titula «Nuestra
+              mirada», cuatro de cada siete pruebas invisibles.
+              Ahora se ven las siete de una vez, cada una con la forma de su
+              fichero, y entran escalonadas con el scroll. Mismo mural que las
+              páginas de servicio, o sea que las dos secciones siguen siendo
+              un solo sistema. */}
+          <div className={styles.mural}>
+            {MURAL.map((item, i) => (
+              <figure
+                /* Por índice y no por `src`: content/seleccion.ts devuelve
+                   siempre la misma referencia, así que un mural que repitiera
+                   una fotografía tendría dos claves iguales. */
+                key={`${item.src}-${i}`}
+                className={styles.muralItem}
+                style={{ ...turno(i), aspectRatio: `${item.width} / ${item.height}` }}
+              >
+                <Image
+                  src={item.src}
+                  alt={item.alt}
+                  fill
+                  sizes="(max-width: 700px) 92vw, (max-width: 1100px) 46vw, 30vw"
+                  className={styles.muralImagen}
+                  style={focusOf(item.src)}
+                />
               </figure>
             ))}
           </div>
@@ -267,11 +498,13 @@ export default function Page() {
         <section aria-labelledby="proceso-heading" className={styles.section}>
           <header className={styles.sectionHeader}>
             <span className={styles.chapterNumber} aria-hidden="true">04</span>
-            <h2 id="proceso-heading" className={styles.heading}>Cómo trabajamos</h2>
+            <h2 id="proceso-heading" className={styles.heading}>
+              <RevealWords segments={[{ text: 'Cómo trabajamos' }]} />
+            </h2>
           </header>
           <ol className={styles.steps}>
             {STEPS.map((s, i) => (
-              <li key={s.title} className={styles.step}>
+              <li key={s.title} className={styles.step} style={turno(i)}>
                 <span className={styles.stepNumber} aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
                 <div>
                   <h3 className={styles.stepTitle}>{s.title}</h3>
@@ -299,11 +532,29 @@ export default function Page() {
       </ScrollReveal>
 
       <ScrollReveal>
-        <section aria-labelledby="movimiento-heading" className={styles.section}>
+        <section aria-labelledby="montaje-heading" className={styles.section}>
           <header className={styles.sectionHeader}>
             <span className={styles.chapterNumber} aria-hidden="true">05</span>
-            <h2 id="movimiento-heading" className={styles.heading}>Nuestro trabajo, en movimiento</h2>
-            <p className={styles.lede}>Un montaje de bodas reales que ya hemos contado.</p>
+            {/* TERCER RÓTULO PARA ESTE CAPÍTULO, y cada uno arreglaba lo que
+                rompía el anterior.
+                «Nuestro trabajo, en movimiento» prometía el catálogo entero
+                del estudio y lo que hay debajo son bodas. «Bodas reales, en
+                movimiento» lo arregló y estrenó dos problemas: repetía
+                palabra por palabra el titular de la portada --«Bodas reales,
+                historias irrepetibles»-- y seguía diciendo «en movimiento»
+                de un montaje de fotos FIJAS, o sea prometiendo metraje de
+                vídeo donde no lo hay.
+                Éste no promete nada: es una instrucción, que es el tono con
+                el que esta web ya se dirige a la pareja, y describe
+                literalmente lo que hace un montaje de fotografías. La
+                entradilla remata la broma y da el dato. */}
+            <h2 id="montaje-heading" className={styles.heading}>
+              <RevealWords segments={[{ text: 'Pasad las fotos muy deprisa.' }]} />
+            </h2>
+            <p className={styles.lede}>
+              Eso es exactamente esto: fotografías fijas, una detrás de otra, de bodas distintas.
+              Veinticuatro segundos.
+            </p>
           </header>
           <ShowreelClip
             src="/videos/previews/showreel.mp4"

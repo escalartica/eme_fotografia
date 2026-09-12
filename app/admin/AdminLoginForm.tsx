@@ -1,6 +1,6 @@
 'use client';
 import { useState, type FormEvent } from 'react';
-import Image from 'next/image';
+import { BrandMark } from '@/components/ui/BrandMark';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { site } from '@/content/site';
@@ -55,7 +55,7 @@ export function AdminLoginForm() {
       </div>
       <div className={styles.card}>
         <Link href="/" className={styles.brand} aria-label={`${site.brandName} - inicio`}>
-          <Image src="/images/logo/eme-logo.png" alt={site.brandName} width={120} height={56} priority />
+          <BrandMark alto={2.6} priority />
         </Link>
         <p className={styles.eyebrow}>Panel privado</p>
         <h1 className={styles.heading}>Acceso de administración</h1>

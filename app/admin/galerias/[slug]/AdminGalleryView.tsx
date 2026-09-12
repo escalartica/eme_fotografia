@@ -5,6 +5,8 @@ import { HeartIcon, CommentIcon } from '@/components/ui/Icon';
 import { Lightbox } from '@/components/motion/Lightbox';
 import type { GalleryPhoto, SelectionItem } from '@/lib/gallery-store';
 import styles from './AdminGalleryView.module.css';
+import { srcSetMiniatura, srcSetVisor } from '@/lib/gallery-srcset';
+import { GalleryAdminActions } from './GalleryAdminActions';
 
 interface Props {
   slug: string;
@@ -57,8 +59,8 @@ export function AdminGalleryView({ slug, clientName, weddingDate, username, shar
           </div>
         </dl>
         <p className={styles.passwordNote}>
-          La contraseña solo se mostró una vez, al crear esta galería. Si tu cliente la ha
-          perdido, tendrás que facilitársela de nuevo desde donde la guardaste al crearla.
+          La contraseña no se guarda en claro en ningún sitio, así que no se puede consultar. Si tu
+          cliente la ha perdido, ponle una nueva ahí abajo.
         </p>
 
         {submittedAt ? (
@@ -84,7 +86,7 @@ export function AdminGalleryView({ slug, clientName, weddingDate, username, shar
                 onClick={() => setLightboxPhoto(photo)}
                 aria-label={liked ? `${photo.alt} — seleccionada` : photo.alt}
               >
-                <img src={`/${slug}/photo/${photo.filename}`} alt={photo.alt} loading="lazy" className={styles.image} />
+                <img {...srcSetMiniatura(slug, photo.filename)} alt={photo.alt} loading="lazy" className={styles.image} />
                 {liked && (
                   <span className={styles.likedBadge}>
                     <HeartIcon size={16} fill="currentColor" />
@@ -102,10 +104,12 @@ export function AdminGalleryView({ slug, clientName, weddingDate, username, shar
         })}
       </ul>
 
+      <GalleryAdminActions slug={slug} clientName={clientName} />
+
       <Lightbox isOpen={lightboxPhoto !== null} onClose={() => setLightboxPhoto(null)}>
         {lightboxPhoto && (
           <div className={styles.lightboxImageWrap}>
-            <img src={`/${slug}/photo/${lightboxPhoto.filename}`} alt={lightboxPhoto.alt} />
+            <img {...srcSetVisor(slug, lightboxPhoto.filename)} alt={lightboxPhoto.alt} />
           </div>
         )}
       </Lightbox>

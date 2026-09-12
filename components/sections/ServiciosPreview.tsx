@@ -6,6 +6,7 @@ import { services } from '@/content/services';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import { focusOf } from '@/lib/focal';
 import styles from './ServiciosPreview.module.css';
+import { RevealWords } from '@/components/motion/RevealWords';
 
 const servicesWithPreview = services.filter((service) => service.previewImage);
 const defaultActiveSlug = servicesWithPreview[0]?.slug ?? null;
@@ -18,7 +19,10 @@ export function ServiciosPreview() {
       {/* Same mixed-case device as the other section headings: an italic
           lowercase word against an uppercase roman one, one family. */}
       <h2 id="servicios-heading" className={styles.heading}>
-        <em className={styles.emphasis}>Nuestros</em> servicios
+        <RevealWords
+          segments={[{ text: 'Nuestros', em: true }, { text: ' servicios' }]}
+          emClassName={styles.emphasis}
+        />
       </h2>
       <div className={styles.layout}>
         {/* One reveal for the whole list, not one per row. Per-row

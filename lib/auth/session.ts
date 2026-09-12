@@ -113,6 +113,78 @@ export async function getSession(token: string | undefined): Promise<Session | n
   }
 }
 
+/**
+ * CIERRA TODAS LAS SESIONES DE UN SUJETO: todas las de una galería, o todas
+ * las de una cuenta de administración.
+ *
+ * Hace falta en los dos momentos en que una credencial deja de ser la que
+ * era: al BORRAR una galería --si no, la pareja que la tuviera abierta sigue
+ * viendo las fotos hasta que su cookie caduque, treinta días después de un
+ * borrado que se pidió justamente para que dejaran de estar-- y al CAMBIAR la
+ * contraseña, donde una sesión viva es una contraseña vieja que sigue
+ * funcionando.
+ *
+ * Recorre el directorio porque el nombre del fichero es el hash del token y
+ * no dice de quién es: sólo el contenido lo dice. Es O(n) sobre las sesiones
+ * vivas, y las sesiones vivas de este sitio se cuentan con los dedos; ambas
+ * operaciones son además raras y ya lentas.
+ *
+ * Devuelve cuántas ha cerrado, que es lo que permite a la ruta decir "se han
+ * cerrado 2 sesiones" en vez de dar por hecho que había alguna.
+ */
+export async function destroySessionsForSubject(
+  role: SessionRole,
+  subject: string
+): Promise<number> {
+  let cerradas = 0;
+  let files: string[];
+  try {
+    files = await fs.readdir(SESSIONS_DIR);
+  } catch {
+    return 0; // el directorio aún no existe: no hay ninguna sesión que cerrar
+  }
+
+  // UN BORRADO QUE FALLA TIENE QUE HACER RUIDO, y aquí está el porqué: si
+  // esta función se traga el error, la ruta responde "contraseña cambiada" y
+  // el estudio se queda tranquilo mientras una sesión abierta con la
+  // contraseña VIEJA --la que se ha cambiado justamente porque se filtró--
+  // sigue viva treinta días. Revocar es la mitad de la operación, no un
+  // remate opcional.
+  const fallos: unknown[] = [];
+  await Promise.all(
+    files.map(async (file) => {
+      if (!file.endsWith('.json')) return;
+      const ruta = path.join(SESSIONS_DIR, file);
+      let record: Session;
+      try {
+        record = JSON.parse(await fs.readFile(ruta, 'utf-8')) as Session;
+      } catch {
+        return; // ilegible o ya borrado: no es una sesión que revocar
+      }
+      if (record.role !== role || record.subject !== subject) return;
+      try {
+        await fs.unlink(ruta);
+        cerradas += 1;
+      } catch (err) {
+        // Ya borrada por otra petición en marcha: cuenta como cerrada.
+        if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+          cerradas += 1;
+          return;
+        }
+        fallos.push(err);
+      }
+    })
+  );
+
+  if (fallos.length > 0) {
+    throw new Error(
+      `No se han podido cerrar ${fallos.length} sesiones de ${role}:${subject}`,
+      { cause: fallos[0] }
+    );
+  }
+  return cerradas;
+}
+
 export async function destroySession(token: string | undefined): Promise<void> {
   if (!token) return;
   try {

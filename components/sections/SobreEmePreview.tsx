@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import styles from './SobreEmePreview.module.css';
+import { RevealWords } from '@/components/motion/RevealWords';
 
 /**
  * The studio block, and the one dark section on the page.
@@ -32,51 +33,42 @@ export function SobreEmePreview() {
 
         <div className={styles.text}>
           <ScrollReveal>
-            {/* Two constraints this heading has to satisfy at once.
-                (1) No "No X. Y." sentence: the manifesto higher up the page
-                already opens "No contamos bodas. Contamos vuestra historia.",
-                and the page was running that same negation four times over
-                (manifesto, both service taglines, and this block's first
-                paragraph) -- once it is a position, four times it is a tic,
-                and the reader stops hearing what the studio DOES because
-                every line is busy saying what it is not.
-                (2) It has to be the premise the two paragraphs below then
-                prove, rather than a standalone claim they restate. "Cinco
-                personas y una sola mirada" failed that test: "una sola
-                mirada" is an unfalsifiable claim, and the paragraphs under it
-                went on to talk about something else entirely. */}
+            {/* Texto del estudio, literal. La restricción que sigue viva:
+                aquí no puede aparecer la construcción "No X. Y.", que tiene
+                su única casa en el manifiesto de más arriba. */}
             <h2 id="sobre-heading" className={styles.heading}>
-              El día de la boda ya nos{' '}
-              <em className={styles.emphasis}>conocéis</em>.
+              <RevealWords
+                segments={[
+                  { text: 'Cuando llega el gran día, ya no hay ' },
+                  { text: 'desconocidos', em: true },
+                  { text: ' tras la cámara.' },
+                ]}
+                emClassName={styles.emphasis}
+              />
             </h2>
           </ScrollReveal>
-          {/* These two paragraphs are one argument in sequence, which is what
-              the previous pair did not have: the first was a roster of names
-              (and the only place on the home page asserting what each
-              assistant shoots -- a fact nobody has confirmed), the second
-              changed subject to how the day is shot, and neither followed
-              from the other. Now the first says what happens before the
-              wedding and the second says what that buys on the day, so the
-              heading above is a conclusion the block actually earns.
-              Every fact here is the studio's own published process --
-              content/services.ts, steps 1 to 3 -- and nothing about who does
-              what within the team, which is why the "Conocer al equipo" link
-              below still carries that job. */}
+          {/* Texto del estudio, literal. Va partido en dos párrafos —el antes
+              de la boda y el día— porque de una sola pieza son ocho líneas
+              seguidas sin respiro en el móvil, que es como se lee esta home.
+              Cada ScrollReveal es de primer nivel, nunca anidado: este
+              proyecto ya se encontró dos veces con que el translateY de un
+              reveal anidado desplaza la medición de su descendiente. */}
           <ScrollReveal>
             <p className={styles.body}>
-              Antes de que reservéis nos sentamos con vosotros, en persona o por videollamada.
-              Después repartimos los horarios, los ángulos y la luz que tiene cada espacio a cada
-              hora, con vosotros y con el resto de proveedores.
+              Antes de cualquier reserva, nos sentamos a hablar en persona o por videollamada para
+              escuchar vuestra idea. Analizamos cómo queréis que sea vuestro día, los tiempos y la
+              logística coordinándonos con vuestros proveedores.
             </p>
           </ScrollReveal>
           <ScrollReveal>
             <p className={styles.body}>
-              Por eso, cuando llega el día, sabemos dónde ponernos y a quién mirar. Los posados
-              nos llevan unos minutos y el resto del día casi no nos vais a ver.
+              Por eso, el día de la boda todo fluye: sabemos exactamente dónde estar y a quién
+              mirar. Dedicamos solo unos minutos a las fotos de pareja; el resto del día trabajamos
+              de forma invisible para que solo os dediquéis a disfrutar.
             </p>
           </ScrollReveal>
           <Link href="/sobre-nosotros" className={styles.link}>
-            Conocer al equipo
+            Conoce a las personas que os acompañarán
             <span className="arrow" aria-hidden="true">↗</span>
           </Link>
         </div>

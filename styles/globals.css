@@ -153,13 +153,41 @@ main:has(> [data-hero-fullbleed]) {
    size, not a scroll trick, so `footer` (styles below) is just a plain
    `min-height: 100dvh` section like any other -- see also
    components/layout/Footer.module.css. */
+/* DE PANTALLA COMPLETA A UN SUELO ATADO AL ANCHO, en dos pasos y con un año
+   de por medio. A 100dvh el pie tenía tres bandas de contenido --correo y
+   redes, la marca, el copyright-- repartidas en una pantalla entera, y entre
+   ellas quedaban dos franjas de negro de más de doscientos píxeles cada una:
+   no se leía como aire, se leía como una sección que no había terminado de
+   cargar. El primer arreglo lo bajó a `max(32rem, 68dvh)`, que sigue siendo
+   el panel rotundo en un escritorio pero repetía el mismo suelo de 512 px en
+   un teléfono. El segundo es el de aquí abajo. */
+/* EL SUELO DEL PIE CRECE CON EL ANCHO DE LA VENTANA, en vez de ser el mismo
+   en un teléfono que en un monitor.
+   Era `max(32rem, 68dvh)`: 512 px de suelo en TODAS las pantallas. En un
+   escritorio eso es el panel de tinta que cierra la página; en un teléfono
+   era medio metro de negro por debajo del contenido del pie, y el estudio lo
+   dijo así: «que no se vea tan grande y no haya que hacer scroll en el
+   footer».
+   Ahora el suelo sube con el ancho de forma continua, de 18rem a 34rem: en
+   un teléfono de 390 px se queda en 18rem, que es MENOS de lo que mide el
+   contenido del pie, o sea que ahí el suelo deja de mandar y el pie mide
+   exactamente lo que necesita; a 1200 px va por 27rem y toca el techo hacia
+   los 1560, que es donde vuelve a ser el panel rotundo que cierra la página.
+
+   UNA SOLA EXPRESIÓN Y NINGÚN SALTO, que es la parte que costó dos intentos.
+   El primero llevaba un `@media (min-width: 1000px)` que devolvía el
+   `max(32rem, 62dvh)` de golpe: entre 999 y 1000 px el suelo daba un brinco
+   de ciento setenta píxeles, y de paso el techo del `clamp` era código
+   muerto porque el override entraba mucho antes de alcanzarlo. Con la
+   pendiente bien puesta --30vw-- el `clamp` llega solo hasta arriba y no
+   hace falta el escalón.
+
+   NI `vh` NI `dvh` EN EL SUELO, tampoco ahora. En una pantalla apaisada y
+   muy baja --un móvil de lado-- un porcentaje de la altura se convierte en
+   casi toda la ventana, y el pie pasa a ser un muro de tinta con seis
+   líneas dentro. Atado al ancho, ese caso se resuelve solo. */
 :root {
-  --footer-reveal-height: 100vh;
-}
-@supports (height: 100dvh) {
-  :root {
-    --footer-reveal-height: 100dvh;
-  }
+  --footer-reveal-height: clamp(18rem, 4rem + 30vw, 34rem);
 }
 
 

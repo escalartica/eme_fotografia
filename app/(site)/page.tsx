@@ -9,6 +9,7 @@ import { Testimonios } from '@/components/sections/Testimonios';
 import { GuiaBodasSevilla } from '@/components/sections/GuiaBodasSevilla';
 import { CtaContacto } from '@/components/sections/CtaContacto';
 import { StackedSections } from '@/components/motion/StackedSections';
+import { MarqueeBand } from '@/components/motion/MarqueeBand';
 import type { Metadata } from 'next';
 
 // El único canónico de la home, y solo suyo. Estaba en app/layout.tsx, desde
@@ -39,6 +40,30 @@ export default function Page() {
           within their own height (see Manifiesto's doc comment) -- three
           statements for less scroll than the one used to cost. */}
       <Manifiesto />
+      {/* LA BISAGRA. Una frase del estudio recorriendo la banda sin fin, entre
+          las tres declaraciones quietas del manifiesto y las diez fotografías
+          en movimiento del carrete. Es la firma visual de las referencias que
+          trajo el cliente (Daniele & Marilia repiten "AUTHENTIC, EVOCATIVE
+          IMAGES" a lo largo de toda su galería) y aquí hace además un trabajo
+          de estructura: avisa de que la página cambia de registro.
+          La frase no es nueva ni inventada. Es literalmente la nota que este
+          estudio ya tenía escrita en la columna derecha del carrete cuando
+          era vertical, donde la leía muy poca gente; aquí pasa a ser el
+          rótulo de la casa. UNA sola marquesina en toda la página: dos ya se
+          leen como relleno.
+          Es la única sección de la home fuera de StackedSections junto a
+          Cifras y Manifiesto, y por el mismo motivo: una banda que se anclara
+          y se dejara tapar por la siguiente tarjeta perdería justo lo que la
+          hace funcionar, que es cruzar la página de lado a lado. */}
+      <MarqueeBand text="Primero la mirada. Siempre la historia. Nada dejado al azar." />
+      {/* AQUÍ HUBO UNA BANDA A SANGRE PARA UNA SOLA FOTOGRAFÍA -- la del perro
+          con pajarita de Maite y Nerea -- y el estudio la quitó con estas
+          palabras: «no quiero que crees un contenedor para esta foto, sino
+          que la integres en algún apartado más vacío». Tenían razón: una
+          sección entera para una imagen es lo contrario de integrarla, y
+          además alargaba la portada media pantalla. Esa fotografía vive ahora
+          junto a la entradilla de SelectedReel, llenando el hueco que la
+          entradilla ya dejaba a su derecha en un escritorio. */}
       {/* Everything after the hero moves as a stack of cards (Agentura):
           a section that fits the screen pins while the next slides over
           it; taller ones scroll normally and do the covering. */}

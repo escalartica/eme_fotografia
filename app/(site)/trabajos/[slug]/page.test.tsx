@@ -65,8 +65,8 @@ describe('/trabajos/[slug] page — cover hero block', () => {
   });
 
   it('renders a <video> sourced from project.cover.src for a video-cover project', async () => {
-    const project = projects.find((p) => p.slug === 'boda-real-01')!;
-    if (project.cover.type !== 'video') throw new Error('fixture assumption: boda-real-01 has a video cover');
+    const project = projects.find((p) => p.slug === 'andrea-y-jesus')!;
+    if (project.cover.type !== 'video') throw new Error('fixture assumption: andrea-y-jesus has a video cover');
     const result = await Page({ params: Promise.resolve({ slug: project.slug }) });
     render(result);
     const coverVideo = document.querySelector(`video[src="${project.cover.src}"]`);
@@ -112,5 +112,16 @@ describe('project impact line conditional render', () => {
     expect(screen.getByTestId('project-impact')).toHaveTextContent(
       'Línea de impacto de prueba — solo para este test'
     );
+  });
+
+  it('always offers a way back to the index', async () => {
+    // Quien entra a la ficha de una boda suele llegar desde Google, no desde
+    // el listado: sin esto, la única salida era el botón atrás del navegador
+    // o subir a buscar el menú, y los otros veintisiete reportajes quedaban
+    // detrás de un callejón sin salida.
+    const project = projects[0];
+    render(await Page({ params: Promise.resolve({ slug: project.slug }) }));
+    const volver = screen.getByRole('link', { name: /volver a trabajos/i });
+    expect(volver).toHaveAttribute('href', '/trabajos');
   });
 });

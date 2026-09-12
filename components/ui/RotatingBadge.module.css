@@ -1,19 +1,66 @@
+/* La insignia es lo que más gusta del cierre y era lo que menos se veía:
+   texto claro sobre una fotografía clara, sin más contorno que sus propias
+   letras. Ahora crece, se apoya en un disco translúcido con filete y el
+   fondo de detrás se difumina, así que el anillo se recorta contra la foto
+   sea cual sea la foto. */
 .badge {
   position: relative;
   display: inline-grid;
   place-items: center;
-  width: clamp(6.5rem, 12vw, 9rem);
+  width: clamp(8rem, 15vw, 11.5rem);
   aspect-ratio: 1;
   color: currentColor;
   text-decoration: none;
   border-radius: 50%;
+  background: color-mix(in srgb, var(--color-scrim) 22%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid color-mix(in srgb, var(--color-night-text) 30%, transparent);
+  transition:
+    transform var(--duration-base) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
 }
+@media (hover: hover) and (pointer: fine) {
+  .badge:hover {
+    transform: scale(1.04);
+    border-color: color-mix(in srgb, var(--color-night-text) 65%, transparent);
+    background: color-mix(in srgb, var(--color-scrim) 34%, transparent);
+  }
+}
+.badge:focus-visible {
+  border-color: var(--color-night-text);
+}
+@media (prefers-reduced-motion: reduce) {
+  .badge {
+    transition: none;
+  }
+  .badge:hover {
+    transform: none;
+  }
+}
+/* EL ANILLO YA NO GIRA SOLO.
+   Era el último elemento del sitio animándose en bucle infinito, 28 s por
+   vuelta, en el cierre de la portada -- justo donde se le pide a alguien que
+   escriba. Un movimiento que no para y que no responde a nada compite con la
+   fotografía que tiene debajo y con la propia llamada, y en una pestaña
+   abierta de fondo no deja de repintar. Ahora gira UNA vuelta al entrar en
+   pantalla, guiada por el scroll, y se queda quieta: el gesto se ve igual y
+   termina. */
 .ring {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  animation: spin 28s linear infinite;
+}
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .ring {
+      animation: spin linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 45%;
+    }
+  }
 }
 /* Aqui habia un `animation-duration: 10s` en :hover. Cambiar la duracion
    de una animacion en curso no la acelera: reasigna el tiempo ya
@@ -22,18 +69,34 @@
    vuelve a saltar al salir. Un giro constante no tiene forma de acelerar
    sin costura en CSS, y la insignia ya responde al puntero con la flecha
    de debajo, asi que se retira en lugar de sustituirse. */
+/* El texto circular va dentro de un SVG con viewBox 0 0 120 120, así que
+   estas unidades son del dibujo y escalan con la insignia: subir de 10,5 a
+   11,5 engorda el rótulo en proporción, no en píxeles de pantalla. */
 .text {
   font-family: var(--font-sans);
-  font-size: 10.5px;
-  letter-spacing: 0.22em;
+  font-size: 11.5px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   fill: currentColor;
 }
 .arrow {
   font-family: var(--font-display);
-  font-size: var(--type-h3);
+  font-size: var(--type-h2-sm);
   line-height: 1;
-  transition: transform var(--duration-fast) var(--ease-standard);
+  transition: transform var(--duration-base) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .badge:hover .arrow {
+    transform: translate(3px, -3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    transition: none;
+  }
+  .badge:hover .arrow {
+    transform: none;
+  }
 }
 .badge:focus-visible .arrow {
   transform: translate(2px, -2px);
@@ -51,8 +114,7 @@
     transform: rotate(360deg);
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .ring {
-    animation: none;
-  }
-}
+/* Aquí había un bloque `prefers-reduced-motion: reduce { .ring { animation:
+   none } }`. Ya no hace falta -- y además no habría funcionado: la regla que
+   anima está ahora DENTRO de `no-preference`, así que a quien pide menos
+   movimiento no le llega ninguna animación que apagar. */

@@ -19,22 +19,39 @@ export interface FeaturedFrame {
 }
 
 /**
- * The home reel (SelectedReel): ten frames, ONE per wedding, and none of
- * them from the five weddings in the hero mosaic above -- scrolling the
+ * The home reel (SelectedReel): eleven frames, ONE per wedding, and none
+ * of them from the five weddings in the hero mosaic above -- scrolling the
  * home page never shows the same photograph, or the same couple, twice.
  * Shapes alternate portrait / landscape / square by position, so the list
- * order also sets the rhythm of the column.
+ * order also sets the rhythm of the column: SelectedReel derives the shape
+ * of every landscape source from its index, so inserting a frame reshuffles
+ * every shape after it. Maite y Nerea abre la tira y es vertical, que es
+ * justo lo que deja el resto en P L P L P S P L S L P -- ni dos verticales
+ * seguidas ni dos cuadradas en las once.
  */
 export const featuredFrames: FeaturedFrame[] = [
-  { projectSlug: 'angelica-y-jesus', src: '/images/trabajos/angelica-y-jesus/12.webp', alt: 'Vista cenital de los novios sobre la línea de la carretera con el velo extendido', width: 1600, height: 987 },
-  { projectSlug: 'carmen-y-enrique', src: '/images/trabajos/carmen-y-enrique/cover.webp', alt: 'Silueta de los novios bajo el velo frente a los faros del coche clásico', width: 1333, height: 2000 },
-  { projectSlug: 'miriam-y-alejandro', src: '/images/trabajos/miriam-y-alejandro/13.webp', alt: 'Los novios caminando por la alfombra roja entre los árboles de la hacienda', width: 1600, height: 1067 },
-  { projectSlug: 'postboda-entre-casas-blancas', src: '/images/trabajos/postboda-entre-casas-blancas/cover.webp', alt: 'La novia haciendo volar el velo en una calle empedrada del pueblo', width: 1333, height: 2000 },
-  { projectSlug: 'reyes-y-francisco', src: '/images/trabajos/reyes-y-francisco/15.webp', alt: 'Primer baile entre bengalas frías', width: 1600, height: 1067 },
-  { projectSlug: 'preboda-en-un-pueblo-de-la-sierra', src: '/images/trabajos/preboda-en-un-pueblo-de-la-sierra/cover.webp', alt: 'La pareja abrazada junto a las columnas de un patio a la luz dorada', width: 1333, height: 2000 },
-  { projectSlug: 'kuki-y-jose', src: '/images/trabajos/kuki-y-jose/cover.webp', alt: 'Pasillo de sables de luz para los novios', width: 2000, height: 1333 },
-  { projectSlug: 'silvia-y-jordi', src: '/images/trabajos/silvia-y-jordi/10.webp', alt: 'Los novios ante el cortijo blanco iluminado de noche', width: 1600, height: 1067 },
-  { projectSlug: 'virginia-y-jorge', src: '/images/trabajos/virginia-y-jorge/12.webp', alt: 'Los novios de noche frente a los faros del coche clásico', width: 1600, height: 1067 },
+  /* MAITE Y NEREA ABRE LA TIRA, pero con 01 y no con la portada.
+     La portada --las dos novias besándose al fondo del camino y, en primer
+     plano, el perro con pajarita sobre la corona de flores-- ya no está aquí
+     porque está DOS METROS MÁS ARRIBA, entera y sin recortar, junto a la
+     entradilla de esta misma sección. Tenerla en los dos sitios sería
+     enseñar la misma fotografía dos veces con doscientos píxeles de
+     separación.
+     Y es además la que peor se llevaba con este marco: el carrete recorta
+     las verticales de 2:3 a 3:4 y lo que hace gracia de esa foto está pegado
+     al borde de abajo. 01 es vertical igual --así que el ritmo P L P L P S P
+     L S L P de las once no se mueve-- y lleva el mismo perro, esta vez en
+     brazos, que es el centro del encuadre y no su esquina. */
+  { projectSlug: 'maite-y-nerea', src: '/images/trabajos/maite-y-nerea/01.webp', alt: 'Una de las novias sosteniendo en brazos al perro salchicha, apoyadas en un pino', width: 1707, height: 2560 },
+  { projectSlug: 'angelica-y-jesus', src: '/images/trabajos/angelica-y-jesus/12.webp', alt: 'Vista cenital de los novios sobre la línea de la carretera con el velo extendido', width: 2560, height: 1579 },
+  { projectSlug: 'carmen-y-enrique', src: '/images/trabajos/carmen-y-enrique/cover.webp', alt: 'Silueta de los novios bajo el velo frente a los faros del coche clásico', width: 1706, height: 2560 },
+  { projectSlug: 'miriam-y-alejandro', src: '/images/trabajos/miriam-y-alejandro/13.webp', alt: 'Los novios caminando por la alfombra roja entre los árboles de la hacienda', width: 2560, height: 1707 },
+  { projectSlug: 'postboda-de-maria-y-alberto', src: '/images/trabajos/postboda-de-maria-y-alberto/cover.webp', alt: 'La novia haciendo volar el velo en una calle empedrada del pueblo', width: 1707, height: 2560 },
+  { projectSlug: 'reyes-y-francisco', src: '/images/trabajos/reyes-y-francisco/15.webp', alt: 'Primer baile entre bengalas frías', width: 2560, height: 1707 },
+  { projectSlug: 'preboda-de-carmen-y-alberto', src: '/images/trabajos/preboda-de-carmen-y-alberto/cover.webp', alt: 'La pareja abrazada junto a las columnas de un patio a la luz dorada', width: 1707, height: 2560 },
+  { projectSlug: 'kuki-y-jose', src: '/images/trabajos/kuki-y-jose/cover.webp', alt: 'Pasillo de sables de luz para los novios', width: 2560, height: 1706 },
+  { projectSlug: 'silvia-y-jordi', src: '/images/trabajos/silvia-y-jordi/10.webp', alt: 'Los novios ante el cortijo blanco iluminado de noche', width: 2560, height: 1707 },
+  { projectSlug: 'virginia-y-jorge', src: '/images/trabajos/virginia-y-jorge/12.webp', alt: 'Los novios de noche frente a los faros del coche clásico', width: 2560, height: 1706 },
   { projectSlug: 'rocio-y-manuel', src: '/images/trabajos/rocio-y-manuel/cover.webp', alt: 'Beso bajo el paraguas transparente', width: 1333, height: 2000 },
 ];
 
