@@ -317,16 +317,26 @@ estudio pequeño no tiene a nadie mirándolo a diario.
 ## 3. Traer el código
 
 ```bash
-sudo -u eme -H bash
-cd /var/www/eme
-git clone https://github.com/escalartica/eme_fotografia.git app
-cd app
-git checkout worktree-eme-fotografia-build   # o main, cuando esté fusionado
-npm ci --omit=dev
+sudo -u eme -H git clone --depth 1 --branch worktree-eme-fotografia-build \
+  https://github.com/escalartica/eme_fotografia.git /var/www/eme/app
+cd /var/www/eme/app
+sudo -u eme -H npm ci
 ```
 
-`npm ci`, no `npm install`: instala exactamente lo que dice `package-lock.json`.
-`--omit=dev` deja fuera vitest y compañía, que en el servidor no pintan nada.
+Todo con `sudo -u eme`, incluido el clonado y el `npm`. Compilar como root deja
+`.next` y `node_modules` siendo de root, y luego el servicio --que corre como
+`eme`-- arranca y falla a medias. Es uno de los fallos que más se tarda en
+diagnosticar.
+
+`--depth 1`: solo la versión actual, no los 130 commits de historia. Unos
+575 MB en vez de 811, y al servidor la historia no le sirve de nada; para eso
+está GitHub. (Para actualizar después, ver §11: con un clon superficial no vale
+`git pull` a secas.)
+
+**`npm ci` COMPLETO, sin `--omit=dev`.** Aquí decía `--omit=dev` y el build
+fallaba: `typescript`, `eslint` y los `@types` son devDependencies, y
+`next build` los necesita porque comprueba los tipos y pasa el linter. Las de
+desarrollo se quitan DESPUÉS de compilar (§5).
 
 ## 4. Variables de entorno
 
@@ -340,17 +350,43 @@ ADMIN_PASSWORD_HASH=...
 RESEND_API_KEY=...
 ```
 
-El hash del panel se genera **en el Mac**, no en el servidor, y se pega aquí:
+El hash del panel se genera **pidiendo la contraseña UNA sola vez** y usándola
+para generar y verificar en el mismo paso. Dos lecturas a ciegas de una frase
+larga divergen --pasó: dos hashes distintos en el fichero y ninguna certeza de
+cuál contraseña quedaba activa:
 
 ```bash
-node scripts/hash-admin-password.mjs 'la contraseña que elijas'
+cd /var/www/eme/app
+read -rsp 'Contraseña del panel (12 caracteres o más): ' P; echo
+if [ ${#P} -ge 12 ]; then
+  sed -i '/^ADMIN_PASSWORD_HASH=/d' .env.production.local
+  node scripts/hash-admin-password.mjs "$P" >> .env.production.local
+  node -e '
+  const c = require("node:crypto"), fs = require("node:fs");
+  const l = fs.readFileSync(".env.production.local","utf8").split("\n")
+    .find(x => x.startsWith("ADMIN_PASSWORD_HASH="));
+  const [, salt, hash] = l.slice(20).split(":");
+  const d = c.scryptSync(process.argv[1], Buffer.from(salt,"hex"), 64, {N:16384,r:8,p:1}).toString("hex");
+  console.log(d === hash ? "COINCIDE" : "NO COINCIDE");
+  ' "$P"
+else echo "DEMASIADO CORTA, no se ha tocado nada"; fi
+unset P
 ```
 
-Así la contraseña en claro no llega a existir en el servidor. El fichero debe
-quedar ilegible para el resto de cuentas de la máquina:
+Esa verificación hace la misma cuenta que hará el servidor al recibir un intento
+de acceso: `COINCIDE` demuestra que el panel aceptará esa contraseña, antes de
+que la web exista. `read -rsp` además no deja la contraseña en el historial.
+
+**Escribir la contraseña en el gestor ANTES de teclearla**, y pegarla con ⌘V.
+Teclear a ciegas una frase de veinte caracteres falla; pegar, no.
+
+Y que el usuario NO sea `admin`: los escaneos automáticos lo prueban primero,
+siempre. Con otro nombre fallan en el usuario y `fail2ban` los echa.
+
+El fichero debe quedar ilegible para el resto de cuentas de la máquina:
 
 ```bash
-chmod 600 .env.production.local
+chown eme:eme .env.production.local && chmod 600 .env.production.local
 ```
 
 `instrumentation.ts` comprueba esto al arrancar: si el panel está mal
@@ -379,7 +415,7 @@ Group=eme
 WorkingDirectory=/var/www/eme/app
 Environment=NODE_ENV=production
 Environment=PORT=3000
-ExecStart=/usr/bin/npm run start
+ExecStart=/var/www/eme/app/node_modules/.bin/next start -p 3000
 Restart=always
 RestartSec=5
 
@@ -397,9 +433,17 @@ WantedBy=multi-user.target
 resuelve `data/` contra el directorio de trabajo del proceso. Si se arranca
 desde otro sitio, la web crea un `data/` vacío allí y las galerías "desaparecen".
 
+`ExecStart` llama a `next` directamente y no a `npm run start`: un proceso
+menos, y `npm` quiere escribir su caché en el directorio personal, que con
+`ProtectSystem=strict` es de solo lectura y da avisos sin motivo.
+
+`ReadWritePaths` exige que las rutas **ya existan**, o el servicio no arranca:
+
 ```bash
+sudo -u eme -H mkdir -p /var/www/eme/app/data
 systemctl daemon-reload && systemctl enable --now eme
-systemctl status eme
+sleep 4 && systemctl status eme --no-pager | head -14
+curl -sI http://127.0.0.1:3000 | head -3      # debe dar 200
 ```
 
 ## 7. nginx y certificado
