@@ -105,10 +105,61 @@ export async function visitorHash(ip: string, userAgent: string, day: string, di
   return crypto.createHash('sha256').update(`${salt}:${ip}:${userAgent}`).digest('hex').slice(0, 12);
 }
 
+/**
+ * Cuántos días se conservan. Los rangos del panel no pasan de 90, así que
+ * borrar lo anterior no quita nada que se pueda mirar -- y sin este número
+ * `data/analytics/` crecía para siempre: un fichero por día, uno por visita,
+ * y nadie borrando nunca.
+ *
+ * Va aquí y no en un cron del servidor a propósito: un borrado que vive en
+ * `/etc/cron.daily` es un borrado que se pierde el día que se reinstale la
+ * máquina, y este dato lleva un identificador pseudonimizado. Que el plazo de
+ * conservación viva en el mismo fichero que lo escribe es lo que hace que la
+ * frase del §3 de /privacidad siga siendo verdad sin que nadie se acuerde.
+ */
+export const DIAS_QUE_SE_CONSERVAN = 90;
+
+/** Cada cuánto se molesta en mirar si hay algo que borrar. Sin esto, cada
+ *  visita listaría el directorio entero. */
+const CADA_CUANTO_MS = 6 * 60 * 60 * 1000;
+let ultimaPurga = 0;
+
+/**
+ * Borra los ficheros de día anteriores al plazo. Silencioso a propósito: es
+ * mantenimiento, y que falle no puede tumbar la petición de una visita.
+ */
+export async function purgarAntiguos(dir: string = ANALYTICS_DIR, now: Date = new Date()): Promise<number> {
+  const corte = new Date(now);
+  corte.setUTCDate(corte.getUTCDate() - DIAS_QUE_SE_CONSERVAN);
+  const limite = corte.toISOString().slice(0, 10);
+  let borrados = 0;
+  try {
+    for (const nombre of await fs.readdir(dir)) {
+      const m = /^(\d{4}-\d{2}-\d{2})\.ndjson$/.exec(nombre);
+      if (!m || m[1] >= limite) continue;
+      await fs.rm(path.join(dir, nombre), { force: true });
+      borrados += 1;
+    }
+  } catch {
+    // El directorio puede no existir todavía. No es un problema.
+  }
+  return borrados;
+}
+
 export async function recordHit(hit: Hit, dir: string = ANALYTICS_DIR): Promise<void> {
   await fs.mkdir(dir, { recursive: true, mode: 0o700 });
   const day = hit.t.slice(0, 10);
-  await fs.appendFile(path.join(dir, `${day}.ndjson`), JSON.stringify(hit) + '\n');
+  // `mode` explícito, como todo lo demás que se escribe bajo `data/`: era el
+  // único sitio del proyecto que se fiaba del umask.
+  await fs.appendFile(path.join(dir, `${day}.ndjson`), JSON.stringify(hit) + '\n', { mode: 0o600 });
+
+  // La purga va DESPUÉS de escribir y sin esperarla: el beacon de una visita
+  // no puede quedarse colgado de una tarea de mantenimiento.
+  const ahora = Date.now();
+  if (ahora - ultimaPurga > CADA_CUANTO_MS) {
+    ultimaPurga = ahora;
+    void purgarAntiguos(dir).catch(() => {});
+  }
 }
 
 export async function readHits(days: number, dir: string = ANALYTICS_DIR, now: Date = new Date()): Promise<Hit[]> {

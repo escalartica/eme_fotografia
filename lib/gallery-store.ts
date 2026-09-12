@@ -141,16 +141,19 @@ export async function getGalleryMeta(slug: string): Promise<GalleryMeta | null> 
  * galería pasaba a ser un 404 permanente con las fotos intactas al lado e
  * inalcanzables. Es un modo de fallo irreversible que cuesta una línea evitar.
  */
-async function escribirMetaAtomico(dir: string, meta: GalleryMeta): Promise<void> {
-  const destino = path.join(dir, 'meta.json');
+async function escribirJsonAtomico(destino: string, contenido: unknown): Promise<void> {
   const tmp = `${destino}.${process.pid}-${Date.now()}.tmp`;
   try {
-    await fs.writeFile(tmp, JSON.stringify(meta, null, 2), { mode: 0o600 });
+    await fs.writeFile(tmp, JSON.stringify(contenido, null, 2), { mode: 0o600 });
     await fs.rename(tmp, destino);
   } catch (err) {
     await fs.rm(tmp, { force: true }).catch(() => {});
     throw err;
   }
+}
+
+async function escribirMetaAtomico(dir: string, meta: GalleryMeta): Promise<void> {
+  await escribirJsonAtomico(path.join(dir, 'meta.json'), meta);
 }
 
 /**
@@ -186,13 +189,24 @@ export async function getSelection(slug: string): Promise<Selection | null> {
   }
 }
 
+/**
+ * ATÓMICA, igual que meta.json, y por el mismo motivo escrito doce líneas más
+ * arriba -- que aquí pesa todavía más.
+ *
+ * Escribía con un `fs.writeFile` directo. Si el proceso muere a media
+ * escritura --o si la pareja envía desde el móvil y desde el portátil a la
+ * vez--, `getSelection` captura el error de JSON y devuelve `null`: la
+ * selección entera de la boda desaparece, y desaparece EN SILENCIO, porque el
+ * panel entonces dice «El cliente todavía no ha enviado su selección». El
+ * estudio no ve un error, ve una pareja que no ha contestado.
+ */
 export async function saveSelection(slug: string, items: SelectionItem[]): Promise<void> {
   const dir = galleryDir(slug);
   await fs.mkdir(dir, { recursive: true, mode: 0o700 });
   // Los comentarios del cliente sobre sus propias fotos de boda son suyos, no
   // del resto de cuentas del servidor: mismo 0o600 que meta.json.
   const record: Selection = { items, submittedAt: new Date().toISOString() };
-  await fs.writeFile(path.join(dir, 'selection.json'), JSON.stringify(record, null, 2), { mode: 0o600 });
+  await escribirJsonAtomico(path.join(dir, 'selection.json'), record);
 }
 
 /**

@@ -533,9 +533,28 @@ parejas, las galerías privadas y las selecciones que han enviado. No está en
 git (y no debe estarlo). `public/` sí está en git; el código también.
 
 ```bash
+#!/bin/sh
 # /etc/cron.daily/eme-backup
-tar czf /var/backups/eme-data-$(date +%F).tar.gz -C /var/www/eme/app data
+
+# UMASK 077, Y ES LA LÍNEA MÁS IMPORTANTE DEL BLOQUE. Esto corre como root con
+# el umask por defecto (022), así que el tar salía en 0644: legible por
+# CUALQUIER cuenta de la máquina. Y dentro va todo lo que el código se cuida
+# de escribir en 0600 -- los hashes de contraseña de cada galería, las fotos de
+# las bodas, los datos personales de las parejas y las sesiones abiertas. Una
+# sola línea deshacía ese trabajo entero.
+umask 077
+
+# Sin los derivados: son miniaturas regenerables y son lo que más pesa.
+tar czf /var/backups/eme-data-$(date +%F).tar.gz \
+  --exclude='derivados' \
+  -C /var/www/eme/app data
 find /var/backups -name 'eme-data-*.tar.gz' -mtime +30 -delete
+```
+
+Comprobar después de la primera ejecución que el fichero sale en `600`:
+
+```bash
+ls -l /var/backups/eme-data-*.tar.gz
 ```
 
 Y sacar esa carpeta de la máquina periódicamente. Una copia que vive en el

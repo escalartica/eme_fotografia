@@ -87,6 +87,11 @@ export default function Page() {
         formalizarse, durante un máximo de dos años desde la consulta. Los datos vinculados a un reportaje contratado se
         conservan durante los plazos que exige la legislación fiscal y contractual.
       </p>
+      <p>
+        Los datos de la medición propia de visitas (apartado 2) se borran automáticamente a los 90 días. El
+        identificador que los acompaña, además, cambia cada día y no permite reconstruir tu recorrido de una jornada
+        a la siguiente.
+      </p>
 
       <h2>4. Destinatarios</h2>
       <p>
