@@ -5,6 +5,82 @@ repositorio, no contra la documentación genérica de Next.js.
 
 ---
 
+## 0. Tu situación en IONOS (septiembre 2026)
+
+Lo contratado hoy, contrato **97181010**:
+
+| | |
+|---|---|
+| **WordPress Hosting Expand** | alta 20/07/2023, renueva 31/08/2027 |
+| Espacio web | 2,10 GB de 49 GB · MariaDB 10.6 · **PHP 8.0 administrado** |
+| `emefotografiasevilla.com` | dominio adicional, renueva 01/09/2027 |
+| `emebodas.com` | dominio adicional, **caduca 20/07/2027 sin renovación automática** |
+| Correo | 3 buzones (`info@`, `contratos@`, `design@`), Correo Básico 3 de 5 |
+| Certificado SSL | 1 disponible, 0 en uso |
+| Proyecto WordPress | `bodas-zxuvb4ihmc.live-website.com`, sin dominio vinculado |
+
+**El WordPress Hosting Expand no sirve para esta web.** Es alojamiento WordPress
+administrado: PHP y MariaDB, sin runtime de Node. El acceso SFTP/SSH que aparece
+en el panel es para gestionar ficheros y ejecutar WP-CLI, no para dejar un
+proceso Node escuchando en un puerto con un proxy delante. Sirve el §1 entero.
+
+**Lo que hay que añadir:** un VPS. Con los requisitos del §1 (2 vCPU, 4 GB,
+40 GB) el que encaja es el **VPS M** de IONOS — 4 vCPU, 4 GB, 120 GB NVMe,
+Ubuntu y acceso root. Ronda los 5-10 €/mes según promoción y permanencia;
+mirar el precio del día en ionos.es.
+
+**Lo que NO hay que tocar ni cancelar:**
+
+- **Los dos dominios.** Están registrados en IONOS y ahí se quedan. Solo se
+  cambian sus registros `A` para que apunten al VPS (§8). No hace falta
+  transferirlos.
+- **El contrato de hosting**, porque los tres buzones cuelgan de él y está
+  pagado hasta el 31/08/2027. Confirmar con IONOS que el correo va dentro de
+  ese contrato **antes** de cancelar nada.
+- **Los registros MX** del dominio. El correo lo sigue sirviendo IONOS: se
+  cambian los `A`, y los `MX` se dejan exactamente como están. Tocarlos deja
+  al estudio sin correo.
+
+### Orden del cambio
+
+El proyecto WordPress está en un dominio del sistema y **no tiene el dominio
+vinculado**, así que ahora mismo `emefotografiasevilla.com` no sirve nada
+público. No hay web viva que romper: el cambio es limpio.
+
+1. Dos arreglos que no dependen de nada y conviene hacer ya:
+   - **Activar la renovación automática de `emebodas.com`.** Caduca el
+     20/07/2027 y hoy no se renueva solo. Un dominio que expira lo puede
+     registrar cualquiera al día siguiente.
+   - **Activar la Protección de dominio** en los dos. Aparece como artículo
+     contratado en el 97181010 (01/09/2026 → 02/09/2027) y en la lista de
+     dominios sale «Desactivada»: está pagada y sin usar.
+2. Contratar el VPS M con Ubuntu 24.04 y desplegar (§2 a §7), comprobando por
+   la IP antes de tocar el DNS.
+3. Apuntar los registros `A` de `@` y `www` a la IP del VPS (§8).
+4. Cuando el DNS haya propagado, lanzar certbot (§7).
+5. Pasar la lista del §12.
+6. Solo entonces, borrar el proyecto WordPress. Corre sobre **PHP 8.0, que
+   lleva sin soporte de seguridad desde finales de 2023**; mantenerlo en pie
+   una vez que no sirve nada es superficie de ataque a cambio de nada.
+
+### Sobre el certificado SSL que ya tienes
+
+Hay uno sin usar en la cuenta, pero en el VPS la guía usa **Let's Encrypt con
+certbot**: es gratis, se instala en un comando y se renueva solo. El de IONOS
+habría que instalarlo y renovarlo a mano cada año. Déjalo para otra cosa.
+
+### La alternativa, y por qué no la recomiendo aquí
+
+Vercel ejecutaría esta web sin cambiar una línea de código y su plan gratuito
+da de sobra para el tráfico de un estudio. El problema es `data/`: en Vercel el
+disco no persiste entre despliegues, así que las galerías privadas, los
+mensajes de contacto y las sesiones habría que reescribirlos contra
+almacenamiento externo (Blob + una base de datos). Es trabajo de varios días
+sobre código que ya está terminado y auditado. En un VPS no hay que cambiar
+nada.
+
+---
+
 ## 1. Qué hosting hace falta (y cuál no vale)
 
 Esta web **no se puede exportar como sitio estático**. Cuatro cosas lo impiden,
