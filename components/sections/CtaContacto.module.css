@@ -128,9 +128,16 @@
   color: var(--color-night-text);
   z-index: 1;
 }
+/* EN MÓVIL NO FLOTA: SE PONE EN FILA.
+   Anclada a la esquina inferior derecha, sobre una pantalla de 390 px la
+   insignia caía justo encima de «Consultar vuestra fecha» --tapando la
+   mitad del enlace que esta sección entera existe para que se pulse-- y se
+   chocaba además con los botones flotantes de WhatsApp y volver arriba.
+   Fuera del posicionamiento absoluto ocupa su propio sitio debajo de la
+   llamada, centrada, y no tapa nada. */
 @media (max-width: 899px) {
   .badge {
-    right: var(--gutter);
-    bottom: var(--space-2);
+    position: static;
+    margin: var(--space-4) auto 0;
   }
 }
