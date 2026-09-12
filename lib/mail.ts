@@ -213,3 +213,69 @@ export async function sendContactEmail(
     );
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* El enlace para recuperar la contraseña del panel                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * EL DESTINO NO SE PIDE, SE DECIDE AQUÍ. Nunca sale de una variable que venga
+ * del navegador: un formulario de recuperación que acepta una dirección es un
+ * formulario que le manda el enlace a quien la escriba. Va al buzón del
+ * estudio y a ninguna otra parte.
+ */
+export function destinoDeRecuperacion(env: NodeJS.ProcessEnv = process.env): string[] {
+  return (env.ADMIN_EMAIL ?? env.CONTACT_TO ?? DEFAULT_CONTACT_TO)
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+export async function enviarEnlaceDeRecuperacion(
+  enlace: string,
+  expiraEn: Date,
+  env: NodeJS.ProcessEnv = process.env,
+  enviar?: EnviarCorreo
+): Promise<SendResult> {
+  if (!isMailConfigured(env)) {
+    throw new MailError('El correo de salida no está configurado (SMTP_HOST/SMTP_USER/SMTP_PASS).');
+  }
+  const hora = expiraEn.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const texto = [
+    'Has pedido cambiar la contraseña del panel de EME Fotografía Sevilla.',
+    '',
+    'Abre este enlace y elige una nueva:',
+    enlace,
+    '',
+    `El enlace caduca a las ${hora} y sirve una sola vez.`,
+    '',
+    'Si no has sido tú, no hagas nada: sin abrir el enlace no cambia nada, y',
+    'quien lo pidió no puede entrar. Pero conviene que lo sepas.',
+  ].join('\n');
+
+  const html = `<!doctype html><html lang="es"><body style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.6;color:#111">
+  <p>Has pedido cambiar la contraseña del panel de EME Fotografía Sevilla.</p>
+  <p><a href="${escapeHtml(enlace)}" style="display:inline-block;padding:12px 20px;background:#111;color:#fff;text-decoration:none;border-radius:4px">Elegir una contraseña nueva</a></p>
+  <p style="font-size:14px;color:#555">El enlace caduca a las ${escapeHtml(hora)} y sirve una sola vez.<br>
+  Si el botón no funciona, copia esta dirección en el navegador:<br>
+  <span style="word-break:break-all">${escapeHtml(enlace)}</span></p>
+  <p style="font-size:14px;color:#555">Si no has sido tú, no hagas nada: sin abrir el enlace no cambia nada, y quien lo pidió no puede entrar. Pero conviene que lo sepas.</p>
+  </body></html>`;
+
+  try {
+    const resultado = await (enviar ?? transportePorDefecto(env))({
+      from: env.CONTACT_FROM ?? DEFAULT_CONTACT_FROM,
+      to: destinoDeRecuperacion(env),
+      // Nadie tiene que responder a esto.
+      replyTo: env.SMTP_USER ?? '',
+      subject: 'Cambiar la contraseña del panel de EME',
+      text: texto,
+      html,
+    });
+    return { id: resultado.messageId ?? '' };
+  } catch (err) {
+    throw new MailError(
+      `El servidor de correo rechazó el envío: ${err instanceof Error ? err.message : 'error desconocido'}`
+    );
+  }
+}

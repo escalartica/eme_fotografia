@@ -568,6 +568,42 @@ mismo servidor que los datos no es una copia.
 `data/galleries/*/derivados/` se puede borrar entera en caliente: es una caché
 de miniaturas y se regenera sola con la siguiente visita.
 
+## 10 bis. Si el estudio olvida la contraseña del panel
+
+**Lo normal es que no haga falta esto.** Desde la propia pantalla de acceso hay
+un «¿Has olvidado la contraseña?» que manda un enlace a `ADMIN_EMAIL` (por
+defecto, `CONTACT_TO`), caduca a la media hora, sirve una sola vez y al usarlo
+cierra todas las sesiones abiertas. Eso lo resuelve ella sola y sin llamar a
+nadie, que es justo el objetivo.
+
+Este apartado es para cuando ese camino no está disponible: porque el correo
+de salida se ha caído, porque nadie tiene acceso al buzón, o porque hay que
+dejar la cuenta en un estado conocido.
+
+```bash
+# 1. Generar el hash de la contraseña nueva. Se teclea sin que se vea y sin
+#    que quede en el historial de la terminal.
+cd /var/www/eme/app
+read -rsp 'Contraseña nueva (mínimo 12 caracteres): ' NUEVA; echo
+NUEVA="$NUEVA" sudo -u eme -H -E node scripts/hash-admin-password.mjs "$NUEVA"
+unset NUEVA
+```
+
+Eso imprime una línea `ADMIN_PASSWORD_HASH=scrypt:...`. Hay que sustituir con
+ella la que ya está en `.env.production.local` -- **sustituir, no añadir**: dos
+líneas con la misma clave es la avería que ya costó una noche.
+
+```bash
+# 2. Y BORRAR LA CONTRASEÑA GUARDADA DESDE EL PANEL, si la hay. Manda sobre la
+#    variable de entorno, así que sin este paso el cambio de arriba no tiene
+#    ningún efecto y parece que el hash está mal.
+rm -f /var/www/eme/app/data/admin/password.json
+rm -f /var/www/eme/app/data/admin/reset.json
+
+# 3. Reiniciar para que el proceso olvide el hash que tenía en memoria.
+systemctl restart eme
+```
+
 ## 11. Actualizar la web
 
 ```bash

@@ -5,6 +5,7 @@ import {
   timingSafeEqualString,
   DUMMY_PASSWORD_HASH,
 } from '@/lib/auth/password';
+import { passwordGuardada } from '@/lib/admin-recovery';
 
 /**
  * La cuenta de administración del estudio. Una sola cuenta, no una tabla de
@@ -115,6 +116,20 @@ export function getDevAdminCredentials(): { username: string; password: string }
   return devCredentials;
 }
 
+/**
+ * LA CONTRASEÑA GUARDADA MANDA SOBRE LA VARIABLE DE ENTORNO.
+ *
+ * Si el estudio ha cambiado su contraseña desde el panel (ver
+ * lib/admin-recovery.ts), el hash que vale es el de data/admin/password.json.
+ * La variable de entorno sigue siendo obligatoria al arrancar y sigue siendo
+ * el suelo: si ese fichero desaparece o se corrompe, el panel vuelve a la
+ * contraseña de la variable en vez de quedarse sin ninguna.
+ *
+ * El orden importa y es al revés de lo que parece: primero se resuelve la
+ * configuración (que puede fallar de forma ruidosa) y solo después se mira el
+ * disco. Un fichero de contraseña no puede tapar una instalación mal
+ * configurada.
+ */
 export function getAdminCredentials(env: NodeJS.ProcessEnv = process.env): Promise<AdminCredentials> {
   const problem = adminConfigProblem(env);
   if (problem) {
@@ -128,10 +143,24 @@ export function getAdminCredentials(env: NodeJS.ProcessEnv = process.env): Promi
   if (cached) return cached;
   const username = env.ADMIN_USERNAME!.trim();
   const hash = env.ADMIN_PASSWORD_HASH?.trim();
-  cached = hash
-    ? Promise.resolve({ username, passwordHash: hash })
-    : hashPassword(env.ADMIN_PASSWORD!).then((passwordHash) => ({ username, passwordHash }));
+  const delEntorno = hash
+    ? Promise.resolve(hash)
+    : hashPassword(env.ADMIN_PASSWORD!);
+  cached = (async () => {
+    const guardada = await passwordGuardada();
+    return { username, passwordHash: guardada ?? (await delEntorno) };
+  })();
   return cached;
+}
+
+/**
+ * Olvida el hash cacheado. Hay que llamarla SIEMPRE que se cambie la
+ * contraseña: sin esto, el proceso seguiría aceptando la vieja hasta que
+ * alguien lo reiniciara -- que es el fallo más caro posible en un cambio de
+ * contraseña, porque nadie lo nota hasta que ya da igual.
+ */
+export function olvidarCredenciales(): void {
+  cached = null;
 }
 
 /** Solo para tests: olvida el hash cacheado cuando el test cambia el entorno. */

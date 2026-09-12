@@ -144,3 +144,70 @@
 .footnote a {
   color: var(--color-ink);
 }
+
+/* ---------- lo que se añadió con la recuperación de contraseña ---------- */
+
+/* El campo y el botón de «Ver» comparten fila. El botón NO va dentro del
+   input ni flotando encima: superpuesto tapa el final de lo que se escribe
+   justo cuando lo que se quiere es leerlo, y en un móvil compite con el
+   teclado por el mismo sitio. */
+.passwordRow {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-1);
+}
+.passwordRow input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.verPassword {
+  flex: 0 0 auto;
+  /* Diana táctil de verdad: es un botón que se pulsa con el pulgar en el
+     momento de más prisa de toda la pantalla. */
+  min-width: 4.5rem;
+  min-height: 2.75rem;
+  padding-inline: var(--space-1);
+  background: none;
+  border: 1px solid var(--color-hairline);
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-muted);
+  transition: color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .verPassword:hover {
+    color: var(--color-ink);
+    border-color: var(--color-ink);
+  }
+}
+.verPassword:focus-visible {
+  color: var(--color-ink);
+  border-color: var(--color-ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .verPassword { transition: none; }
+}
+
+/* El aviso del bloqueo de mayúsculas. No es un error --todavía no ha fallado
+   nada--, así que no se pinta en rojo: es una pista. */
+.aviso {
+  margin: var(--space-0) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+
+/* Los enlaces dentro del aviso de error --«Recupérala por correo»-- tienen
+   que verse como enlaces sobre el color de error, no confundirse con él. */
+.error a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
