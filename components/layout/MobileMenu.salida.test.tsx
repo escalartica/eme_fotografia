@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { MobileMenu } from './MobileMenu';
 
 /**
@@ -41,6 +41,21 @@ vi.mock('gsap', () => {
  *  tercera prueba falla, que es exactamente lo que debe pasar. */
 const SALIDA_MS = 340;
 
+/**
+ * Adelantar el reloj DENTRO de `act`, y no es adorno: el desmontaje lo pide
+ * un `setMontado(false)` que vive en la llamada del `setTimeout`. Con el
+ * reloj falso, `advanceTimersByTime` ejecuta esa llamada en el acto, pero la
+ * actualización de estado que dispara la agenda React para más tarde -- así
+ * que sin `act` el aserto siguiente mira el DOM ANTES de que React haya
+ * vuelto a pintar, y ve el panel todavía puesto. `act` vacía la cola antes
+ * de devolver el control.
+ */
+function pasanMilisegundos(ms: number) {
+  act(() => {
+    vi.advanceTimersByTime(ms);
+  });
+}
+
 beforeEach(() => {
   vi.useFakeTimers();
 });
@@ -74,7 +89,7 @@ describe('MobileMenu — la salida', () => {
     const { rerender } = render(<MobileMenu isOpen onClose={vi.fn()} />);
     rerender(<MobileMenu isOpen={false} onClose={vi.fn()} />);
 
-    vi.advanceTimersByTime(SALIDA_MS);
+    pasanMilisegundos(SALIDA_MS);
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(document.body.style.overflowY).not.toBe('hidden');
@@ -90,7 +105,7 @@ describe('MobileMenu — la salida', () => {
   it('reabrirlo antes de que termine la salida cancela el desmontaje', () => {
     const { rerender } = render(<MobileMenu isOpen onClose={vi.fn()} />);
     rerender(<MobileMenu isOpen={false} onClose={vi.fn()} />);
-    vi.advanceTimersByTime(SALIDA_MS / 2);
+    pasanMilisegundos(SALIDA_MS / 2);
     rerender(<MobileMenu isOpen onClose={vi.fn()} />);
 
     const panel = screen.getByRole('dialog');
@@ -98,7 +113,7 @@ describe('MobileMenu — la salida', () => {
     expect(panel).not.toHaveAttribute('inert');
 
     // Y pasado de sobra el plazo del temporizador viejo, sigue ahí.
-    vi.advanceTimersByTime(SALIDA_MS * 2);
+    pasanMilisegundos(SALIDA_MS * 2);
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(document.body.style.overflowY).toBe('hidden');
   });
