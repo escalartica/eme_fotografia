@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import styles from './VolverA.module.css';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 /**
  * La vuelta al índice del que cuelga una página.
@@ -29,7 +30,7 @@ import styles from './VolverA.module.css';
 export function VolverA({ href, nombre }: { href: string; nombre: string }) {
   return (
     <Link href={href} className={styles.volver} aria-label={`Volver a ${nombre}`}>
-      <span className={styles.flecha} aria-hidden="true">←</span>
+      <ArrowGlyph dir="left" className={styles.flecha} />
       {nombre}
     </Link>
   );

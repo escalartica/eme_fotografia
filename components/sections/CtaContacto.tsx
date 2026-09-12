@@ -7,6 +7,7 @@ import { Magnetic } from '@/components/motion/Magnetic';
 import { RotatingBadge } from '@/components/ui/RotatingBadge';
 import { focusOf } from '@/lib/focal';
 import styles from './CtaContacto.module.css';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 /**
  * Closing invitation, over a full-bleed photograph.
@@ -108,7 +109,7 @@ export function CtaContacto() {
         <Magnetic className={styles.ctaMagnet}>
           <Link href="/contacto" className={styles.cta} data-cursor="abrir">
             Consultar vuestra fecha
-            <span className="arrow" aria-hidden="true">↗</span>
+            <ArrowGlyph />
           </Link>
         </Magnetic>
       </ScrollReveal>

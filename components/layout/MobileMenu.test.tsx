@@ -72,6 +72,48 @@ describe('MobileMenu', () => {
   });
 
   /**
+   * LA PÁGINA EN LA QUE YA SE ESTÁ. Abrir el menú y no saber dónde estás era
+   * la mitad del problema de orientación de este panel; lo pide además la
+   * pauta de navegación (WCAG 2.4.8).
+   *
+   * La ruta llega por props desde la cabecera y NO se lee aquí con
+   * `usePathname`: el gancho devuelve `null` fuera del contexto del
+   * enrutador, que es exactamente donde se monta este componente en estas
+   * pruebas.
+   */
+  it('marca la página actual, y sólo esa', () => {
+    render(<MobileMenu isOpen onClose={vi.fn()} currentPath="/trabajos" />);
+    expect(screen.getByRole('link', { name: /^Trabajos/ })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Inicio' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('marca Trabajos también dentro de un reportaje, pero no marca Inicio en todas partes', () => {
+    // `/` es prefijo de todo: sin la excepción, «Inicio» salía marcado en
+    // cada página del sitio.
+    render(<MobileMenu isOpen onClose={vi.fn()} currentPath="/trabajos/eva-y-rafa" />);
+    expect(screen.getByRole('link', { name: /^Trabajos/ })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Inicio' })).not.toHaveAttribute('aria-current');
+  });
+
+  /**
+   * EL PANEL YA NO DESAPARECE EN UN FOTOGRAMA. Con movimiento reducido --que
+   * es lo que este fichero simula-- sí se desmonta al instante, que es la
+   * respuesta correcta para quien ha pedido que no se mueva nada; la
+   * animación de salida de los otros SALIDA_MS sólo existe para el resto.
+   * Lo que esta prueba fija es que el desmontaje llega, que es de lo que
+   * depende que el candado del scroll se suelte y que el foco vuelva al
+   * botón de la cabecera.
+   */
+  it('se desmonta al cerrarse, sin dejar el panel encima de la página', () => {
+    const { rerender } = render(<MobileMenu isOpen onClose={vi.fn()} />);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    rerender(<MobileMenu isOpen={false} onClose={vi.fn()} />);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    // Y la página de debajo recupera su scroll.
+    expect(document.body.style.overflowY).not.toBe('hidden');
+  });
+
+  /**
    * Y en el otro sentido: Mayúsculas+Tab desde el primer enlace tiene que
    * saltar al último del panel, no al botón que hay antes en el documento.
    */

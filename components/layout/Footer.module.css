@@ -168,86 +168,148 @@
   }
 }
 
+/* EL REMATE LEGAL. Cuatro bloques colocados por nombre, no por orden de
+   aparición, porque el orden que hay que leer en un teléfono no es el mismo
+   que en un escritorio: en el móvil manda lo que se puede pulsar (los
+   enlaces legales arriba del todo, el botón de volver abajo del todo) y en
+   el escritorio manda el equilibrio de la fila. `grid-template-areas` deja
+   escrito el dibujo de las dos pantallas sin tocar el marcado ni el orden
+   del tabulador. */
 .bottom {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'legal volver'
+    'credito stats';
   align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-1) var(--space-3);
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
   padding-top: var(--space-2);
   border-top: 1px solid color-mix(in srgb, var(--color-night-text) 16%, transparent);
 }
 @media (max-width: 899px) {
   .bottom {
-    padding-top: var(--space-1);
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'legal'
+      'stats'
+      'credito'
+      'volver';
+    row-gap: var(--space-2);
+    padding-top: var(--space-2);
   }
 }
-.copy {
-  font-size: var(--type-label);
-  color: color-mix(in srgb, var(--color-night-text) 50%, transparent);
-  /* TEXTO CORRIENTE, NO FLEX, y merece la nota porque es tentador volver a
-     ponerlo: esta línea lleva tres tramos sueltos de texto, un separador y
-     los enlaces legales, y en flex cada tramo de texto se convierte en un
-     ÍTEM ANÓNIMO. En cuanto el crédito parte en dos renglones --una pantalla
-     de 320 px, o alguien con el cuerpo de letra subido-- el segundo renglón
-     del primer tramo salta por debajo del tramo siguiente y el orden visual
-     deja de ser el de lectura. El interlineado lo resuelve el `line-height`,
-     que es lo único que aquí hacía falta. */
-  display: block;
-  line-height: 1.7;
+
+/* Legal links. Primero de todo en un teléfono: es lo único de este bloque
+   que lleva a alguna parte, y estaba escondido al final de una frase de
+   cinco renglones al mismo gris que el resto. */
+.legal {
+  grid-area: legal;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-3);
 }
-.separador {
-  color: color-mix(in srgb, var(--color-night-text) 28%, transparent);
+.legal a {
+  /* Mínimo táctil: son tres enlaces a --type-label uno detrás de otro al pie
+     de la página, y en un teléfono se pulsan con el pulgar. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  /* 78 %, no el 50 % de la letra pequeña: son enlaces, y a ese gris no se
+     distinguían del texto muerto que tenían al lado. */
+  color: color-mix(in srgb, var(--color-night-text) 78%, transparent);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--color-night-text) 35%, transparent);
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    text-decoration-color var(--duration-fast) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .legal a:hover {
+    color: var(--color-night-text);
+    text-decoration-color: currentColor;
+  }
+}
+.legal a:focus-visible {
+  color: var(--color-night-text);
+}
+@media (prefers-reduced-motion: reduce) {
+  .legal a { transition: none; }
+}
+
+.creditos {
+  grid-area: credito;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0);
+}
+.copy,
+.credito {
+  margin: 0;
+  font-size: var(--type-label);
+  line-height: 1.6;
+  /* SUBIDO DE 50 % A 62 %. Al 50 %, #F8F7F2 sobre este negro mide 4,4:1
+     contra el 4,5:1 que la norma pide para texto pequeño --y --type-label
+     ronda los 12 px, muy por debajo de la excepción de texto grande--. Con
+     62 % pasa con margen y sigue siendo, visiblemente, letra pequeña. */
+  color: color-mix(in srgb, var(--color-night-text) 62%, transparent);
+}
+.credito {
+  color: color-mix(in srgb, var(--color-night-text) 50%, transparent);
 }
 
 /* Two items, not one dot-joined string (same reasoning as the retired
    light-mode Footer's own .stats comment): a real gap does the separating
    job a middle dot was doing, and it stacks cleanly on a narrow screen. */
 .stats {
+  grid-area: stats;
+  justify-self: end;
+  text-align: right;
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: var(--space-0) var(--space-3);
   font-size: var(--type-label);
-  color: color-mix(in srgb, var(--color-night-text) 50%, transparent);
+  color: color-mix(in srgb, var(--color-night-text) 55%, transparent);
   font-variant-numeric: tabular-nums;
+}
+@media (max-width: 899px) {
+  .stats {
+    justify-self: start;
+    justify-content: flex-start;
+    text-align: left;
+  }
 }
 
 .backToTop {
   composes: arrowLink from global;
+  grid-area: volver;
+  justify-self: end;
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
   color: color-mix(in srgb, var(--color-night-text) 85%, transparent);
 }
-
-/* Legal links, inline after the copyright at the same secondary weight. */
-.legal {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 0 var(--space-2);
-  margin-inline-start: var(--space-2);
-}
-@media (max-width: 599px) {
-  /* En un teléfono los tres enlaces legales pasan a su propia línea: detrás
-     del crédito dejaban una línea de cinco palabras huérfana. */
-  .legal {
-    display: flex;
-    margin-inline-start: 0;
-    margin-block-start: var(--space-1);
+@media (max-width: 899px) {
+  /* En un teléfono deja de ser un rótulo suelto en una esquina y pasa a ser
+     una fila entera con su propio filete: es la última cosa de la página y
+     ahora se ve que es un botón. */
+  .backToTop {
+    justify-self: stretch;
+    justify-content: center;
+    min-height: 2.75rem;
+    margin-top: var(--space-1);
+    padding-block: var(--space-1);
+    border-top: 1px solid color-mix(in srgb, var(--color-night-text) 16%, transparent);
   }
-}
-.legal a {
-  /* Mínimo táctil: son tres enlaces a --type-label apretados uno detrás de
-     otro al pie de la página. */
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.5rem;
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-  text-decoration-thickness: 1px;
 }

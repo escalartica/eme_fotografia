@@ -10,39 +10,51 @@
   z-index: 100;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   /* El hueco de arriba es "la barra fija más aire", no un número: era
      calc(var(--space-5) + 2rem), la tercera copia a mano de la altura de la
      cabecera que quedaba en el proyecto. El resultado a 375 es el mismo
      (105 px frente a 104), pero ahora sigue a la barra si esta cambia. */
-  padding: calc(var(--header-h) + var(--space-3)) var(--gutter) var(--space-4);
+  padding: calc(var(--header-h) + var(--space-2)) var(--gutter) var(--space-3);
   overflow-y: auto;
+  /* El panel es el único contenedor de scroll mientras está abierto; sin
+     esto, al llegar al final de la lista en un teléfono el gesto se
+     encadenaba al documento de detrás. */
+  overscroll-behavior: contain;
   opacity: 1;
   transition: opacity var(--duration-fast) var(--ease-standard);
 }
-/* El panel solo existe en el DOM mientras esta abierto
-   (MobileMenu.tsx: `if (!isOpen) return null`), asi que aparecia de golpe:
-   un telon negro a pantalla completa en un solo fotograma y, acto seguido,
-   las cinco lineas subiendo. Era el corte mas brusco del sitio y estaba en
-   la navegacion principal del movil, que es como entra la mayoria.
-   @starting-style cubre la entrada sin una linea de JavaScript y sin tocar
-   el desmontaje instantaneo del que dependen las aserciones de
-   MobileMenu.test.tsx -- misma tecnica, mismo token y misma duracion que ya
-   usa el visor de fotos (components/motion/Lightbox.module.css), para que
-   las dos superficies a pantalla completa del sitio abran igual.
-   Solo opacidad: las lineas de dentro ya tienen su propio movimiento, y
-   sumarle un desplazamiento al telon seria contar dos veces lo mismo. */
+/* ENTRADA: el telón aparece fundiendo en vez de en un solo fotograma.
+   @starting-style lo cubre sin una línea de JavaScript -- misma técnica,
+   mismo token y misma duración que ya usa el visor de fotos
+   (components/motion/Lightbox.module.css), para que las dos superficies a
+   pantalla completa del sitio abran igual. Solo opacidad: las líneas de
+   dentro ya tienen su propio movimiento, y sumarle un desplazamiento al
+   telón sería contar dos veces lo mismo. */
 @starting-style {
   .overlay { opacity: 0; }
+}
+/* SALIDA: la mitad que faltaba. El panel ya no se desmonta de golpe (ver
+   SALIDA_MS en MobileMenu.tsx), así que aquí sólo hay que llevar la opacidad
+   a cero y quitarle el ratón de encima mientras se va. */
+.closing {
+  opacity: 0;
+  pointer-events: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .overlay { transition: none; }
 }
 
+/* La lista OCUPA lo que hay, en vez de quedarse centrada en mitad de un
+   panel alto. Antes era `align-items: center` sobre un `flex: 1`: en un
+   teléfono de 844 px eso dejaba un agujero de más de 150 px entre la barra y
+   la primera línea, y otro igual debajo. Ahora las cinco filas se reparten el
+   alto disponible a partes iguales, con sus filetes: no hay hueco muerto en
+   ninguna parte y cada fila es, de paso, una diana mucho más grande para el
+   dedo. */
 .nav {
   display: flex;
-  align-items: center;
   flex: 1 1 auto;
+  min-height: 0;
 }
 
 .list {
@@ -50,23 +62,39 @@
   padding: 0;
   margin: 0;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Each row is its own clipping window so the staggered entry reads as the
    line rising into view from below rather than sliding across the panel. */
 .item {
+  flex: 1 1 auto;
+  display: flex;
   overflow: hidden;
+  /* Suelo para que en una pantalla corta (iPhone SE) las filas no se
+     compriman por debajo del mínimo táctil recomendado. */
+  min-height: 3.25rem;
   border-top: 1px solid color-mix(in srgb, var(--color-night-text) 16%, transparent);
 }
 .item:last-child {
   border-bottom: 1px solid color-mix(in srgb, var(--color-night-text) 16%, transparent);
 }
 
+/* Rejilla en vez de fila flexible: el numeral y el rótulo comparten línea de
+   base (que es como se leen los índices de un libro) y a la vez el bloque
+   entero queda centrado en la banda, cosa que `align-items: baseline` a
+   secas no puede hacer en un contenedor estirado. La tercera columna es la
+   señal de "esto lleva a algún sitio". */
 .row {
-  display: flex;
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: baseline;
-  gap: var(--space-3);
-  padding-block: clamp(0.6rem, 2vw, 1.1rem);
+  align-content: center;
+  gap: var(--space-2);
+  padding-block: var(--space-1);
+  transition: transform var(--duration-press) var(--ease-standard);
 }
 
 .index {
@@ -78,7 +106,8 @@
      small-text floor (--type-label renders ~11-13px, below the large-text
      exemption). 0.6 clears it with margin (~6.6:1) in both themes. */
   color: color-mix(in srgb, var(--color-night-text) 60%, transparent);
-  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  transition: color var(--duration-fast) var(--ease-standard);
 }
 
 .label {
@@ -89,8 +118,48 @@
   transition: transform var(--duration-fast) var(--ease-standard);
 }
 
+/* La flecha vive en la línea de base del rótulo y mide en em, así que sigue
+   al tamaño del texto sin un solo número mágico. Dibujada, no tipografiada:
+   ver el componente Flecha en MobileMenu.tsx. */
+.arrow {
+  align-self: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+  color: color-mix(in srgb, var(--color-night-text) 40%, transparent);
+  transition:
+    transform var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+/* LA PÁGINA EN LA QUE YA SE ESTÁ. Lo pide la pauta de navegación (WCAG
+   2.4.8) y de paso resuelve la queja de fondo: abrir el menú y no saber
+   dónde estás. El punto es la marca visible; el texto de al lado, invisible,
+   es la que oye un lector de pantalla además del aria-current. */
+.here {
+  align-self: center;
+  display: flex;
+  align-items: center;
+}
+.dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--color-night-text);
+}
+.current .label {
+  color: var(--color-night-text);
+}
+.current .index {
+  color: color-mix(in srgb, var(--color-night-text) 92%, transparent);
+}
+
 .row:focus-visible .label {
   transform: translateX(0.35em);
+}
+.row:focus-visible .arrow {
+  transform: translateX(0.25em);
+  color: var(--color-night-text);
 }
 /* Este panel es, por definicion, la interfaz tactil del sitio, y el hover
    estaba sin puerta: al tocar "Trabajos" el rotulo se desplazaba 0.35em y
@@ -100,7 +169,15 @@
   .row:hover .label {
     transform: translateX(0.35em);
   }
-  .footLink:hover {
+  .row:hover .arrow {
+    transform: translateX(0.25em);
+    color: var(--color-night-text);
+  }
+  .row:hover .index {
+    color: var(--color-night-text);
+  }
+  .footLink:hover,
+  .contactoLink:hover {
     color: var(--color-night-text);
   }
 }
@@ -109,29 +186,60 @@
    gesto en todo el sitio. Funciona porque el tween de entrada
    (MobileMenu.tsx) libera ya su `transform` en linea al terminar: sin ese
    clearProps, el estilo en linea de GSAP ganaba siempre a esta regla. */
-.row {
-  transition: transform var(--duration-press) var(--ease-standard);
-}
 .row:active {
   transform: scale(0.98);
 }
 @media (prefers-reduced-motion: reduce) {
   .label,
+  .arrow,
+  .index,
   .row { transition: none; }
   .row:hover .label,
   .row:focus-visible .label { transform: none; }
+  .row:hover .arrow,
+  .row:focus-visible .arrow { transform: none; }
   .row:active { transform: none; }
 }
 
+/* El pie deja de ser cuatro enlaces iguales apelotonados en una sola línea
+   que envolvía. Ahora tiene jerarquía: primero cómo se escribe a EME
+   (correo y teléfono, que es lo que alguien busca de verdad con el menú
+   abierto), y debajo, más callado, dónde verla. */
 .foot {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
+  flex-direction: column;
+  gap: var(--space-1);
   padding-top: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.contacto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-0) var(--space-2);
+}
+.contactoLink {
+  font-family: var(--font-sans);
+  color: color-mix(in srgb, var(--color-night-text) 88%, transparent);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.redes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 .footLink {
   composes: eyebrow from global;
   color: color-mix(in srgb, var(--color-night-text) 65%, transparent);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+@media (prefers-reduced-motion: reduce) {
+  .contactoLink,
+  .footLink { transition: none; }
 }
 
 /* The global :focus-visible rule resolves to --color-ink, which in dark

@@ -218,6 +218,27 @@
    planeando, que es exactamente el orden correcto (el sistema responde al
    instante, el adorno se toma su tiempo). Nada de `back`, `elastic` ni
    rebote: el sitio no tiene ni uno. */
+/* EL CUERPO DE LA FLECHA, que ya no es un carácter.
+   ---------------------------------------------------------------------
+   `↗` no está en ninguna de las dos tipografías del sitio. En un iPhone eso
+   significa que el teléfono recorre la cadena de reserva y acaba pintando el
+   emoji a color: dieciocho llamadas a la acción, más las dos `→` y las dos
+   `↓`, salían con una flecha de colorines. Ahora las dibuja
+   components/ui/ArrowGlyph.tsx y este es su único tamaño.
+
+   En `em`, para que siga al cuerpo de letra del enlace que la lleva sin un
+   número a mano en cada módulo. `inline-block` + `vertical-align` y no
+   `block`: la mitad de estas flechas van dentro de un flex (`.arrowLink`) y
+   la otra mitad en línea con texto corriente, y así las dos quedan bien sin
+   una regla por sitio. El -0.12em es lo que baja el centro óptico del icono
+   hasta la línea de base del rótulo. */
+.arrowGlyph {
+  display: inline-block;
+  vertical-align: -0.12em;
+  width: 0.95em;
+  height: 0.95em;
+}
+
 .arrowLink .arrow {
   display: inline-block;
   /* Sin `will-change`: son enlaces que están en todas las páginas y en

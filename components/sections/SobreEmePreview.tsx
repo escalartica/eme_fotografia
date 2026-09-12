@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import styles from './SobreEmePreview.module.css';
 import { RevealWords } from '@/components/motion/RevealWords';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 /**
  * The studio block, and the one dark section on the page.
@@ -69,7 +70,7 @@ export function SobreEmePreview() {
           </ScrollReveal>
           <Link href="/sobre-nosotros" className={styles.link}>
             Conoce a las personas que os acompañarán
-            <span className="arrow" aria-hidden="true">↗</span>
+            <ArrowGlyph />
           </Link>
         </div>
       </div>

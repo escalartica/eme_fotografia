@@ -167,7 +167,12 @@ export function Header() {
         </button>
       </div>
 
-      <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} toggleRef={menuButtonRef} />
+      <MobileMenu
+        isOpen={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        toggleRef={menuButtonRef}
+        currentPath={pathname}
+      />
     </header>
   );
 }

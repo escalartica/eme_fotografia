@@ -8,6 +8,7 @@ import { RevealWords } from '@/components/motion/RevealWords';
 import { ShowreelClip } from '@/components/sections/ShowreelClip';
 import { VolverA } from '@/components/ui/VolverA';
 import styles from './page.module.css';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 /**
  * La página de un servicio: qué es, qué incluye, cómo se trabaja y el trabajo
@@ -287,12 +288,12 @@ export function ServicioDetalle({ service }: { service: Service }) {
           <div className={styles.ctaRow}>
             <Link href="/contacto" className={styles.cta}>
               {service.ctaLabel}
-              <span className="arrow" aria-hidden="true">↗</span>
+              <ArrowGlyph />
             </Link>
             {service.relatedCategory && (
               <Link href={`/trabajos?categoria=${service.relatedCategory}`} className={styles.secondaryCta}>
                 Ver trabajos de {service.name.toLowerCase().replace('fotografía de ', '')}
-                <span className="arrow" aria-hidden="true">→</span>
+                <ArrowGlyph dir="right" />
               </Link>
             )}
           </div>

@@ -7,6 +7,7 @@ import type { GalleryPhoto, SelectionItem } from '@/lib/gallery-store';
 import styles from './AdminGalleryView.module.css';
 import { srcSetMiniatura, srcSetVisor } from '@/lib/gallery-srcset';
 import { GalleryAdminActions } from './GalleryAdminActions';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 interface Props {
   slug: string;
@@ -37,7 +38,10 @@ export function AdminGalleryView({ slug, clientName, weddingDate, username, shar
 
   return (
     <div className={styles.page}>
-      <Link href="/admin" className={styles.back}>← Volver al panel</Link>
+      <Link href="/admin" className={styles.back}>
+        <ArrowGlyph dir="left" />
+        Volver al panel
+      </Link>
 
       <header className={styles.header}>
         <p className={styles.eyebrow}>/{slug}</p>

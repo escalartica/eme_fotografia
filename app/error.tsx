@@ -5,6 +5,7 @@ import { Footer } from '@/components/layout/Footer';
 import { DocumentTitle } from '@/components/ui/DocumentTitle';
 import { site } from '@/content/site';
 import styles from './status.module.css';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 // Runtime error boundary. Same register as the 404: the visitor stays
 // inside the brand -- menu and footer included -- is told plainly what
@@ -29,7 +30,7 @@ export default function Error({ reset }: { error: Error & { digest?: string }; r
             </button>
             <Link href="/" className={styles.action}>
               Volver al inicio
-              <span className="arrow" aria-hidden="true">↗</span>
+              <ArrowGlyph />
             </Link>
           </div>
         </section>

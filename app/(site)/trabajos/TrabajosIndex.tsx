@@ -13,6 +13,7 @@ import { ScrollParallax } from '@/components/motion/ScrollParallax';
 import { focusOf, sinEtalonarStyle } from '@/lib/focal';
 import styles from './TrabajosIndex.module.css';
 import { RevealWords } from '@/components/motion/RevealWords';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 /**
  * The banner photograph, chosen for the banner's shape.
@@ -559,9 +560,7 @@ export function TrabajosIndex({ projects, initialCategory = 'todos' }: { project
                       <span>{p.year}</span>
                       <span className={styles.rowCategory}>{CATEGORY_LABELS[p.category]}</span>
                     </span>
-                    <span className={styles.rowArrow} aria-hidden="true">
-                      ↗
-                    </span>
+                    <ArrowGlyph className={styles.rowArrow} />
                   </a>
                 </li>
               );

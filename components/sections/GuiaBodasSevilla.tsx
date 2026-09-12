@@ -4,6 +4,7 @@ import { site } from '@/content/site';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import styles from './GuiaBodasSevilla.module.css';
 import { RevealWords } from '@/components/motion/RevealWords';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 /**
  * The home page's one block of real prose -- ahora como ÍNDICE DESPLEGABLE.
@@ -243,7 +244,7 @@ export function GuiaBodasSevilla() {
           </p>
           <Link href="/contacto" className={styles.closingLink}>
             Contadnos vuestra idea
-            <span className="arrow" aria-hidden="true">↗</span>
+            <ArrowGlyph />
           </Link>
         </div>
       </ScrollReveal>

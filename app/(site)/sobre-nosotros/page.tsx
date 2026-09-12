@@ -13,6 +13,8 @@ import { ScrubWords } from '@/components/motion/ScrubWords';
 import { TeamList, type TeamMember } from '@/components/sections/TeamList';
 import styles from './page.module.css';
 import { RevealWords, pasoPara } from '@/components/motion/RevealWords';
+import { QuienSoyBloques } from './QuienSoyBloques';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 export const metadata = buildMetadata({
   // 40 + 17 de plantilla = 57 caracteres servidos; el anterior daba 65 y
@@ -252,11 +254,11 @@ export default function Page() {
           <div className={styles.statementLinks}>
             <Link href="/trabajos" className={styles.arrow}>
               Ver los reportajes
-              <span className="arrow" aria-hidden="true">↗</span>
+              <ArrowGlyph />
             </Link>
             <a href={site.bodasNetUrl} target="_blank" rel="noopener noreferrer" className={styles.arrow}>
               Puntuación máxima en Bodas.net
-              <span className="arrow" aria-hidden="true">↗</span>
+              <ArrowGlyph />
             </a>
           </div>
         </div>
@@ -269,66 +271,19 @@ export default function Page() {
             Todo empezó con la cámara analógica de mi abuelo.
           </ScrubWords>
 
-          {/* LOS TRES TRAMOS, APILÁNDOSE CON EL SCROLL.
-              Fueron tres tarjetas desplegables con un «+», y el estudio lo
-              corrigió con razón: «no quiero tener que darle al botón + para
-              verla». Un clic por tramo es un peaje para leer tres párrafos
-              que ya estaban escritos, y en la sección que cuenta quién está
-              detrás de la cámara ese peaje lo paga muy poca gente.
+          {/* LOS TRES TRAMOS. Dos formas, una por pantalla, y el porqué de
+              las dos está escrito entero en QuienSoyBloques.tsx:
 
-              Ahora es el mismo gesto que el manifiesto de la portada y que
-              las seis preguntas: cada tramo se queda pegado bajo la cabecera
-              y el siguiente sube y lo tapa. Aparecen y desaparecen solos, sin
-              pulsar nada, y está todo visible desde el primer momento.
-              Todo `position: sticky` y un fondo opaco: cero JavaScript. */}
-          <ol className={styles.bloques}>
-            <li className={styles.bloque}>
-              <h3 className={styles.bloqueTitulo}>
-                <RevealWords segments={[{ text: 'El origen y la escuela' }]} />
-              </h3>
-              <p className={styles.bloqueTexto}>
-                De los estudios de Arte pasé al fotoperiodismo en El Correo de Andalucía, donde se
-                aprende lo único que no se enseña: que el instante bueno dura medio segundo y no
-                avisa. Después, la fotografía de conciertos me enseñó el ritmo, y las editoriales
-                de moda me enseñaron a mirar.
-              </p>
-              {/* Nombres reales, en una sola tira. Es la parte de este
-                  capítulo que cualquiera puede comprobar. */}
-              <p className={styles.creditos}>
-                El Correo de Andalucía <span aria-hidden="true">·</span> Beret{' '}
-                <span aria-hidden="true">·</span> Marisol Bizcocho <span aria-hidden="true">·</span>{' '}
-                Rafa Ruda <span aria-hidden="true">·</span> Balbino Bernal{' '}
-                <span aria-hidden="true">·</span> Spagnolo
-              </p>
-            </li>
-
-            <li className={styles.bloque}>
-              <h3 className={styles.bloqueTitulo}>
-                <RevealWords segments={[{ text: 'Quince años después' }]} />
-              </h3>
-              <p className={styles.bloqueTexto}>
-                Aplico esa escuela entera en cada boda. Por eso no hacemos posados tradicionales:
-                contamos vuestra historia con principio, tensión y final, como un documental.
-              </p>
-            </li>
-
-            <li className={styles.bloque}>
-              <h3 className={styles.bloqueTitulo}>
-                <RevealWords segments={[{ text: '¿Dónde estamos?' }]} />
-              </h3>
-              <p className={styles.bloqueTexto}>
-                {/* Aquí ponía el pueblo, sacado de site.addressLocality. Esa
-                    localidad es el domicilio fiscal y su sitio son las páginas
-                    legales, donde la LSSI obliga a publicarla. En el relato no
-                    aporta: a una pareja que busca fotógrafo le dice menos que
-                    «Sevilla», y de paso mete un municipio que no es donde se
-                    trabaja. */}
-                Partimos de Sevilla y recorremos toda Andalucía. Más de {site.coupleCount} parejas,
-                cinco Wedding Awards y ser la imagen de Saal Digital en ferias confirman que este
-                enfoque funciona.
-              </p>
-            </li>
-          </ol>
+              - En un ordenador, tres bloques abiertos que se apilan con el
+                scroll. Fueron tarjetas desplegables y el estudio lo corrigió
+                con razón: «no quiero tener que darle al botón + para verla».
+              - En un teléfono, un acordeón con el primero ya abierto, que es
+                lo que el estudio pidió después de navegar desde su móvil:
+                «aplica un efecto acordeón para no tener que hacer tanto
+                scroll». Ahí abajo no hay anclado --es de 900 px para
+                arriba--, así que los tres tramos eran tres párrafos largos
+                seguidos y casi tres pantallas de recorrido. */}
+          <QuienSoyBloques />
         </div>
       </section>
 
@@ -436,11 +391,11 @@ export default function Page() {
             <div className={styles.teamLinks}>
               <Link href="/contacto" className={styles.arrow}>
                 Escribirnos
-                <span className="arrow" aria-hidden="true">↗</span>
+                <ArrowGlyph />
               </Link>
               <a href={site.instagramUrl} target="_blank" rel="noopener noreferrer" className={styles.arrow}>
                 {site.instagramHandle}
-                <span className="arrow" aria-hidden="true">↗</span>
+                <ArrowGlyph />
               </a>
             </div>
           </div>

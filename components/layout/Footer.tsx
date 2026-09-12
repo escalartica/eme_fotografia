@@ -6,6 +6,7 @@ import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import { useLenis } from '@/lib/hooks/useLenis';
 import { InstagramIcon, FacebookIcon, TikTokIcon } from '@/components/ui/Icon';
 import styles from './Footer.module.css';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 // El pie ya no repite el menú. Tenía las mismas seis entradas que la
 // cabecera —que es fija y sigue visible cuando el lector llega aquí—, así
@@ -103,8 +104,39 @@ export function Footer() {
         />
       </ScrollReveal>
 
+      {/* EL REMATE LEGAL, REORDENADO. Antes era un solo párrafo al 50 % de
+          opacidad con todo dentro --copyright, crédito, separador y los tres
+          enlaces legales-- y debajo, sueltos, los números y el «volver
+          arriba». En un teléfono eso se leía como una mancha gris de cinco
+          renglones en la que no se distinguía qué era texto y qué se podía
+          pulsar, que es justo lo que dijo el estudio al verlo.
+
+          Ahora son cuatro bloques con jerarquía: primero lo que se pulsa (los
+          tres enlaces legales, con su propio hueco y con diana táctil de
+          verdad), después los números, después la letra pequeña y al final el
+          botón de volver. Y la letra pequeña sube de 50 % a 62 %, que es lo
+          que hace falta para pasar el 4,5:1 de la norma a este cuerpo. */}
       <div className={styles.bottom}>
-        <span className={styles.copy}>
+        {/* Un `nav` propio, no tres enlaces sueltos dentro de la frase de
+            copyright: son navegación, y meterlos dentro de una oración
+            obligaba a un lector de pantalla a atravesar el crédito entero
+            para llegar a la política de privacidad. */}
+        <nav className={styles.legal} aria-label="Información legal">
+          <Link href="/aviso-legal">Aviso legal</Link>
+          <Link href="/privacidad">Privacidad</Link>
+          <Link href="/cookies">Cookies</Link>
+        </nav>
+
+        {/* Confianza's real numbers (verified, see content/site.ts), kept as
+            a small secondary detail line -- deliberately below the
+            copyright in the reading order and well under --type-label's
+            surrounding weight, not a headline stat. */}
+        <ul className={styles.stats}>
+          <li>{formatCount(site.facebookLikes)} me gusta en Facebook</li>
+          <li>{formatCount(site.instagramFollowers)} seguidores en Instagram</li>
+        </ul>
+
+        <div className={styles.creditos}>
           {/* LA LÍNEA DE CRÉDITO, TAL Y COMO LA PIDIÓ EL ESTUDIO, con el año
               calculado y no escrito: un «2026» a mano envejece solo y en una
               web de bodas se nota, porque la mitad de quien entra viene a
@@ -120,10 +152,10 @@ export function Footer() {
               mal.
               Los espacios van escritos con {' '}: JSX se come el espacio que
               hay al final de una línea de texto antes de un elemento. */}
-          © {new Date().getFullYear()} Eme Fotografía.{' '}
-          <span lang="en">All rights reserved.</span>{' '}
-          <span className={styles.separador} aria-hidden="true">|</span>{' '}
-          <span lang="en">Designed &amp; Developed by</span> Escalârtica.
+          <p className={styles.copy}>
+            © {new Date().getFullYear()} Eme Fotografía.{' '}
+            <span lang="en">All rights reserved.</span>
+          </p>
           {/* AQUÍ FUE EL LOGOTIPO DE ESCALÂRTICA, y lo quitó quien lo pidió:
               «no hace falta el logo de escalartica porque descuadra todo».
               Y descuadraba: a la altura de esta línea --un antetítulo-- una
@@ -131,23 +163,23 @@ export function Footer() {
               una firma sino una mancha, y con la línea partida en dos
               renglones en un teléfono caía en el sitio que le tocara. El
               crédito escrito hace el mismo trabajo y no compite con la marca
-              del estudio, que es lo único que debería pesar en este pie. */}
-          <span className={styles.legal}>
-            <Link href="/aviso-legal">Aviso legal</Link>
-            <Link href="/privacidad">Privacidad</Link>
-            <Link href="/cookies">Cookies</Link>
-          </span>
-        </span>
-        {/* Confianza's real numbers (verified, see content/site.ts), kept as
-            a small secondary detail line -- deliberately below the
-            copyright in the reading order and well under --type-label's
-            surrounding weight, not a headline stat. */}
-        <ul className={styles.stats}>
-          <li>{formatCount(site.facebookLikes)} me gusta en Facebook</li>
-          <li>{formatCount(site.instagramFollowers)} seguidores en Instagram</li>
-        </ul>
+              del estudio, que es lo único que debería pesar en este pie.
+              El separador «|» que unía las dos frases se ha ido con ellas: en
+              un teléfono la línea partía por cualquier sitio y la barra
+              acababa abriendo renglón. Dos frases, dos renglones. */}
+          <p className={styles.credito}>
+            <span lang="en">Designed &amp; Developed by</span> Escalârtica.
+          </p>
+        </div>
+
         <button type="button" className={styles.backToTop} onClick={scrollToTop}>
-          Volver arriba <span className={styles.arrow} aria-hidden="true">↑</span>
+          {/* La clase global `arrow`, no `styles.arrow`: aquí ponía
+              `className={styles.arrow}` y Footer.module.css no define ningún
+              `.arrow`, así que salía un literal `class="undefined"` y la
+              flecha se quedaba fuera de la animación de bucle que
+              styles/layout.css da a todas las llamadas a la acción del
+              sitio. */}
+          Volver arriba <ArrowGlyph dir="up" />
         </button>
       </div>
     </footer>

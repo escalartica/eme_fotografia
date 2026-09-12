@@ -9,6 +9,7 @@ import { faqSchema, jsonLd } from '@/lib/schema';
 import { MailIcon, InstagramIcon, FacebookIcon, ExternalLinkIcon, TikTokIcon, WhatsAppIcon } from '@/components/ui/Icon';
 import styles from './page.module.css';
 import { RevealWords } from '@/components/motion/RevealWords';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 export const metadata = buildMetadata({
   title: 'Contacto y fechas libres para vuestra boda',
@@ -71,7 +72,7 @@ export default function Page() {
               half down: one link takes them straight to it. */}
           <a href="#formulario" className={styles.jump}>
             Ir al formulario
-            <span className="arrow" aria-hidden="true">↓</span>
+            <ArrowGlyph dir="down" />
           </a>
           {/* Las preguntas están al pie, debajo del formulario, y las tres
               primeras (¿tenéis libre mi fecha?, ¿con cuánta antelación?,
@@ -80,7 +81,7 @@ export default function Page() {
               página, que es lo que costaría subirlas. */}
           <a href="#preguntas-frecuentes" className={styles.jumpFaq}>
             ¿Tienes dudas?
-            <span className="arrow" aria-hidden="true">↓</span>
+            <ArrowGlyph dir="down" />
           </a>
 
           <figure className={styles.figure}>

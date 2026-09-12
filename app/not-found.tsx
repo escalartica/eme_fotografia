@@ -4,6 +4,7 @@ import { Footer } from '@/components/layout/Footer';
 import { DocumentTitle } from '@/components/ui/DocumentTitle';
 import { site } from '@/content/site';
 import styles from './status.module.css';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 // Root-level not-found renders OUTSIDE the (site) route group, so it has
 // to bring the public chrome (menu + footer) itself: a visitor who lands
@@ -29,11 +30,11 @@ export default function NotFound() {
             </Link>
             <Link href="/trabajos" className={styles.action}>
               Ver los trabajos
-              <span className="arrow" aria-hidden="true">↗</span>
+              <ArrowGlyph />
             </Link>
             <Link href="/contacto" className={styles.action}>
               Contacto
-              <span className="arrow" aria-hidden="true">↗</span>
+              <ArrowGlyph />
             </Link>
           </div>
         </section>

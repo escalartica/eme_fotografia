@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useLenis } from '@/lib/hooks/useLenis';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import styles from './BackToTop.module.css';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 /**
  * Volver al principio de la página.
@@ -54,7 +55,7 @@ export function BackToTop() {
       hidden={!visible}
       aria-label="Volver al principio de la página"
     >
-      <span className={styles.arrow} aria-hidden="true">↑</span>
+      <ArrowGlyph dir="up" className={styles.arrow} />
     </button>
   );
 }

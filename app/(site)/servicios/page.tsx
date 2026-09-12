@@ -8,6 +8,7 @@ import { Cifras } from '@/components/sections/Cifras';
 import { RevealWords } from '@/components/motion/RevealWords';
 import { turno } from '@/lib/turno';
 import styles from './page.module.css';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 /**
  * Índice de servicios.
@@ -135,7 +136,7 @@ export default function Page() {
                   <span className={styles.rowTagline} style={turno(1)}>{service.tagline}</span>
                   <span className={styles.rowCta} style={turno(2)}>
                     Ver qué incluye
-                    <span className="arrow" aria-hidden="true">→</span>
+                    <ArrowGlyph dir="right" />
                   </span>
                 </span>
               </Link>
@@ -161,7 +162,7 @@ export default function Page() {
         </p>
         <Link href="/contacto" className={styles.cierreCta}>
           Consultar vuestra fecha
-          <span className="arrow" aria-hidden="true">↗</span>
+          <ArrowGlyph />
         </Link>
       </div>
     </div>

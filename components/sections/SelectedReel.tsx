@@ -4,6 +4,7 @@ import { resolveFeaturedFrames } from '@/content/featured';
 import { RevealWords } from '@/components/motion/RevealWords';
 import { focusOf } from '@/lib/focal';
 import styles from './SelectedReel.module.css';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 // Eleven beats, one wedding each -- none of them repeated from the hero mosaic.
 const frames = resolveFeaturedFrames();
@@ -76,9 +77,7 @@ export function SelectedReel() {
           </p>
           <Link href="/trabajos" className={styles.arrow}>
             Explorar más historias
-            <span className="arrow" aria-hidden="true">
-              ↗
-            </span>
+            <ArrowGlyph />
           </Link>
         </div>
 

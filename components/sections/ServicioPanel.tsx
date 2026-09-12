@@ -9,6 +9,7 @@ import { RevealWords } from '@/components/motion/RevealWords';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import { focusOf } from '@/lib/focal';
 import styles from './ServicioPanel.module.css';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -156,7 +157,7 @@ export function ServicioPanel({ service, index }: { service: Service; index: num
               que los distingue sin texto invisible y además dice a dónde va. */}
           <Link href={service.route} className={styles.arrow}>
             {service.panelCtaLabel}
-            <span className="arrow" aria-hidden="true">↗</span>
+            <ArrowGlyph />
           </Link>
         </div>
       </div>

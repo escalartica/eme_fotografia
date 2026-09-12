@@ -7,6 +7,7 @@ import { CONSENTIMIENTO_TEXTO } from '@/content/consentimiento';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import { motion } from '@/lib/motion-tokens';
 import styles from './ContactForm.module.css';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 // A4 (docs/PATRONES-AWWWARDS.md): one question per screen instead of a
 // wall of fields, qualifying the lead as they go.
@@ -340,11 +341,11 @@ function mensajeDeError(field: { name: string; validationMessage: string }): str
         <div className={styles.successLinks}>
           <Link href="/trabajos" className={styles.successLink}>
             Ver trabajos
-            <span className="arrow" aria-hidden="true">↗</span>
+            <ArrowGlyph />
           </Link>
           <a href={site.instagramUrl} target="_blank" rel="noopener noreferrer" className={styles.successLink}>
             {site.instagramHandle}
-            <span className="arrow" aria-hidden="true">↗</span>
+            <ArrowGlyph />
           </a>
         </div>
       </div>

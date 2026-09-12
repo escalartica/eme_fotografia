@@ -267,6 +267,96 @@
   }
 }
 
+/* ---------- el acordeón del teléfono ----------
+   Sólo por debajo de 900 px: de ahí para arriba estos tres tramos no llevan
+   `<details>` ninguno, se sirven abiertos y se apilan con el anclado de
+   arriba (ver QuienSoyBloques.tsx, que es quien decide la forma). Estas
+   reglas describen la otra mitad. */
+.bloqueDetalle {
+  display: block;
+}
+
+/* La fila que se pulsa. El signo va a la derecha, separado del título por
+   todo el ancho que sobre, que es donde el pulgar lo busca. */
+.bloqueResumen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  /* Diana táctil de verdad para una fila que ahora es un control. */
+  min-height: 2.75rem;
+  cursor: pointer;
+  list-style: none;
+  /* El triangulito del navegador, fuera: lo sustituye el `+`, que es la
+     marca que ya usan las preguntas frecuentes. Hace falta la regla de
+     WebKit además de `list-style`, porque Safari lo dibuja por su cuenta. */
+}
+.bloqueResumen::-webkit-details-marker {
+  display: none;
+}
+
+/* El signo gira 45 grados al abrirse: el mismo `+` se convierte en una `x`
+   sin cambiar de nodo ni de icono. Es el gesto de las preguntas frecuentes,
+   escrito aquí porque estos bloques tienen su propia hoja. */
+.bloqueMarca {
+  flex: 0 0 auto;
+  display: inline-flex;
+  color: var(--color-muted);
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.bloqueDetalle[open] .bloqueMarca {
+  transform: rotate(45deg);
+  color: var(--color-ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bloqueMarca { transition: none; }
+}
+
+.bloqueCuerpo {
+  display: grid;
+  gap: var(--space-1);
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-2);
+}
+
+/* LA APERTURA ANIMADA, el mismo aparato que las preguntas frecuentes
+   (components/sections/Faq.module.css, con la explicación larga): tres
+   condiciones, y si falla cualquiera el tramo sigue abriendo, sólo que de
+   golpe. `interpolate-size` se declara en el bloque, no en :root, para no
+   cambiar el comportamiento de ningún otro sitio del proyecto. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (interpolate-size: allow-keywords) and (selector(::details-content)) {
+    .bloques {
+      interpolate-size: allow-keywords;
+    }
+    .bloqueDetalle::details-content {
+      block-size: 0;
+      /* clip, con hidden delante de respaldo: `hidden` haría del tramo
+         cerrado un contenedor de scroll. */
+      overflow: hidden;
+      overflow: clip;
+      transition:
+        block-size var(--duration-fast) var(--ease-standard),
+        content-visibility var(--duration-fast) allow-discrete;
+    }
+    .bloqueDetalle[open]::details-content {
+      block-size: auto;
+    }
+  }
+}
+
+@media (max-width: 899px) {
+  /* El relleno vertical se lo queda la fila que se pulsa: si se queda en el
+     `<li>`, un tramo cerrado sigue ocupando el alto de uno abierto y el
+     acordeón no ahorra el scroll que venía a ahorrar. */
+  .bloque {
+    padding-block: 0;
+  }
+  .bloqueResumen {
+    padding-block: var(--space-2);
+  }
+}
+
 .bloqueTitulo {
   font-family: var(--font-serif);
   font-size: var(--type-h3);
