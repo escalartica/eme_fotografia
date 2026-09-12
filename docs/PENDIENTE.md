@@ -45,19 +45,43 @@ npx vitest run
 npm run pentest -- https://www.emefotografiasevilla.com
 ```
 
-### 4. Faltan fotos en tres reportajes — estudio
+### 4. Faltan fotos en cuatro reportajes — SOLO PUEDE HACERLO EL ESTUDIO
 
-La mediana de los 30 reportajes publicados es de **18 fotos**. Estos tres se
+La mediana de los 30 reportajes publicados es de **18 fotos**. Estos cuatro se
 quedan muy por debajo y se nota al abrirlos:
 
 | Reportaje | Fotos | Faltan para la mediana |
 |---|---|---|
-| `rocio-y-juanje` | 5 | 13 |
-| `maria-y-francisco-manuel` | 6 | 12 |
-| `marta-y-alvaro` | 8 | 10 |
+| `rocio-y-juanje` | 3 | 15 |
+| `maria-y-francisco-manuel` | 5 | 13 |
+| `marta-y-alvaro` | 7 | 11 |
+| `andrea-y-enrique` | 9 | 9 |
 
-Salen de «BODAS DEFINITIVAS» en el DISCO DURO. No hace falta llegar a 18: con
-doce ya dejan de parecer fichas a medio hacer.
+**Ya se ha buscado en todo lo que hay conectado, y no hay más. 12/09/2026.**
+Se recorrieron una a una: `development/eme_fotografia/fotos eme/`, el DISCO
+DURO entero (BODAS DEFINITIVAS, PRE BODAS DEFINITIVAS, WEB-EME 26) y la
+tarjeta EOS_DIGITAL. Resultados:
+
+- Las siete carpetas de `fotos eme/` son EXACTAMENTE el origen de estas
+  galerías y están agotadas: 4 originales para Rocío y Juanje, 6 para María y
+  Francisco Manuel, 8 para Marta y Álvaro, 10 para Andrea y Enrique. Todos
+  publicados ya (comprobado foto a foto con huella perceptual, no por nombre
+  de fichero).
+- En «BODAS DEFINITIVAS» hay carpeta para diecisiete bodas, pero NINGUNA de
+  estas cuatro parejas.
+- La tarjeta EOS_DIGITAL tiene 485 RAW sin revelar (JD6A0001–0499) que no son
+  de ninguna boda publicada, más la carpeta «ISA YJOSE», de la que se
+  sacaron dos fotos más para esa galería.
+
+O sea que esto NO es una tarea de desarrollo pendiente: hasta que el estudio
+no traiga más copias etalonadas de esas cuatro bodas, no hay nada que
+subir. No hace falta llegar a 18: con doce ya dejan de parecer fichas a medio
+hacer.
+
+Y un aviso para cuando lleguen: **no vale con mandar más fotogramas del mismo
+momento.** En la última revisión se descartaron cuatro candidatas por eso
+mismo --eran el mismo encuadre movido unos centímetros de fotos que ya
+estaban publicadas--, que es justo lo que el estudio pidió quitar.
 
 ### 5. Retratos del equipo — estudio
 
