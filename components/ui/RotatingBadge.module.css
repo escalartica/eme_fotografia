@@ -1,35 +1,44 @@
-/* La insignia es lo que más gusta del cierre y era lo que menos se veía:
-   texto claro sobre una fotografía clara, sin más contorno que sus propias
-   letras. Ahora crece, se apoya en un disco translúcido con filete y el
-   fondo de detrás se difumina, así que el anillo se recorta contra la foto
-   sea cual sea la foto. */
+/* UN SELLO, NO UNA MARCA DE AGUA.
+   Antes era un disco translúcido con `backdrop-filter: blur(6px)` y letras
+   claras al 100 % sobre lo que hubiera detrás: sobre la fotografía del
+   cierre --gente vestida de fiesta, con luces-- el rótulo circular se leía a
+   trozos, y el filete al 30 % no llegaba a recortar el círculo. En un
+   teléfono, además, la insignia deja de flotar y se pone debajo del enlace,
+   así que ese medio tono quedaba en mitad de la página como una mancha gris.
+
+   Ahora es opaca: disco color papel y texto tinta, los dos constantes --esta
+   sección pinta sobre una foto y un velo oscuro en los dos temas, igual que
+   --color-night-text--, así que el contraste no depende de la fotografía ni
+   del tema. De paso se va el `backdrop-filter`, que obliga al navegador a
+   copiar y desenfocar el fondo en cada fotograma de un elemento que además
+   gira. */
 .badge {
   position: relative;
   display: inline-grid;
   place-items: center;
-  width: clamp(8rem, 15vw, 11.5rem);
+  width: clamp(7rem, 15vw, 11.5rem);
   aspect-ratio: 1;
-  color: currentColor;
+  /* La tinta del sello. Constante, como --color-night-text: lo de debajo es
+     siempre una fotografía con velo, nunca el papel de la página. */
+  color: #0b0b0b;
   text-decoration: none;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--color-scrim) 22%, transparent);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  border: 1px solid color-mix(in srgb, var(--color-night-text) 30%, transparent);
+  background: var(--color-night-text);
+  border: 1px solid var(--color-night-text);
+  box-shadow: 0 18px 40px -24px color-mix(in srgb, var(--color-scrim) 80%, transparent);
   transition:
     transform var(--duration-base) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard),
-    background-color var(--duration-fast) var(--ease-standard);
+    box-shadow var(--duration-fast) var(--ease-standard);
 }
 @media (hover: hover) and (pointer: fine) {
   .badge:hover {
     transform: scale(1.04);
-    border-color: color-mix(in srgb, var(--color-night-text) 65%, transparent);
-    background: color-mix(in srgb, var(--color-scrim) 34%, transparent);
+    box-shadow: 0 22px 48px -22px color-mix(in srgb, var(--color-scrim) 90%, transparent);
   }
 }
 .badge:focus-visible {
-  border-color: var(--color-night-text);
+  outline: 2px solid var(--color-night-text);
+  outline-offset: 4px;
 }
 @media (prefers-reduced-motion: reduce) {
   .badge {

@@ -5,7 +5,9 @@
   z-index: 250;
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  /* El mismo aire a los cuatro lados en un teléfono: el paso mayor sólo
+     entra cuando hay sitio de sobra. */
+  padding: var(--space-2);
   background: var(--color-paper);
   color: var(--color-ink);
   border: 1px solid var(--color-hairline);
@@ -21,6 +23,7 @@
   .banner {
     grid-template-columns: 1fr auto;
     align-items: center;
+    padding: var(--space-2) var(--space-3);
   }
 }
 .text {
@@ -32,10 +35,23 @@
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
+/* LOS DOS BOTONES, EN UNA FILA QUE NO SE PARTE.
+   Con `flex-wrap: wrap` y un texto largo, en una pantalla estrecha el
+   «Aceptar» se iba a un renglón propio y el aviso crecía otros 48 px justo
+   donde menos sitio hay. Aquí no hay nada que envolver: son dos, y en
+   teléfono se reparten el ancho a partes iguales, que además es lo que hace
+   que se acierte con el pulgar sin mirar. */
 .actions {
   display: flex;
   gap: var(--space-1);
-  flex-wrap: wrap;
+}
+.actions > * {
+  flex: 1 1 0;
+}
+@media (min-width: 720px) {
+  .actions > * {
+    flex: 0 0 auto;
+  }
 }
 .accept,
 .reject {
@@ -43,6 +59,12 @@
   border-radius: 999px;
   min-height: 2.75rem;
   padding: var(--space-1) var(--space-2);
+  /* Centrado explícito: al repartirse el ancho en teléfono, el rótulo de un
+     botón más ancho que su texto se quedaría pegado a la izquierda. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
   font-family: var(--font-sans);
   font-size: var(--type-label);
   letter-spacing: var(--tracking-label);

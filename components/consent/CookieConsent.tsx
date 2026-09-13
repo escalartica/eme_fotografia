@@ -115,9 +115,14 @@ export function CookieConsent() {
     <>
       {showBanner && (
         <div className={styles.banner} role="region" aria-label="Aviso de cookies">
+          {/* Tres renglones en un teléfono, no cinco. El aviso medía 157 px
+              de alto sobre una pantalla de 613: una cuarta parte de lo que se
+              ve en la primera visita, tapando justo la portada. Dice lo mismo
+              --qué se usa, qué depende del permiso y dónde está el detalle--
+              con la mitad de palabras. */}
           <p className={styles.text}>
-            Usamos cookies técnicas imprescindibles y, solo si nos lo permites, cookies analíticas para saber qué
-            páginas se visitan. Más detalles en la <Link href="/cookies">política de cookies</Link>.
+            Usamos cookies técnicas y, si nos lo permites, analíticas para saber qué páginas se visitan.{' '}
+            <Link href="/cookies">Política de cookies</Link>.
           </p>
           <div className={styles.actions}>
             <button type="button" className={styles.reject} onClick={() => decide('rejected')}>

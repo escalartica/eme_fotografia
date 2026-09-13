@@ -44,11 +44,19 @@ export const projects: Project[] = [
       height: 2560,
     },
     gallery: [
-      { type: 'image', src: '/images/trabajos/maite-y-nerea/01.webp', alt: 'Una de las novias sosteniendo en brazos al perro salchicha, apoyadas en un pino', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      /* ABRE UNA QUE NO LLEVE PERRO.
+         La portada de esta ficha ES el perro con la pajarita sentado en
+         mitad del camino, y justo debajo empezaba la galería con otra del
+         perro en brazos: dos fotografías seguidas del mismo protagonista, y
+         la segunda leída como repetición de la primera. Lo dijo el estudio
+         mirando la ficha en el teléfono. Esta abre ahora --las dos de la
+         mano, riéndose, sin perro-- y la del perro en brazos entra después,
+         cuando ya no compite con la portada. */
+      { type: 'image', src: '/images/trabajos/maite-y-nerea/05.webp', alt: 'Las dos de la mano, riéndose la una de la otra, entre los pinos', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/maite-y-nerea/02.webp', alt: 'Las dos abrazadas en el sendero con el perro a sus pies, en blanco y negro', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/maite-y-nerea/03.webp', alt: 'Un beso entre los troncos, a contraluz, con el perro olfateando al lado', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/maite-y-nerea/04.webp', alt: 'Las dos de espaldas alejándose por el camino del pinar', isPlaceholderMedia: false, width: 2560, height: 1707 },
-      { type: 'image', src: '/images/trabajos/maite-y-nerea/05.webp', alt: 'Las dos de la mano, riéndose la una de la otra, entre los pinos', isPlaceholderMedia: false, width: 2560, height: 1707 },
+      { type: 'image', src: '/images/trabajos/maite-y-nerea/01.webp', alt: 'Una de las novias sosteniendo en brazos al perro salchicha, apoyadas en un pino', isPlaceholderMedia: false, width: 1707, height: 2560 },
       { type: 'image', src: '/images/trabajos/maite-y-nerea/06.webp', alt: 'Un abrazo frente a frente entre los troncos, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/maite-y-nerea/07.webp', alt: 'Las dos de la mano, de espaldas, bajo la luz que se cuela entre los pinos', isPlaceholderMedia: false, width: 2560, height: 1707 },
       { type: 'image', src: '/images/trabajos/maite-y-nerea/08.webp', alt: 'Las dos señalando algo fuera de cuadro, muertas de risa, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },

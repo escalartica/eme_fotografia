@@ -119,13 +119,13 @@
   position: absolute;
   right: var(--gutter);
   bottom: var(--gutter);
-  /* La constante, no --color-paper: RotatingBadge pinta su texto circular
-     con `fill: currentColor` y la flecha con `color: currentColor`, así que
-     esta línea es la que decide si la insignia se ve. .section (arriba) ya
-     ponía bien --color-night-text y este override la deshacía: sobre el
-     scrim al 72 % de esta sección daba 1,32:1 en oscuro (13,06:1 en claro),
-     es decir, se borraba justo en el cierre de la home. */
-  color: var(--color-night-text);
+  /* EL COLOR LO PONE LA INSIGNIA, NO ESTA SECCIÓN.
+     Aquí había un `color: var(--color-night-text)`. Tenía sentido cuando la
+     insignia era un disco translúcido y su rótulo se pintaba con el color
+     heredado; ahora es un sello opaco color papel con la tinta declarada en
+     su propio módulo, y heredar el claro de la sección lo dejaría en letras
+     claras sobre fondo claro. Se quita en vez de repetirse: dos sitios
+     decidiendo el mismo color es como se llegó al fallo anterior. */
   z-index: 1;
 }
 /* EN MÓVIL NO FLOTA: SE PONE EN FILA.

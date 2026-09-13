@@ -38,7 +38,10 @@ describe('projects content', () => {
     // 2026-09-11: 28 -> 29. Entra «Maite y Nerea», de la tarjeta EOS_DIGITAL.
     // 2026-09-11: 29 -> 30. Entra «Isa y Jose», de la misma tarjeta: la
     // jornada entera en 24 fotografías.
-    expect(projects).toHaveLength(30);
+    // 2026-09-13: 30 -> 32. Del disco duro del cliente entran la preboda de
+    // Angélica y Jesús (la misma pareja que la boda de diciembre de 2023) y
+    // la boda de Sandra y Jesús, en Utrera.
+    expect(projects).toHaveLength(32);
     const slugs = projects.map((p) => p.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
   });
@@ -117,6 +120,8 @@ describe('projects content', () => {
       'maite-y-nerea', 'isa-y-jose',
       // preboda / postboda sessions from EOS_DIGITAL
       'postboda-en-el-real-alcazar', 'preboda-de-carmen-y-alberto', 'postboda-de-maria-y-alberto', 'preboda-en-la-playa', 'preboda-en-santa-cruz',
+      // 2026-09-13, del disco duro del cliente
+      'preboda-de-angelica-y-jesus', 'sandra-y-jesus',
     ];
     for (const project of projects) {
       const isReal = realSlugs.includes(project.slug);
