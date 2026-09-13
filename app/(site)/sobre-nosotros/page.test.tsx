@@ -20,7 +20,7 @@ describe('/sobre-nosotros page', () => {
     // trabajan juntas todo el año», que es un dato del que la pareja no sabe
     // qué hacer-- sino para qué le sirve a ella que sean cinco. El número
     // sigue en el primer párrafo, y esta prueba lo comprueba ahí.
-    expect(screen.getByRole('heading', { name: /nadie esté mirando/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /ningún momento se queda sin cámara/i })).toBeInTheDocument();
     expect(screen.getByText(/somos cinco y trabajamos juntos todo el año/i)).toBeInTheDocument();
     expect(screen.getByText('Equipo')).toBeInTheDocument();
     expect(screen.getAllByText(new RegExp(site.founderName)).length).toBeGreaterThan(0);

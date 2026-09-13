@@ -116,10 +116,28 @@ describe('el carrete de la home', () => {
      índice, y el ritmo de las once (P L P L P S P L S L P) se descuadra
      entero si la cabeza cambia de forma. */
   it('no abre la tira con la boda cuya portada va justo encima', () => {
-    expect(featuredFrames[0].projectSlug).not.toBe('maite-y-nerea');
+    // El slug NO va escrito aquí a mano: se lee del enlace de la propia
+    // entradilla. Escribirlo sería fijar el síntoma de hoy --que la de
+    // encima era Maite y Nerea-- y no la regla, y el día que la entradilla
+    // enseñe otra portada el fallo volvería con la prueba en verde.
+    render(<SelectedReel />);
+    const enlaceEntradilla = screen
+      .getByAltText(/perro sentado en primer plano con pajarita/i)
+      .closest('a');
+    const slugDeLaEntradilla = enlaceEntradilla!.getAttribute('href')!.replace('/trabajos/', '');
+    expect(featuredFrames[0].projectSlug).not.toBe(slugDeLaEntradilla);
   });
 
-  it('abre con una vertical, que es de lo que depende el ritmo de formas', () => {
-    expect(featuredFrames[0].height).toBeGreaterThan(featuredFrames[0].width);
+  /* EL RITMO DE FORMAS, CONGELADO.
+     SelectedReel deduce la forma de cada pieza horizontal de su ÍNDICE, así
+     que mover, meter o sacar una sola reordena todas las de detrás y
+     descuadra la columna entera. El comentario de content/featured.ts lo
+     dice desde hace tiempo y no lo comprobaba nadie: la prueba anterior
+     sólo miraba la primera. Esto es la secuencia de orientaciones de origen;
+     las dos cuadradas las deriva el componente de los índices 5 y 8. */
+  it('mantiene el ritmo de formas de las once', () => {
+    expect(featuredFrames.map((f) => (f.height > f.width ? 'P' : 'L'))).toEqual([
+      'P', 'L', 'P', 'L', 'P', 'L', 'P', 'L', 'L', 'L', 'P',
+    ]);
   });
 });

@@ -223,7 +223,12 @@ export function ServicioDetalle({ service }: { service: Service }) {
                 deja de repetir lo que el lector ya sabe (que eso es una foto
                 de una boda) para decir lo único que no puede comprobar por su
                 cuenta: que NINGUNA de las de esta web es de banco. */}
-            {!clip && (
+            {/* `!clip && !esPelicula`, no sólo `!clip`: si un servicio de
+                vídeo se quedara algún día sin su clip, la banda volvería a
+                ser un fotograma de película y debajo pondría «ni una foto de
+                archivo», que no es lo que se está mirando. Hoy las dos
+                banderas van juntas y nada obliga a que sigan yendo. */}
+            {!clip && !esPelicula && (
               <figcaption className={styles.interludioPie}>
                 Ni una foto de archivo: todas las de esta web son de bodas que hemos hecho.
               </figcaption>

@@ -378,9 +378,14 @@ export default function Page() {
                 párrafo --«que no exista el momento que nadie estaba
                 cubriendo»--, o sea en el renglón al que menos gente llega.
                 Ahora abre el capítulo, y el número sigue en el primer
-                párrafo, donde es un apoyo y no una pregunta. */}
+                párrafo, donde es un apoyo y no una pregunta.
+                Y en una sola negación. La primera versión de este titular
+                --«No hay un solo momento que nadie esté mirando»-- decía lo
+                mismo, pero obligaba a desmontar tres negaciones seguidas
+                para llegar a una promesa que es positiva. En mitad de un
+                párrafo se sostiene; de titular, no. */}
             <h2 id="equipo-heading" className={styles.heading}>
-              <RevealWords segments={[{ text: 'No hay un solo momento que nadie esté mirando.' }]} />
+              <RevealWords segments={[{ text: 'Ningún momento se queda sin cámara.' }]} />
             </h2>
             {/* Los tres párrafos llegaban a la vez debajo de un titular que
                 se revela palabra a palabra. `--turno` los pone en fila (ver

@@ -127,6 +127,50 @@ describe.each(services.map((s) => [s.slug, s] as const))('ServicioDetalle (%s)',
     expect(container.querySelectorAll('[role="group"][tabindex]')).toHaveLength(0);
   });
 
+  /**
+   * LA BANDA DEL MEDIO, CUANDO ES UN CLIP.
+   *
+   * Contar figuras (la prueba de arriba) no dice nada de esto: pasaría igual
+   * con una figura vacía, con el `src` equivocado o con el pie todavía
+   * puesto. Aquí se comprueba lo que de verdad se implementó.
+   */
+  it('pone el clip en la banda, sin pie y con su póster', () => {
+    const clip = service.interludioVideo;
+    if (!clip) return;
+    const { container } = render(<ServicioDetalle service={service} />);
+    // POR `src`, NO POR EL PRIMER <video> DEL DOCUMENTO. Esta página tiene
+    // dos: el de la tarjeta de la cabecera (`previewVideo`) y éste. La
+    // primera versión de la prueba cogía el primero y comparaba contra el
+    // clip de la banda, así que fallaba diciendo que el clip era otro
+    // cuando lo que pasaba es que estaba mirando el de arriba.
+    const video = [...container.querySelectorAll('video')].find(
+      (v) => v.getAttribute('src') === clip.src,
+    );
+    expect(video).toBeDefined();
+    expect(video!.getAttribute('poster')).toBe(clip.poster);
+    // No se descarga hasta que hace falta. Es la mitad del trato: esta
+    // página ya reproduce otro clip más arriba.
+    expect(video!.getAttribute('preload')).toBe('none');
+    // Y la banda no lleva pie: debajo se está moviendo una película, no hay
+    // nada que aclarar.
+    const banda = video!.closest('figure');
+    expect(banda).not.toBeNull();
+    expect(banda!.querySelector('figcaption')).toBeNull();
+  });
+
+  /**
+   * Y SU PÓSTER NO PUEDE ESTAR ADEMÁS EN EL MURAL. Sería enseñar quieta, dos
+   * pantallas más abajo, la misma imagen que se está moviendo arriba -- que
+   * es exactamente la repetición que el estudio señaló en la portada y en la
+   * ficha de Maite y Nerea. Hoy lo sostiene una línea borrada a mano en
+   * content/services.ts; esto lo convierte en una regla.
+   */
+  it('no repite el primer fotograma del clip en el mural', () => {
+    const clip = service.interludioVideo;
+    if (!clip) return;
+    expect((service.gallery ?? []).map((g) => g.src)).not.toContain(clip.poster);
+  });
+
   it('links back up to the services index', () => {
     // Sin migas visibles en el sitio, este enlace es la única vuelta al padre
     // desde una página hija.
