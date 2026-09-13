@@ -154,6 +154,29 @@ describe('ShowreelClip', () => {
     expect(screen.getByRole('button', { name: /reproducir el vídeo/i })).toBeInTheDocument();
   });
 
+  /**
+   * EL FALLO QUE ESTO EVITA, visto en producción y no en un test: al dejar la
+   * pestaña en segundo plano, Chrome suspende el vídeo y lo deja en `paused`
+   * SIN lanzar el evento `pause`, así que el botón se quedaba diciendo
+   * «Pausar» encima de un vídeo parado. En un móvil no es un caso raro: es lo
+   * que pasa cada vez que alguien toca el botón de WhatsApp, se va a otra
+   * aplicación y vuelve.
+   */
+  it('se pone al día al volver a la pestaña, aunque el navegador parase el vídeo sin avisar', () => {
+    vi.mocked(useReducedMotion).mockReturnValue(false);
+    render(<ShowreelClip src="/a.mp4" poster="/a.webp" alt="x" />);
+    enPantalla(true);
+    expect(screen.getByRole('button', { name: /pausar el vídeo/i })).toBeInTheDocument();
+
+    // Chrome lo suspende a la callada: `paused` pasa a true y no hay evento.
+    pausado = true;
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+
+    expect(screen.getByRole('button', { name: /reproducir el vídeo/i })).toBeInTheDocument();
+  });
+
   // Con prefers-reduced-motion el clip no arranca solo, pero el botón sigue
   // ahí: es la única manera de verlo para quien quiera verlo.
   it('deja ver el vídeo a mano con prefers-reduced-motion', async () => {

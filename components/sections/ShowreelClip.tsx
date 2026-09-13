@@ -48,17 +48,33 @@ export function ShowreelClip({ src, poster, alt, fill = false }: { src: string; 
    * nosotros creemos que hace: si el navegador lo para por su cuenta -- otra
    * pestaña, batería baja, el sistema operativo -- el botón tiene que decir
    * «Reproducir» y no seguir diciendo «Pausar».
+   *
+   * Y HAY UN CASO EN EL QUE NO BASTA CON ESCUCHAR `pause`: al dejar la pestaña
+   * en segundo plano, Chrome suspende el vídeo y lo deja en `paused` SIN
+   * lanzar el evento. Visto en producción, y en un móvil no es un caso raro:
+   * es lo que pasa cada vez que alguien toca el botón de WhatsApp, se va a
+   * otra aplicación y vuelve. Al volver a primer plano se vuelve a preguntar
+   * al vídeo en lugar de fiarse de lo último que nos contó.
+   *
+   * Que la etiqueta mienta no rompe el botón -- al pulsarlo se mira `paused`,
+   * así que siempre hace lo correcto -- pero sí rompe la promesa que le hace
+   * a quien lo lee, y a quien no lo ve y lo escucha es lo único que tiene.
    */
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
     const alArrancar = () => setEnMarcha(true);
     const alParar = () => setEnMarcha(false);
+    const alVolver = () => {
+      if (!document.hidden) setEnMarcha(!el.paused);
+    };
     el.addEventListener('play', alArrancar);
     el.addEventListener('pause', alParar);
+    document.addEventListener('visibilitychange', alVolver);
     return () => {
       el.removeEventListener('play', alArrancar);
       el.removeEventListener('pause', alParar);
+      document.removeEventListener('visibilitychange', alVolver);
     };
   }, []);
 
