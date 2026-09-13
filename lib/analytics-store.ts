@@ -194,6 +194,43 @@ export interface Summary {
   referrers: { key: string; count: number }[];
   devices: { key: string; count: number }[];
   campaigns: { key: string; count: number }[];
+  /**
+   * POR DÓNDE ENTRAN, que no es lo mismo que qué páginas se ven.
+   *
+   * «Páginas más vistas» siempre corona la portada, porque casi todo el mundo
+   * pasa por ella. Esto cuenta la PRIMERA página de cada visita, y es lo que
+   * de verdad se necesita cuando se paga por tráfico: si un anuncio manda a
+   * /servicios/video-de-boda, aquí se ve si la gente aterriza donde se ha
+   * pagado que aterrice.
+   */
+  entradas: { key: string; count: number }[];
+  /**
+   * Páginas vistas por hora del día (0-23, hora UTC como todo lo demás de
+   * este fichero). Para decidir a qué hora se manda un correo o se programa
+   * un anuncio: la respuesta no es la misma en una web de bodas que en una
+   * tienda.
+   */
+  porHora: { hora: number; views: number }[];
+}
+
+/**
+ * El mismo periodo, justo antes. Sirve para comparar: una cifra suelta no
+ * dice si una campaña ha funcionado, y dos sí.
+ */
+export function finDelPeriodoAnterior(now: Date, days: number): Date {
+  const d = new Date(now);
+  d.setUTCDate(d.getUTCDate() - days);
+  return d;
+}
+
+/**
+ * Variación entre dos cifras, en porcentaje entero. `null` cuando no hay con
+ * qué comparar: de cero a diez no es «infinito por ciento», es que antes no
+ * había nada, y eso hay que decirlo con palabras y no con un número.
+ */
+export function variacion(actual: number, anterior: number): number | null {
+  if (anterior === 0) return null;
+  return Math.round(((actual - anterior) / anterior) * 100);
 }
 
 function top(map: Map<string, number>, limit = 12) {
@@ -210,6 +247,9 @@ export function summarise(hits: Hit[], days: number, now: Date = new Date()): Su
   const campaigns = new Map<string, number>();
   const perDayMap = new Map<string, { views: number; visitors: Set<string> }>();
   const visitors = new Set<string>();
+  // La primera visita de cada (día, visitante): su marca de tiempo y su ruta.
+  const primeras = new Map<string, { t: string; p: string }>();
+  const horas = new Array<number>(24).fill(0);
 
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(now);
@@ -230,7 +270,17 @@ export function summarise(hits: Hit[], days: number, now: Date = new Date()): Su
       bucket.views++;
       bucket.visitors.add(h.v);
     }
+    const clave = `${day}:${h.v}`;
+    const previa = primeras.get(clave);
+    // `<` y no `<=`: con dos líneas del mismo milisegundo manda la primera
+    // que se escribió, que es el orden en que llegaron.
+    if (!previa || h.t < previa.t) primeras.set(clave, { t: h.t, p: h.p });
+    const hora = Number(h.t.slice(11, 13));
+    if (hora >= 0 && hora <= 23) horas[hora] += 1;
   }
+
+  const entradas = new Map<string, number>();
+  for (const { p } of primeras.values()) entradas.set(p, (entradas.get(p) ?? 0) + 1);
 
   return {
     days,
@@ -241,5 +291,7 @@ export function summarise(hits: Hit[], days: number, now: Date = new Date()): Su
     referrers: top(referrers),
     devices: top(devices, 3),
     campaigns: top(campaigns, 8),
+    entradas: top(entradas),
+    porHora: horas.map((views, hora) => ({ hora, views })),
   };
 }

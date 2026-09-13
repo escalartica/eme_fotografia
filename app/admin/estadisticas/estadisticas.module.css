@@ -158,3 +158,123 @@
   color: var(--color-muted);
   line-height: 1.5;
 }
+
+/* ---------- la variación respecto al periodo anterior ---------- */
+/* El color NO es la información: el signo y la flecha van escritos, y el
+   texto accesible dice además respecto a qué. El color sólo subraya. */
+.delta {
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+.delta[data-signo='sube'] {
+  color: color-mix(in srgb, var(--color-ink) 72%, #1f7a3d);
+}
+.delta[data-signo='baja'] {
+  color: color-mix(in srgb, var(--color-ink) 72%, #9a2b2b);
+}
+
+/* ---------- las horas del día ---------- */
+.horas {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 5rem;
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.hora {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  min-width: 0;
+}
+.horaBar {
+  width: 100%;
+  /* Un mínimo visible: una hora con una sola visita tiene que distinguirse
+     de una hora sin ninguna, y con la altura proporcional a secas se quedan
+     las dos en nada. */
+  min-height: 1px;
+  background: var(--color-ink);
+  opacity: 0.72;
+}
+.horaLabel {
+  font-family: var(--font-sans);
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+  padding-block-start: 0.25rem;
+  line-height: 1;
+}
+
+/* ---------- pies de bloque y la ayuda de las campañas ---------- */
+.pie {
+  font-size: var(--type-small);
+  color: var(--color-muted);
+  margin: var(--space-1) 0 0;
+}
+.pie a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* Plegada por defecto: es una chuleta, no contenido. Quien ya sabe etiquetar
+   un enlace no tiene que pasar por encima de ella cada vez que entra. */
+.ayuda {
+  margin-block-start: var(--space-2);
+  font-size: var(--type-small);
+  color: var(--color-muted);
+}
+.ayuda summary {
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-ink);
+  padding-block: var(--space-1);
+}
+.ayuda summary:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+.ayuda p {
+  margin: 0 0 var(--space-1);
+  line-height: 1.6;
+}
+.ayuda ul {
+  margin: 0 0 var(--space-1);
+  padding-inline-start: 1.1rem;
+  display: grid;
+  gap: var(--space-1);
+}
+.ayuda code {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.78em;
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-ink) 6%, transparent);
+  padding: 0.15em 0.35em;
+  /* Una URL larga no puede empujar la columna: se parte donde haga falta. */
+  overflow-wrap: anywhere;
+}
+
+/* La flecha de la variación: pequeña, alineada con la cifra y sin la
+   animación de bucle que lleva la clase global `arrow`. */
+.deltaFlecha {
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  vertical-align: -0.08em;
+  margin-inline-end: 0.15em;
+}
+.deltaFlecha svg {
+  width: 100%;
+  height: 100%;
+}
