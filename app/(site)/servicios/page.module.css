@@ -428,9 +428,19 @@
    El pie se queda dentro de la caja de 75rem: alineado con el resto del
    texto, para que la banda se lea como una pausa de la misma página y no
    como un anuncio metido en medio. */
+/* `margin-block: 0`, NO `margin: 0`.
+   Aquí ponía `margin: 0` --para quitarle a `<figure>` el margen que le da el
+   navegador-- y de paso borraba el `margin-inline: calc(50% - 50vw)` que es
+   la mitad de `.breakout`. La banda se quedaba con sus `100vw` de ancho pero
+   sin el tirón hacia la izquierda que la recentra, así que empezaba en el
+   borde interior de la columna y se salía por la derecha justo lo que mide
+   el margen de la página: 34 px de desplazamiento horizontal medidos en un
+   teléfono de 489 px. Se veía como una página que se mueve de lado al
+   arrastrar. Limitando el reinicio al eje de bloque, el figure pierde el
+   margen del navegador y conserva el de la clase. */
 .interludio {
   composes: breakout from global;
-  margin: 0;
+  margin-block: 0;
   padding-block: var(--space-4) var(--space-3);
   border-block-start: 1px solid var(--color-hairline);
 }
