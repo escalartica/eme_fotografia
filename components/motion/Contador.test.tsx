@@ -86,12 +86,15 @@ describe('Contador', () => {
     expect(desconectado).toBe(true);
   });
 
-  // Lo que se anuncia es la cifra, no los números por los que pasa.
+  // Lo que se anuncia es la cifra, no los números por los que pasa. Con un
+  // formato que SÍ cuenta: la nota ya no se anima (ver la prueba de más
+  // abajo), así que aquí no probaría nada.
   it('announces only the final figure while the digits are running', () => {
-    render(<Contador valor={5} formato="nota" />);
+    render(<Contador valor={300} formato="entero-con-mas" />);
     entraEnPantalla();
     avanzar(40);
-    expect(screen.getByRole('img', { name: '5,0' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '+300' })).toBeInTheDocument();
+    expect(screen.getByRole('img').textContent).not.toBe('+300');
   });
 
   // EL FALLO QUE ESTO IMPIDE QUE VUELVA. `Cifras` es un componente de servidor
@@ -103,6 +106,29 @@ describe('Contador', () => {
   it('takes its format as a serialisable value, not a function', () => {
     render(<Contador valor={5} formato="nota" />);
     expect(screen.getByText('5,0')).toBeInTheDocument();
+  });
+
+  /**
+   * EL FALLO QUE ESTA PRUEBA IMPIDE QUE VUELVA, visto en un teléfono
+   * bajando por /servicios: la franja de cifras decía «1,8» con las cinco
+   * estrellas llenas al lado y «puntuación máxima en Bodas.net» debajo,
+   * porque la nota subía desde cero como las demás cifras. Casi un segundo
+   * enseñando una nota que no es la suya, en la única cifra de la página
+   * que existe para dar confianza.
+   */
+  it('no cuenta la nota: una puntuación sobre cinco nunca enseña otra', () => {
+    render(<Contador valor={5} formato="nota" />);
+    expect(window.IntersectionObserver).not.toHaveBeenCalled();
+    expect(screen.getByText('5,0')).toBeInTheDocument();
+  });
+
+  it('las demás cifras sí cuentan', () => {
+    render(<Contador valor={300} formato="entero-con-mas" />);
+    entraEnPantalla();
+    avanzar(300);
+    expect(screen.queryByText('+300')).not.toBeInTheDocument();
+    avanzar(2000);
+    expect(screen.getByText('+300')).toBeInTheDocument();
   });
 
   it('stays still for anyone who asked for less motion', () => {

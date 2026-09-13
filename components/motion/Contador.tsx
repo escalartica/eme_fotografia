@@ -60,7 +60,21 @@ export function Contador({
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || reducedMotion || typeof IntersectionObserver !== 'function') return;
+    // UNA NOTA NO CUENTA.
+    //
+    // Contar desde cero funciona con «+300 parejas»: los números por los que
+    // pasa son menos de lo que se anuncia, y se leen como el contador
+    // subiendo. Con una puntuación sobre cinco pasa lo contrario. Visto en un
+    // teléfono al bajar por /servicios: durante casi un segundo la franja
+    // decía «1,8» con las cinco estrellas llenas al lado y el rótulo
+    // «puntuación máxima en Bodas.net» debajo. Quien pasara el dedo rápido se
+    // llevaba una nota de 1,8 sobre 5 de la única cifra de la página que
+    // existe para dar confianza.
+    //
+    // Va por FORMATO y no por una prop del que llama porque no depende del
+    // sitio: cualquier nota animada enseña, mientras dura, una nota que no es
+    // la suya.
+    if (!el || reducedMotion || formato === 'nota' || typeof IntersectionObserver !== 'function') return;
     let raf = 0;
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -88,7 +102,7 @@ export function Contador({
       observer.disconnect();
       cancelAnimationFrame(raf);
     };
-  }, [valor, duracion, reducedMotion]);
+  }, [valor, duracion, formato, reducedMotion]);
 
   return (
     <span ref={ref} role="img" aria-label={escribe(valor)}>
