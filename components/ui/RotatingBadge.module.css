@@ -25,6 +25,14 @@
   border-radius: 50%;
   background: var(--color-night-text);
   border: 1px solid var(--color-night-text);
+  /* El anillo no se sale del sello, pase lo que pase con el posicionamiento
+     de fuera. Es un cinturón además de los tirantes: el anillo se coloca con
+     `position: absolute; inset: 0` contra este mismo elemento, y si alguien
+     le quita el `relative` de arriba --pasó, ver CtaContacto.module.css-- el
+     SVG se cuelga del ancestro posicionado que quede y pinta el rótulo del
+     tamaño de media sección. Con esto, en el peor caso no se ve; sin esto, se
+     ve por encima de la fotografía. */
+  overflow: clip;
   box-shadow: 0 18px 40px -24px color-mix(in srgb, var(--color-scrim) 80%, transparent);
   transition:
     transform var(--duration-base) var(--ease-standard),
