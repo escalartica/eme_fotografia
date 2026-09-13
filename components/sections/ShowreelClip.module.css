@@ -23,3 +23,53 @@
      not applied here, same reasoning as Hero.tsx/VideoPreview.tsx's own
      <video> elements. */
 }
+
+/* ---------- el botón de pausa ----------
+   WCAG 2.2.2 (nivel A): cualquier cosa que se mueva sola, dure más de cinco
+   segundos y conviva con otro contenido necesita un mecanismo para pararla.
+   Estos clips duran doce y veinticuatro segundos.
+
+   ABAJO A LA IZQUIERDA a propósito: a la derecha, en la página de vídeo, caería
+   justo encima de los botones flotantes de WhatsApp y de volver arriba.
+
+   Colores constantes (--color-night-text, --color-scrim) y no los del tema: lo
+   que hay detrás es un vídeo en blanco y negro que no cambia con el modo
+   oscuro. */
+.control {
+  position: absolute;
+  inset-block-end: var(--space-1);
+  inset-inline-start: var(--space-1);
+  z-index: 1;
+  /* 44 px de zona táctil, que es el mínimo para un dedo. */
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--color-night-text) 45%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-scrim) 55%, transparent);
+  color: var(--color-night-text);
+  cursor: pointer;
+  /* Sobre un fotograma claro el disco tiene que seguir leyéndose. */
+  backdrop-filter: blur(6px);
+  transition: background 200ms ease, opacity 200ms ease;
+}
+.control:hover {
+  background: color-mix(in srgb, var(--color-scrim) 78%, transparent);
+}
+.control:focus-visible {
+  outline: 2px solid var(--color-night-text);
+  outline-offset: 3px;
+}
+.control svg {
+  inline-size: 1.05rem;
+  block-size: 1.05rem;
+  fill: currentColor;
+  display: block;
+}
+@media (prefers-reduced-motion: reduce) {
+  .control {
+    transition: none;
+  }
+}
