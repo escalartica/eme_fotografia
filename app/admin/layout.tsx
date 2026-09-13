@@ -15,7 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // tabIndex={-1}: ver el comentario en app/(site)/layout.tsx -- sin él el
   // enlace de salto mueve el ancla pero no el foco (WCAG 2.4.1).
   return (
-    <main id="main-content" tabIndex={-1}>
+    <main id="main-content" tabIndex={-1} data-sin-barra>
       {children}
     </main>
   );

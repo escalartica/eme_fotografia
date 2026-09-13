@@ -3,6 +3,8 @@ import { BrandMark } from '@/components/ui/BrandMark';
 import Link from 'next/link';
 import { getAdminSession } from '@/lib/auth/require-session';
 import { listGallerySlugs, getGalleryMeta, getSelection } from '@/lib/gallery-store';
+import { contarContactSubmissions } from '@/lib/contact-store';
+import { srcSetMiniatura } from '@/lib/gallery-srcset';
 import { site } from '@/content/site';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AdminLogoutButton } from './AdminLogoutButton';
@@ -26,6 +28,8 @@ interface GalleryRow {
   createdAt: string;
   likedCount: number;
   commentCount: number;
+  /** La primera foto, para que la ficha se vea y no solo se lea. */
+  portada: string | null;
   submittedAt: string | null;
   /** La pareja está marcando pero todavía no ha pulsado enviar. */
   enCurso: boolean;
@@ -50,6 +54,7 @@ async function loadGalleries(): Promise<GalleryRow[]> {
         createdAt: meta.createdAt,
         likedCount,
         commentCount,
+        portada: meta.photos[0]?.filename ?? null,
         submittedAt: selection?.submittedAt || null,
         enCurso: selection?.draft === true,
         updatedAt: selection?.updatedAt ?? null,
@@ -66,7 +71,10 @@ export default async function AdminDashboardPage() {
   const session = await getAdminSession();
   if (!session) redirect('/admin/login');
 
-  const galleries = await loadGalleries();
+  const [galleries, mensajes] = await Promise.all([loadGalleries(), contarContactSubmissions()]);
+  const fotosGuardadas = galleries.reduce((suma, g) => suma + g.photoCount, 0);
+  const porRevisar = galleries.filter((g) => g.submittedAt).length;
+  const eligiendo = galleries.filter((g) => g.enCurso && !g.submittedAt).length;
 
   return (
     <div className={styles.page}>
@@ -88,6 +96,37 @@ export default async function AdminDashboardPage() {
         <Link href="/admin/estadisticas">Estadísticas</Link>
       </nav>
 
+      {/* EL RESUMEN, que es lo que convierte esto en un panel y no en un
+          índice. Antes, la portada del panel no decía NADA de un vistazo:
+          había que abrir cada galería para saber si alguien había enviado su
+          selección. Cada número es además un enlace a donde se actúa sobre
+          él. */}
+      <ul className={styles.resumen}>
+        <li className={styles.dato}>
+          <span className={styles.datoCifra}>{galleries.length}</span>
+          <span className={styles.datoRotulo}>
+            {galleries.length === 1 ? 'galería' : 'galerías'}
+          </span>
+        </li>
+        <li className={styles.dato}>
+          <span className={styles.datoCifra}>{fotosGuardadas}</span>
+          <span className={styles.datoRotulo}>fotos guardadas</span>
+        </li>
+        <li className={styles.dato} data-destaca={porRevisar > 0 ? 'true' : 'false'}>
+          <span className={styles.datoCifra}>{porRevisar}</span>
+          <span className={styles.datoRotulo}>
+            {porRevisar === 1 ? 'selección recibida' : 'selecciones recibidas'}
+            {eligiendo > 0 && ` · ${eligiendo} eligiendo`}
+          </span>
+        </li>
+        <li className={styles.dato}>
+          <Link href="/admin/mensajes" className={styles.datoEnlace}>
+            <span className={styles.datoCifra}>{mensajes}</span>
+            <span className={styles.datoRotulo}>{mensajes === 1 ? 'mensaje' : 'mensajes'}</span>
+          </Link>
+        </li>
+      </ul>
+
       <div className={styles.titleRow}>
         <div>
           <p className={styles.eyebrow}>Panel de administración</p>
@@ -99,15 +138,37 @@ export default async function AdminDashboardPage() {
       </div>
 
       {galleries.length === 0 ? (
-        <p className={styles.empty}>
-          Todavía no has creado ninguna galería. Pulsa &ldquo;+ Nueva galería&rdquo; para subir la
-          primera sesión de fotos y asignarle un usuario y contraseña para tu cliente.
-        </p>
+        <div className={styles.empty}>
+          <p className={styles.emptyTitulo}>Aquí todavía no hay nada</p>
+          <p className={styles.emptyTexto}>
+            Cuando subas la sesión de una pareja, aparecerá aquí con su enlace, su contraseña y lo que vayan
+            marcando. Se tarda un par de minutos.
+          </p>
+          <Link href="/admin/galerias/nueva" className={styles.newButton}>
+            Crear la primera galería
+          </Link>
+        </div>
       ) : (
         <ul className={styles.grid}>
           {galleries.map((gallery) => (
             <li key={gallery.slug} className={styles.card}>
               <Link href={`/admin/galerias/${gallery.slug}`} className={styles.cardLink}>
+                {/* La portada. Un panel de un fotógrafo en el que las fichas
+                    son solo texto es un panel que no se parece a su trabajo -- y
+                    de paso, reconocer una boda por su foto es más rápido que
+                    leer cinco nombres. */}
+                {gallery.portada ? (
+                  <span className={styles.cardFoto}>
+                    <img
+                      {...srcSetMiniatura(gallery.slug, gallery.portada)}
+                      alt=""
+                      loading="lazy"
+                      className={styles.cardImagen}
+                    />
+                  </span>
+                ) : (
+                  <span className={styles.cardFoto} data-vacia="true" aria-hidden="true" />
+                )}
                 <p className={styles.cardEyebrow}>/{gallery.slug}</p>
                 <h2 className={styles.cardHeading}>{gallery.clientName}</h2>
                 {gallery.weddingDate && (

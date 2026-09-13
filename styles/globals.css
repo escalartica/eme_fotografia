@@ -138,6 +138,15 @@ main:has(> [data-hero-fullbleed]) {
   padding-top: 0;
 }
 
+/* EL PANEL Y LAS GALERÍAS PRIVADAS NO TIENEN CABECERA FIJA, así que no hay
+   nada que esquivar. Heredaban el `padding-top: var(--header-h)` de arriba y
+   empezaban 105 px más abajo de donde debían: en el panel, el logotipo
+   aparecía a media pantalla y el listado de galerías quedaba fuera del primer
+   vistazo. Es la razón de que se viera vacío. */
+main[data-sin-barra] {
+  padding-top: 0;
+}
+
 /* ===================================================================
    CLOSING FOOTER (bellephoto.com.au's dark bookend)
    Earlier version of this comment described a sticky/negative-margin

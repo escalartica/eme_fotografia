@@ -211,6 +211,24 @@ export function isValidSubmissionId(id: string): boolean {
 }
 
 /** Todos los mensajes, del más reciente al más antiguo. */
+/**
+ * Cuántos mensajes hay, sin abrir ninguno.
+ *
+ * El panel solo necesita el número para su resumen, y `listContactSubmissions`
+ * lee y parsea CADA fichero: con el tiempo, pintar la portada del panel
+ * significaría leer del disco todos los mensajes que ha recibido el estudio
+ * en su vida para enseñar una cifra.
+ */
+export async function contarContactSubmissions(
+  dir: string = DEFAULT_CONTACT_SUBMISSIONS_DIR
+): Promise<number> {
+  try {
+    return (await fs.readdir(dir)).filter((f) => f.endsWith('.json')).length;
+  } catch {
+    return 0;
+  }
+}
+
 export async function listContactSubmissions(
   dir: string = DEFAULT_CONTACT_SUBMISSIONS_DIR
 ): Promise<StoredContactSubmission[]> {
