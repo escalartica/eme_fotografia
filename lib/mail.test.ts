@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { sendContactEmail, isMailConfigured, MailError, DEFAULT_CONTACT_TO, type EnviarCorreo } from './mail';
+import { sendContactEmail, avisarDeSeleccion, isMailConfigured, MailError, DEFAULT_CONTACT_TO, type EnviarCorreo } from './mail';
 import type { ContactSubmission } from './contact-store';
 
 /**
@@ -97,6 +97,60 @@ describe('sendContactEmail', () => {
       sendContactEmail(SOLICITUD, META, {} as NodeJS.ProcessEnv, enviar)
     ).rejects.toBeInstanceOf(MailError);
     // Y sin haber intentado abrir nada.
+    expect(enviar).not.toHaveBeenCalled();
+  });
+});
+
+describe('avisarDeSeleccion', () => {
+  const SELECCION = {
+    clientName: 'Jesús y Andrea',
+    slug: 'jesus-y-andrea',
+    favoritas: 34,
+    conNota: 6,
+    total: 180,
+    panelUrl: 'https://www.emefotografiasevilla.com/admin/galerias/jesus-y-andrea',
+  };
+
+  it('dice de quién es, cuántas y dónde verla', async () => {
+    const enviar = vi.fn<EnviarCorreo>().mockResolvedValue({ messageId: 'x' });
+    await avisarDeSeleccion(SELECCION, ENTORNO, enviar);
+
+    const mensaje = enviar.mock.calls[0][0];
+    expect(mensaje.subject).toContain('Jesús y Andrea');
+    expect(mensaje.to).toEqual([DEFAULT_CONTACT_TO]);
+    expect(mensaje.text).toContain('34 fotos marcadas de 180');
+    expect(mensaje.text).toContain('6 con nota');
+    expect(mensaje.text).toContain(SELECCION.panelUrl);
+  });
+
+  /**
+   * Lo que la pareja escribe en cada foto vive detrás de una contraseña. Un
+   * correo se reenvía, se queda en el móvil y pasa por servidores que no son
+   * nuestros: del aviso salen los números y el enlace, nunca las notas.
+   */
+  it('manda los números, no lo que han escrito', async () => {
+    const enviar = vi.fn<EnviarCorreo>().mockResolvedValue({ messageId: 'x' });
+    await avisarDeSeleccion(SELECCION, ENTORNO, enviar);
+
+    const mensaje = enviar.mock.calls[0][0];
+    expect(mensaje.text).toContain('están ahí, no en este correo');
+    expect(mensaje.html).toContain('están en el panel, no en este correo');
+  });
+
+  it('en singular cuando solo han marcado una', async () => {
+    const enviar = vi.fn<EnviarCorreo>().mockResolvedValue({ messageId: 'x' });
+    await avisarDeSeleccion({ ...SELECCION, favoritas: 1, conNota: 0 }, ENTORNO, enviar);
+
+    const mensaje = enviar.mock.calls[0][0];
+    expect(mensaje.text).toContain('1 foto marcada de 180');
+    expect(mensaje.text).not.toContain('con nota');
+  });
+
+  it('se niega si no hay configuración de correo', async () => {
+    const enviar = vi.fn<EnviarCorreo>();
+    await expect(
+      avisarDeSeleccion(SELECCION, {} as NodeJS.ProcessEnv, enviar)
+    ).rejects.toBeInstanceOf(MailError);
     expect(enviar).not.toHaveBeenCalled();
   });
 });

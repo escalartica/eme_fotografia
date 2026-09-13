@@ -115,6 +115,26 @@ describe('POST /api/galeria/[slug]/login', () => {
     expect(session!.username).toBe(USUARIO);
   });
 
+  /**
+   * EL IPHONE PONE LA PRIMERA LETRA EN MAYÚSCULA, y el usuario de una pareja
+   * es siempre un slug en minúsculas. Sin esto, «Ana» no entraba y el mensaje
+   * --que a propósito no dice cuál de los dos datos está mal-- no daba
+   * ninguna pista. El campo ya lleva `autoCapitalize="none"`; esto es la otra
+   * mitad, para quien pega el dato desde el WhatsApp del estudio.
+   */
+  it('entra igual con el usuario en mayúsculas o con espacios pegados', async () => {
+    for (const escrito of ['Ana', 'ANA', '  ana  ', ' Ana']) {
+      __resetRateLimits();
+      const res = await route.POST(login({ username: escrito, password: CONTRASENA }), ctx());
+      expect(res.status, escrito).toBe(200);
+
+      const session = await sessions.getSession(res.cookies.get(CLIENT_COOKIE)!.value);
+      // El usuario que se guarda en la sesión es el de la galería, no lo que
+      // escribió la pareja: así el panel no enseña «  Ana  ».
+      expect(session!.username).toBe(USUARIO);
+    }
+  });
+
   it('does not open a session for a gallery whose slug is a traversal attempt', async () => {
     const res = await route.POST(login({ username: USUARIO, password: CONTRASENA }), ctx('../../etc'));
     expect(res.status).toBe(401);

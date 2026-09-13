@@ -141,9 +141,15 @@
   }
 
   /* QUIÉN SE ESTÁ LEYENDO. Las demás filas bajan de intensidad; la activa se
-     queda a plena tinta y se separa un punto del filete. 0.42 y no menos: por
-     debajo de ahí el nombre de una persona deja de cumplir el contraste que
-     pide la norma, y esto no es decoración sino el contenido de la sección. */
+     queda a plena tinta y se separa un punto del filete.
+
+     0,62 Y NO 0,42. El comentario anterior decía que 0,42 era el mínimo que
+     cumplía la norma y estaba mal: medido sobre el papel del sitio da 2,8:1,
+     por debajo de los 4,5:1 que pide WCAG 1.4.3. Y esto no es decoración,
+     son los nombres de las personas del equipo, o sea el contenido de la
+     sección; en reposo --que es como está la lista mientras no se pasa el
+     ratón-- se lee TODA la lista atenuada. 0,62 da 4,6:1 y la jerarquía
+     entre la fila activa y las demás se sigue viendo igual de bien. */
   .row {
     transition:
       opacity var(--duration-base) var(--ease-standard),
@@ -151,7 +157,7 @@
   }
   .list:not(:hover) .row:not([data-activa]),
   .list:hover .row:not(:hover) {
-    opacity: 0.42;
+    opacity: 0.62;
   }
   .row[data-activa] .rowInner,
   .row:hover .rowInner {

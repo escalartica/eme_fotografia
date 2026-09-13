@@ -50,7 +50,7 @@
   width: auto;
   max-width: 100%;
 }
-@media (max-width: 700px) {
+@media (max-width: 699.98px) {
   .fullBleedImage {
     height: min(60vh, 560px);
   }
@@ -102,7 +102,7 @@
      is scrolled past anyway, never meant to fit one viewport). */
   max-height: 1100px;
 }
-@media (max-width: 700px) {
+@media (max-width: 699.98px) {
   .fullBleedImagePortrait {
     max-width: min(78vw, 480px);
     max-height: min(90vh, 700px);
@@ -149,7 +149,7 @@
   min-height: 20rem;
   max-height: 44rem;
 }
-@media (max-width: 700px) {
+@media (max-width: 699.98px) {
   .panoramicImageWrap {
     /* 2.35:1 at phone width reads as a thin strip. A taller ratio keeps
        the couple legible while still sitting well short of a portrait
@@ -290,7 +290,7 @@
   align-items: baseline;
   gap: var(--space-2);
 }
-@media (max-width: 700px) {
+@media (max-width: 699.98px) {
   .overlapPrimary {
     width: 78%;
   }
@@ -335,7 +335,7 @@
   align-items: baseline;
   gap: var(--space-2);
 }
-@media (max-width: 700px) {
+@media (max-width: 699.98px) {
   .diptychOuter {
     grid-template-columns: 1fr;
     row-gap: var(--space-2);

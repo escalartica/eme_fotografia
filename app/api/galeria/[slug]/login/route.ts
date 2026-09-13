@@ -53,14 +53,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   // petición contra una galería inexistente tarda lo mismo que una con la
   // contraseña mal, en vez de responder al instante y delatar por tiempo qué
   // slugs existen. El usuario se compara también en tiempo constante.
-  const usernameMatches = !!meta && timingSafeEqualString(meta.username, username);
+  // SIN DISTINGUIR MAYÚSCULAS NI ESPACIOS DE LOS BORDES. El usuario se crea
+  // siempre en minúsculas (`slugify` en el formulario del panel), así que
+  // comparar en minúsculas no abre nada: lo único que cambia es que un móvil
+  // que pone la primera en mayúscula, o un espacio pegado al pegar el dato
+  // desde el WhatsApp que les mandó el estudio, dejan de ser un «usuario o
+  // contraseña incorrectos» que nadie sabe interpretar.
+  const usuarioNormalizado = username.trim().toLowerCase();
+  const usernameMatches = !!meta && timingSafeEqualString(meta.username.trim().toLowerCase(), usuarioNormalizado);
   const passwordOk = await verifyPassword(password, usernameMatches ? meta!.passwordHash : DUMMY_PASSWORD_HASH);
 
   if (!meta || !usernameMatches || !passwordOk) {
     return NextResponse.json({ error: GENERIC_ERROR }, { status: 401 });
   }
 
-  const { token, maxAgeSeconds } = await createSession('client', slug, username);
+  const { token, maxAgeSeconds } = await createSession('client', slug, meta!.username);
   const response = NextResponse.json({ ok: true });
   response.cookies.set(CLIENT_COOKIE, token, cookieOptions(maxAgeSeconds));
   return response;

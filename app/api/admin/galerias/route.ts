@@ -13,6 +13,7 @@ import {
 import { limpiarMetadatos } from '@/lib/image-metadata';
 import { excedeElTechoDePixeles, MAX_PIXELES } from '@/lib/sharp-limites';
 import { hashPassword } from '@/lib/auth/password';
+import { motivoPasswordDebil } from '@/lib/gallery-credentials';
 import { getAdminSession } from '@/lib/auth/require-session';
 import { isSameOriginRequest } from '@/lib/auth/origin-check';
 
@@ -63,8 +64,11 @@ export async function POST(request: Request) {
   if (!clientName || !username) {
     return NextResponse.json({ error: 'Faltan el nombre del cliente o el usuario.' }, { status: 400 });
   }
-  if (password.length < 8) {
-    return NextResponse.json({ error: 'La contraseña debe tener al menos 8 caracteres.' }, { status: 400 });
+  // La misma regla que aplica el formulario (lib/gallery-credentials.ts).
+  // Aquí no es una comodidad: un POST puede llegar sin pasar por esa pantalla.
+  const passwordFloja = motivoPasswordDebil(password);
+  if (passwordFloja) {
+    return NextResponse.json({ error: passwordFloja }, { status: 400 });
   }
   if (await getGalleryMeta(slug)) {
     return NextResponse.json({ error: 'Ya existe una galería con ese enlace.' }, { status: 409 });

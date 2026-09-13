@@ -40,7 +40,9 @@
 .date {
   color: var(--color-muted);
   margin: 0.3em 0 0;
-  text-transform: capitalize;
+  /* SIN `text-transform: capitalize`. En castellano los meses van en
+     minúscula, y la regla escribía «29 De Agosto De 2026»: tres mayúsculas
+     que no existen en ningún sitio donde alguien escriba esa fecha a mano. */
 }
 .headerActions {
   display: flex;
@@ -272,9 +274,13 @@
   font-size: var(--type-body);
   margin-block-end: var(--space-1);
 }
+/* HACIA DENTRO. `.commentPanelInner` lleva `overflow: hidden` para poder
+   animar la altura, así que un anillo por fuera se recorta por arriba y por
+   los lados y lo que queda se lee como una raya suelta cruzando la etiqueta.
+   Es la misma corrección que lleva el menú móvil. */
 .commentInput:focus-visible {
   outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+  outline-offset: -3px;
 }
 .commentInput {
   min-height: 2.75rem;
@@ -295,6 +301,17 @@
   background: var(--color-paper);
   border-top: 1px solid var(--color-hairline);
 }
+/* MIENTRAS EL VISOR ESTÁ ABIERTO, ESTA BARRA NO ESTÁ.
+   El fondo del visor es un negro al 92%, no al 100%, así que la barra --que
+   es clara y va pegada abajo-- se transparentaba justo por detrás de la nota
+   que se está escribiendo: se leía «2 [Muy] favoritas · 1 con nota» todo
+   encima. Subir el z-index de la barra la pondría por delante del visor, que
+   es peor; lo que sobra aquí es la barra entera, que no se puede usar con el
+   visor abierto. El estado de guardado lo dice el propio visor. */
+.page[data-visor='abierto'] .submitBar {
+  display: none;
+}
+
 .submitInfo {
   display: flex;
   align-items: center;
@@ -354,6 +371,9 @@
   position: relative;
   width: 100%;
   height: 80vh;
+  /* El gesto horizontal es nuestro (pasar de foto); el vertical se lo queda
+     la página, que con el teclado abierto hay que poder subir hasta la nota. */
+  touch-action: pan-y;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -542,6 +562,29 @@
   gap: var(--space-1);
   width: 100%;
   color: var(--color-night-text);
+  /* Con el teclado abierto, un móvil deja unos 300 px de alto útiles: la
+     nota quedaba por debajo del borde y no había forma de llegar a ella. El
+     scroll va aquí y no en `.content` del visor, que recortaría el botón de
+     cerrar, anclado por fuera de esa caja. */
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Fuera de la vista pero dentro del documento: el navegador la descarga
+   igual. `display: none` no serviría, que entonces no la pide. */
+.precarga {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.visorGuardado {
+  margin: 0;
+  font-size: var(--type-label);
+  color: color-mix(in srgb, var(--color-night-text) 60%, transparent);
 }
 
 .visorBarra {
@@ -629,8 +672,10 @@
 .visorNota .commentLabel {
   color: color-mix(in srgb, var(--color-night-text) 70%, transparent);
 }
+/* OPACO. Con un relleno al 8% se veía la página a través del texto que se
+   está escribiendo. */
 .visorNota .commentInput {
-  background: color-mix(in srgb, var(--color-night-text) 8%, transparent);
+  background: color-mix(in srgb, var(--color-scrim) 88%, var(--color-night-text));
   border-color: color-mix(in srgb, var(--color-night-text) 30%, transparent);
   color: var(--color-night-text);
 }
@@ -638,7 +683,7 @@
   color: color-mix(in srgb, var(--color-night-text) 50%, transparent);
 }
 
-@media (max-width: 700px) {
+@media (max-width: 699.98px) {
   .grid {
     grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   }

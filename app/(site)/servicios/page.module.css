@@ -449,7 +449,7 @@
   overflow: clip;
   background: var(--color-hairline);
 }
-@media (max-width: 700px) {
+@media (max-width: 699.98px) {
   .interludioMarco {
     /* En un teléfono una banda de 2:1 mide 170 px de alto: no es una
        fotografía, es un friso. */

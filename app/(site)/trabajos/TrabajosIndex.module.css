@@ -38,7 +38,7 @@
   overflow: clip;
   margin-block-end: var(--space-4);
 }
-@media (max-width: 700px) {
+@media (max-width: 699.98px) {
   .opener {
     height: min(62vh, 520px);
   }
@@ -200,7 +200,7 @@
 .viewGroup {
   display: none;
 }
-@media (min-width: 960px) {
+@media (min-width: 900px) {
   .viewGroup {
     display: flex;
     align-items: center;
@@ -274,7 +274,7 @@
   grid-template-columns: 1fr;
   gap: var(--space-3);
 }
-@media (min-width: 960px) {
+@media (min-width: 900px) {
   .layout {
     grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
     gap: var(--space-4);
@@ -285,7 +285,7 @@
 .previewCol {
   display: none;
 }
-@media (min-width: 960px) {
+@media (min-width: 900px) {
   .previewCol {
     display: block;
     position: sticky;
@@ -379,7 +379,7 @@
 .row {
   position: relative;
 }
-@media (min-width: 960px) {
+@media (min-width: 900px) {
   .row {
     border-top: 1px solid var(--color-hairline);
   }
@@ -482,7 +482,7 @@
   }
 }
 /* Desktop: one typographic line per wedding. */
-@media (min-width: 960px) {
+@media (min-width: 900px) {
   .rowLink {
     grid-template-columns: 2.5rem minmax(0, 1fr) auto 1.5rem;
     align-items: baseline;
@@ -592,7 +592,7 @@
   filter: var(--photo-grade);
 }
 
-@media (min-width: 960px) {
+@media (min-width: 900px) {
   .layout[data-view='rejilla'] {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -780,7 +780,7 @@
       animation-timeline: view();
       animation-range: cover 0% cover 16%;
     }
-    @media (min-width: 960px) {
+    @media (min-width: 900px) {
       .layout[data-view='rejilla'] .row:nth-child(3n + 2) .rowLink {
         animation-range: cover 6% cover 22%;
       }

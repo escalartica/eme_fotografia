@@ -73,6 +73,17 @@ export function GalleryLoginForm({ slug }: { slug: string }) {
               id="username"
               name="username"
               autoComplete="username"
+              /* EL IPHONE PONÍA LA PRIMERA EN MAYÚSCULA. El usuario de una
+                 pareja es un slug en minúsculas («jesus-y-andrea»), y iOS
+                 escribe «Jesus-y-andrea» en un campo de texto normal: el
+                 acceso fallaba y el mensaje, que a propósito no dice cuál de
+                 los dos datos está mal, no daba ninguna pista. El servidor
+                 ahora también compara sin distinguir mayúsculas, pero esto
+                 evita que la pareja vea siquiera el error. El panel ya lo
+                 llevaba; este formulario, que es el que ven los clientes, no. */
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               required
               aria-invalid={error ? 'true' : undefined}
               aria-describedby={error ? 'login-error' : undefined}

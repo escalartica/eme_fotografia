@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useLenis } from '@/lib/hooks/useLenis';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
-import { useCapaCompleta } from '@/lib/hooks/useCapaCompleta';
+import { useAvisoDeCookies, useCapaCompleta } from '@/lib/hooks/useCapaCompleta';
 import styles from './BackToTop.module.css';
 import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
@@ -30,7 +30,10 @@ export function BackToTop() {
   const [visible, setVisible] = useState(false);
   const [sobreElPie, setSobreElPie] = useState(false);
   // Igual que el de WhatsApp: fuera mientras haya una capa a pantalla completa.
-  const tapado = useCapaCompleta();
+  // Lo mismo que el de WhatsApp, y además con el aviso de cookies puesto.
+  const hayCapa = useCapaCompleta();
+  const avisoPuesto = useAvisoDeCookies();
+  const tapado = hayCapa || avisoPuesto;
   const lenis = useLenis();
   const reducedMotion = useReducedMotion();
 

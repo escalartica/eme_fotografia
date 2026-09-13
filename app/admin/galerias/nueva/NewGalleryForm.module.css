@@ -411,3 +411,42 @@
   font-size: var(--type-label);
   color: var(--color-muted);
 }
+
+/* ---------- lo que se vio en el primer uso real, desde un móvil ---------- */
+
+/* La nota bajo la contraseña: explica por qué viene rellenada sin gritar. */
+.ayudaCampo {
+  margin: 0; /* el hueco lo pone el gap de .field */
+  font-size: var(--type-label);
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+
+/* El enlace es el único dato de la lista que no cabe en el ancho de un
+   móvil. Solo esa fila pone el botón de copiar debajo, para que el enlace
+   disponga de la línea entera y no haga falta partir el dominio. El usuario
+   y la contraseña son cortos y siguen en una sola línea. */
+@media (max-width: 640px) {
+  .credentialRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-1);
+  }
+  .credentialRow dd {
+    justify-content: space-between;
+  }
+  .filaEnlace dd {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .filaEnlace code {
+    font-size: var(--type-label);
+  }
+
+  /* Las tres acciones salían con tres anchos distintos, cada una la suya,
+     porque son una fila que envuelve. Apiladas y a la misma anchura se leen
+     como lo que son: los tres siguientes pasos posibles. */
+  .confirmActions {
+    flex-direction: column;
+  }
+}

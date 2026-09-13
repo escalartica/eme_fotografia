@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Script from 'next/script';
 import styles from './CookieConsent.module.css';
-import { useCapaCompleta } from '@/lib/hooks/useCapaCompleta';
+import { ATRIBUTO_AVISO, useCapaCompleta } from '@/lib/hooks/useCapaCompleta';
 
 export type Consent = 'accepted' | 'rejected';
 const KEY = 'eme-consent';
@@ -91,6 +91,24 @@ export function CookieConsent() {
   }, []);
 
   const showBanner = ready && consent === null && !tapado;
+
+  /**
+   * AVISA A LOS DOS BOTONES FLOTANTES DE QUE ESTÁ PUESTO.
+   *
+   * En un teléfono este aviso mide unos 170 px de alto y ocupa toda la franja
+   * de abajo, que es justo donde viven el botón de WhatsApp y el de volver
+   * arriba: se pintaban por detrás. Sólo pasa en la primera visita, pero la
+   * primera visita es la única que hay para quien entra por primera vez.
+   *
+   * Un atributo en el `body` y no el mismo `data-capa-completa` que usa el
+   * menú: ese lo lee este propio componente para apartarse, y ponérselo a sí
+   * mismo lo haría desaparecer.
+   */
+  useEffect(() => {
+    if (!showBanner) return;
+    document.body.setAttribute(ATRIBUTO_AVISO, '');
+    return () => document.body.removeAttribute(ATRIBUTO_AVISO);
+  }, [showBanner]);
   const loadAnalytics = consent === 'accepted' && !!GA_ID;
 
   return (

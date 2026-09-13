@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { HeartIcon, CommentIcon } from '@/components/ui/Icon';
 import { Lightbox } from '@/components/motion/Lightbox';
@@ -8,6 +8,8 @@ import styles from './AdminGalleryView.module.css';
 import { srcSetMiniatura, srcSetVisor } from '@/lib/gallery-srcset';
 import { GalleryAdminActions } from './GalleryAdminActions';
 import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
+
+type Filtro = 'todas' | 'marcadas' | 'notas';
 
 interface Props {
   slug: string;
@@ -35,9 +37,46 @@ interface Props {
  */
 export function AdminGalleryView({ slug, clientName, weddingDate, username, shareUrl, photos, items, submittedAt, enCurso, updatedAt }: Props) {
   const [lightboxPhoto, setLightboxPhoto] = useState<GalleryPhoto | null>(null);
+  const [filtro, setFiltro] = useState<Filtro>('todas');
+  const [copiado, setCopiado] = useState(false);
   const byId = new Map(items.map((it) => [it.photoId, it]));
   const likedCount = items.filter((it) => it.liked).length;
   const commentCount = items.filter((it) => it.comment.trim().length > 0).length;
+
+  /**
+   * EL MISMO FILTRO QUE TIENE LA PAREJA, y por el mismo motivo.
+   *
+   * Una boda son ciento ochenta fotos y la pareja marca treinta. Sin esto hay
+   * que bajar por las ciento ochenta buscando corazones, que es justo el
+   * trabajo que esta pantalla existe para ahorrar.
+   */
+  const visibles = useMemo(() => {
+    if (filtro === 'marcadas') return photos.filter((p) => byId.get(p.id)?.liked);
+    if (filtro === 'notas') return photos.filter((p) => (byId.get(p.id)?.comment.trim() ?? '') !== '');
+    return photos;
+    // byId se reconstruye en cada render a partir de items; la dependencia real es items.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtro, photos, items]);
+
+  /**
+   * LOS NOMBRES DE FICHERO DE LAS MARCADAS, al portapapeles.
+   *
+   * Lo siguiente que pasa después de mirar esta pantalla es abrir el
+   * revelador y buscar esas mismas fotos en la tarjeta. Copiar treinta
+   * nombres a mano de una pantalla a otra es donde se cuela el error que
+   * luego aparece en el álbum.
+   */
+  async function copiarNombres() {
+    const nombres = photos.filter((p) => byId.get(p.id)?.liked).map((p) => p.filename).join('\n');
+    try {
+      await navigator.clipboard.writeText(nombres);
+      setCopiado(true);
+      window.setTimeout(() => setCopiado(false), 1800);
+    } catch {
+      // El portapapeles puede no estar disponible (contexto no seguro). No es
+      // la única forma de llegar a los nombres: están en la propia lista.
+    }
+  }
 
   return (
     <div className={styles.page}>
@@ -91,8 +130,52 @@ export function AdminGalleryView({ slug, clientName, weddingDate, username, shar
         )}
       </header>
 
+      {(likedCount > 0 || commentCount > 0) && (
+        <div className={styles.barraFiltros}>
+          <div className={styles.filtros} role="group" aria-label="Filtrar las fotos">
+            <button
+              type="button"
+              className={styles.filtro}
+              aria-pressed={filtro === 'todas'}
+              onClick={() => setFiltro('todas')}
+            >
+              Todas <span className={styles.filtroCuenta}>{photos.length}</span>
+            </button>
+            {likedCount > 0 && (
+              <button
+                type="button"
+                className={styles.filtro}
+                aria-pressed={filtro === 'marcadas'}
+                onClick={() => setFiltro('marcadas')}
+              >
+                Marcadas <span className={styles.filtroCuenta}>{likedCount}</span>
+              </button>
+            )}
+            {commentCount > 0 && (
+              <button
+                type="button"
+                className={styles.filtro}
+                aria-pressed={filtro === 'notas'}
+                onClick={() => setFiltro('notas')}
+              >
+                Con nota <span className={styles.filtroCuenta}>{commentCount}</span>
+              </button>
+            )}
+          </div>
+
+          {likedCount > 0 && (
+            <button type="button" className={styles.copiarNombres} onClick={copiarNombres}>
+              {copiado ? 'Nombres copiados' : 'Copiar los nombres de las marcadas'}
+            </button>
+          )}
+          <span className="sr-only" role="status">
+            {copiado ? 'Nombres de fichero copiados al portapapeles' : ''}
+          </span>
+        </div>
+      )}
+
       <ul className={styles.grid}>
-        {photos.map((photo) => {
+        {visibles.map((photo) => {
           const item = byId.get(photo.id);
           const liked = item?.liked ?? false;
           const comment = item?.comment.trim() ?? '';

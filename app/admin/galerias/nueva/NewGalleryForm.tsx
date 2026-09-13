@@ -1,7 +1,8 @@
 'use client';
-import { useEffect, useRef, useState, useSyncExternalStore, type ChangeEvent, type DragEvent, type FormEvent } from 'react';
+import { Fragment, useEffect, useRef, useState, useSyncExternalStore, type ChangeEvent, type DragEvent, type FormEvent } from 'react';
 import Link from 'next/link';
 import { UploadIcon, TrashIcon } from '@/components/ui/Icon';
+import { MIN_PASSWORD_LENGTH, generarPassword, mensajeParaLaPareja, motivoPasswordDebil } from '@/lib/gallery-credentials';
 import styles from './NewGalleryForm.module.css';
 
 const MAX_FILES = 60;
@@ -55,7 +56,6 @@ function subirConProgreso(
   });
 }
 const ALLOWED_TYPES = new Set(['image/webp', 'image/jpeg', 'image/png', 'image/avif']);
-const PASSWORD_ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789'; // no 0/O/1/l/i -- read aloud or typed from a note without ambiguity
 
 function slugify(value: string): string {
   return value
@@ -70,13 +70,6 @@ function usernameSuggestion(value: string): string {
   return slugify(value);
 }
 
-function generatePassword(): string {
-  const bytes = new Uint32Array(10);
-  window.crypto.getRandomValues(bytes);
-  let out = '';
-  for (const n of bytes) out += PASSWORD_ALPHABET[n % PASSWORD_ALPHABET.length];
-  return out;
-}
 
 // Same useSyncExternalStore pattern as lib/hooks/useReducedMotion.ts --
 // the idiomatic way in this codebase to read a browser-only value with
@@ -84,6 +77,28 @@ function generatePassword(): string {
 // getServerSnapshot's '', then the real origin appears once mounted).
 // window.location.origin never changes during the component's life, so
 // subscribe has nothing to listen for.
+/**
+ * LA CONTRASEÑA VIENE YA GENERADA, no en blanco.
+ *
+ * En la primera galería real creada desde el panel, el campo vacío se
+ * rellenó a mano con «12345678». Un campo vacío pregunta «¿qué contraseña
+ * quieres?» y la respuesta rápida siempre es la misma; un campo que ya
+ * trae diez caracteres al azar solo pide copiarlos. El botón «Generar»
+ * sigue estando para sacar otra, y el campo se puede sobrescribir.
+ *
+ * La primera se calcula una sola vez por carga y se guarda aquí fuera para
+ * que getSnapshot devuelva siempre el mismo valor (si cambiara en cada
+ * llamada, React entraría en un bucle de renders).
+ */
+let passwordSugerida = '';
+function getPasswordSnapshot() {
+  if (!passwordSugerida) passwordSugerida = generarPassword();
+  return passwordSugerida;
+}
+function getServerPasswordSnapshot() {
+  return '';
+}
+
 function subscribeNever() {
   return () => {};
 }
@@ -100,26 +115,26 @@ interface StagedFile {
   previewUrl: string;
 }
 
-/** El texto que el estudio pega en WhatsApp. Escrito para que la pareja
- *  entienda qué hay dentro y por qué merece la pena entrar, no solo para
- *  entregarle tres datos. */
-function mensajeParaLaPareja(g: { clientName: string; shareUrl: string; username: string; password: string }): string {
-  return [
-    `Hola, ${g.clientName}:`,
-    '',
-    'Ya tenéis lista vuestra galería privada. Este enlace es solo vuestro:',
-    '',
-    g.shareUrl,
-    `Usuario: ${g.username}`,
-    `Contraseña: ${g.password}`,
-    '',
-    'Dentro podéis marcar con el corazón las fotos que más os gusten y dejarnos una nota en cualquiera',
-    'de ellas: lo que nos contéis es lo que usamos para preparar el álbum. Se guarda solo mientras vais',
-    'marcando, así que podéis tomároslo con calma y volver cuando queráis.',
-    '',
-    'Cualquier cosa, nos decís.',
-    'EME Fotografía Sevilla',
-  ].join('\n');
+/**
+ * El enlace, con los puntos de corte donde los pondría una persona.
+ *
+ * En un móvil no cabe entero, y sin ayuda el navegador lo parte por donde
+ * se queda sin ancho: «https://www.emefot / ografiasevilla.com». Un <wbr>
+ * antes de cada barra le ofrece sitios mejores por los que cortar, así
+ * que el dominio queda de una pieza.
+ */
+function EnlacePartible({ url }: { url: string }) {
+  const trozos = url.split(/(?=\/)/g);
+  return (
+    <>
+      {trozos.map((trozo, i) => (
+        <Fragment key={i}>
+          {i > 0 && <wbr />}
+          {trozo}
+        </Fragment>
+      ))}
+    </>
+  );
 }
 
 interface CreatedGallery {
@@ -146,6 +161,7 @@ export function NewGalleryForm() {
   const [username, setUsername] = useState('');
   const [usernameTouched, setUsernameTouched] = useState(false);
   const [password, setPassword] = useState('');
+  const [passwordTouched, setPasswordTouched] = useState(false);
   const [progreso, setProgreso] = useState<{ enviados: number; total: number } | null>(null);
   const [showPassword, setShowPassword] = useState(true);
   const [files, setFiles] = useState<StagedFile[]>([]);
@@ -177,11 +193,13 @@ export function NewGalleryForm() {
   // hasn't overridden them by hand (slugTouched/usernameTouched).
 
   const shareOrigin = useSyncExternalStore(subscribeNever, getOriginSnapshot, getServerOriginSnapshot);
+  const passwordPropuesta = useSyncExternalStore(subscribeNever, getPasswordSnapshot, getServerPasswordSnapshot);
 
   const effectiveSlug = slugTouched ? slug : slugify(clientName);
   const pesoTotal = files.reduce((suma, f) => suma + f.file.size, 0);
   const sePasaDelLimite = pesoTotal > LIMITE_SERVIDOR_BYTES;
   const effectiveUsername = usernameTouched ? username : usernameSuggestion(clientName);
+  const effectivePassword = passwordTouched ? password : passwordPropuesta;
 
   function addFiles(list: FileList | File[]) {
     setError(null);
@@ -244,7 +262,8 @@ export function NewGalleryForm() {
     if (!clientName.trim()) { setError('Indica el nombre del cliente.'); return; }
     if (!effectiveSlug.trim()) { setError('Indica el enlace de la galería.'); return; }
     if (!effectiveUsername.trim()) { setError('Indica el usuario de acceso.'); return; }
-    if (password.length < 8) { setError('La contraseña debe tener al menos 8 caracteres.'); return; }
+    const passwordFloja = motivoPasswordDebil(effectivePassword);
+    if (passwordFloja) { setError(passwordFloja); return; }
     if (files.length === 0) { setError('Sube al menos una foto.'); return; }
 
     setIsSubmitting(true);
@@ -254,7 +273,7 @@ export function NewGalleryForm() {
       form.set('clientName', clientName.trim());
       form.set('weddingDate', weddingDate);
       form.set('username', effectiveUsername.trim());
-      form.set('password', password);
+      form.set('password', effectivePassword);
       for (const staged of files) form.append('photos', staged.file);
 
       const res = await subirConProgreso(form, (enviados, total) => setProgreso({ enviados, total }));
@@ -281,7 +300,7 @@ export function NewGalleryForm() {
         slug: slugCreado,
         clientName: clientName.trim(),
         username: effectiveUsername.trim(),
-        password,
+        password: effectivePassword,
         shareUrl: `${shareOrigin}/${slugCreado}`,
       });
     } catch {
@@ -303,10 +322,10 @@ export function NewGalleryForm() {
         </p>
 
         <dl className={styles.credentialList}>
-          <div className={styles.credentialRow}>
+          <div className={`${styles.credentialRow} ${styles.filaEnlace}`}>
             <dt>Enlace</dt>
             <dd>
-              <code>{created.shareUrl}</code>
+              <code><EnlacePartible url={created.shareUrl} /></code>
               <button type="button" onClick={() => copyValue('url', created.shareUrl)}>
                 {copiedField === 'url' ? 'Copiado' : 'Copiar'}
               </button>
@@ -426,18 +445,22 @@ export function NewGalleryForm() {
               id="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="off"
-              minLength={8}
+              minLength={MIN_PASSWORD_LENGTH}
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={effectivePassword}
+              onChange={(e) => { setPasswordTouched(true); setPassword(e.target.value); }}
             />
             <button type="button" onClick={() => setShowPassword((v) => !v)}>
               {showPassword ? 'Ocultar' : 'Ver'}
             </button>
-            <button type="button" onClick={() => setPassword(generatePassword())}>
+            <button type="button" onClick={() => { setPasswordTouched(true); setPassword(generarPassword()); }}>
               Generar
             </button>
           </div>
+          <p className={styles.ayudaCampo}>
+            Viene generada al azar. Puedes cambiarla por otra, pero es la llave de las fotos de
+            tus clientes.
+          </p>
         </div>
       </div>
 

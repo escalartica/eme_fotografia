@@ -279,3 +279,66 @@ export async function enviarEnlaceDeRecuperacion(
     );
   }
 }
+
+/**
+ * AVISAR AL ESTUDIO DE QUE UNA PAREJA HA MANDADO SU SELECCIÓN.
+ *
+ * Sin esto, la selección se queda esperando en el panel hasta que a alguien
+ * se le ocurre entrar a mirar. Una pareja que acaba de pasar dos horas
+ * eligiendo sus fotos espera que al otro lado lo sepan, y lo que hay al otro
+ * lado es un estudio de dos personas que pasan el día fuera, en bodas.
+ *
+ * SOLO VAN LOS NÚMEROS Y EL ENLACE AL PANEL, nunca las notas. Lo que la
+ * pareja escribe en cada foto es suyo y vive detrás de una contraseña; un
+ * correo se reenvía, se queda en el móvil y pasa por servidores que no son
+ * nuestros. Los números bastan para saber si hay que ponerse con ello, y el
+ * enlace lleva a donde está lo demás.
+ *
+ * NO SE ENVÍA CON CADA GUARDADO. La galería guarda sola mientras la pareja
+ * marca; esto es solo para el envío de verdad (`borrador: false` en
+ * app/api/galeria/[slug]/seleccion/route.ts).
+ */
+export async function avisarDeSeleccion(
+  datos: { clientName: string; slug: string; favoritas: number; conNota: number; total: number; panelUrl: string },
+  env: NodeJS.ProcessEnv = process.env,
+  enviar?: EnviarCorreo
+): Promise<SendResult> {
+  if (!isMailConfigured(env)) {
+    throw new MailError('El correo de salida no está configurado (SMTP_HOST/SMTP_USER/SMTP_PASS).');
+  }
+
+  const cuenta = `${datos.favoritas} ${datos.favoritas === 1 ? 'foto marcada' : 'fotos marcadas'} de ${datos.total}` +
+    (datos.conNota > 0 ? `, ${datos.conNota} con nota` : '');
+
+  const texto = [
+    `${datos.clientName} ya ha mandado su selección.`,
+    '',
+    cuenta + '.',
+    '',
+    'La tienes en el panel:',
+    datos.panelUrl,
+    '',
+    'Las notas que han dejado en cada foto están ahí, no en este correo.',
+  ].join('\n');
+
+  const html = `<!doctype html><html lang="es"><body style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.6;color:#111">
+  <p><strong>${escapeHtml(datos.clientName)}</strong> ya ha mandado su selección.</p>
+  <p>${escapeHtml(cuenta)}.</p>
+  <p><a href="${escapeHtml(datos.panelUrl)}" style="display:inline-block;padding:12px 20px;background:#111;color:#fff;text-decoration:none;border-radius:4px">Verla en el panel</a></p>
+  <p style="font-size:14px;color:#555">Las notas que han dejado en cada foto están en el panel, no en este correo.</p>
+  </body></html>`;
+
+  try {
+    const resultado = await (enviar ?? transportePorDefecto(env))({
+      from: env.CONTACT_FROM ?? DEFAULT_CONTACT_FROM,
+      to: destinoDeRecuperacion(env),
+      replyTo: env.SMTP_USER ?? '',
+      subject: `Selección de ${datos.clientName}`,
+      text: texto,
+      html,
+    });
+    return { id: resultado.messageId ?? '' };
+  } catch (error) {
+    throw new MailError(error instanceof Error ? error.message : 'No se ha podido enviar el aviso.');
+  }
+}

@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { MIN_PASSWORD_LENGTH, generarPassword, motivoPasswordDebil } from '@/lib/gallery-credentials';
 import styles from './GalleryAdminActions.module.css';
 
 /**
@@ -37,8 +38,9 @@ export function GalleryAdminActions({ slug, clientName }: { slug: string; client
     event.preventDefault();
     setPasswordMessage(null);
     setPasswordError(null);
-    if (password.length < 8) {
-      setPasswordError('La contraseña debe tener al menos 8 caracteres.');
+    const floja = motivoPasswordDebil(password);
+    if (floja) {
+      setPasswordError(floja);
       return;
     }
     setSavingPassword(true);
@@ -144,7 +146,7 @@ export function GalleryAdminActions({ slug, clientName }: { slug: string; client
             type="text"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            minLength={8}
+            minLength={MIN_PASSWORD_LENGTH}
             autoComplete="off"
             spellCheck={false}
             autoCapitalize="off"
@@ -152,15 +154,23 @@ export function GalleryAdminActions({ slug, clientName }: { slug: string; client
             aria-invalid={passwordError ? true : undefined}
             aria-describedby={passwordError ? 'password-error' : undefined}
             className={styles.campo}
-            placeholder="Mínimo 8 caracteres"
+            placeholder={`Mínimo ${MIN_PASSWORD_LENGTH} caracteres`}
           />
           {/* `type="text"` y no `password`: esto no es alguien entrando en su
               cuenta, es el estudio escribiendo una clave que tiene que LEER
               para copiársela al cliente. Ocultarla aquí sólo provoca erratas
               que nadie descubre hasta que la pareja no puede entrar. */}
-          <button type="submit" className={styles.boton} disabled={savingPassword}>
-            {savingPassword ? 'Guardando…' : 'Cambiar contraseña'}
-          </button>
+          <div className={styles.acciones}>
+            {/* El mismo botón que al crear la galería. Sin él, «pulsa
+                Generar» -- que es lo que dice el aviso cuando la contraseña
+                es floja -- mandaba a un botón que aquí no existía. */}
+            <button type="button" className={styles.botonSecundario} onClick={() => setPassword(generarPassword())}>
+              Generar
+            </button>
+            <button type="submit" className={styles.boton} disabled={savingPassword}>
+              {savingPassword ? 'Guardando…' : 'Cambiar contraseña'}
+            </button>
+          </div>
         </form>
         {/* Las dos regiones vivas van SIEMPRE montadas, aunque estén vacías.
             Un lector de pantalla anuncia los cambios DENTRO de una región que

@@ -138,9 +138,17 @@
 .form input:hover, .form select:hover, .form textarea:hover {
   border-bottom-color: var(--color-ink);
 }
+/* «ENCIMA» Y «ENFOCADO» TENÍAN LA MISMA PINTA. El único indicador de foco era
+   que el filete pasaba de 1 px a 2 px, y el `:hover` de arriba pinta ese mismo
+   filete a plena tinta: con un ratón, pasar por encima de un campo y estar
+   dentro de él se veían casi igual, y la diferencia de un píxel tampoco llega
+   al cambio de contraste 3:1 que pide WCAG 2.4.11. El anillo es el mismo que
+   usan el panel y la galería privada, así que el sitio entero señala el foco
+   de una sola manera. */
 .form input:focus-visible, .form select:focus-visible, .form textarea:focus-visible {
-  outline: none;
   border-bottom: 2px solid var(--color-ink);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
 }
 .form input[aria-invalid='true'], .form input:user-invalid, .form select:user-invalid, .form textarea:user-invalid {
   border-bottom-color: var(--color-danger);

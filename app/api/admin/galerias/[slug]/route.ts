@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { deleteGallery, getGalleryMeta, isValidSlug, updateGalleryPasswordHash } from '@/lib/gallery-store';
 import { hashPassword } from '@/lib/auth/password';
+import { motivoPasswordDebil } from '@/lib/gallery-credentials';
 import { destroySessionsForSubject } from '@/lib/auth/session';
 import { getAdminSession } from '@/lib/auth/require-session';
 import { isSameOriginRequest } from '@/lib/auth/origin-check';
@@ -122,8 +123,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
   // Mismo mínimo que al crear la galería (ver POST en ../route.ts): si
   // divergieran, el panel aceptaría al cambiar una contraseña que no habría
   // aceptado al crear.
-  if (password.length < 8) {
-    return NextResponse.json({ error: 'La contraseña debe tener al menos 8 caracteres.' }, { status: 400 });
+  const passwordFloja = motivoPasswordDebil(password);
+  if (passwordFloja) {
+    return NextResponse.json({ error: passwordFloja }, { status: 400 });
   }
   // SE RECHAZA, NO SE RECORTA. Recortando en silencio, el panel guardaba una
   // contraseña distinta de la que el estudio acababa de escribir y le iba a

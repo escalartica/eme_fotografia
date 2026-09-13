@@ -1,7 +1,7 @@
 'use client';
 import { site } from '@/content/site';
 import { WhatsAppIcon } from './Icon';
-import { useCapaCompleta } from '@/lib/hooks/useCapaCompleta';
+import { useAvisoDeCookies, useCapaCompleta } from '@/lib/hooks/useCapaCompleta';
 import styles from './WhatsAppButton.module.css';
 
 const MESSAGE = 'Hola, me gustaría informarme sobre vuestra cobertura de boda.';
@@ -16,7 +16,12 @@ const MESSAGE = 'Hola, me gustaría informarme sobre vuestra cobertura de boda.'
 export function WhatsAppButton() {
   // Se retira mientras el menú del teléfono (o la secuencia de apertura) tapa
   // la pantalla: está a z-index 240 y flotaba por delante de la navegación.
-  const tapado = useCapaCompleta();
+  // Tapado por una capa a pantalla completa, o con el aviso de cookies
+  // puesto: en un teléfono ese aviso mide unos 170 px y ocupa justo esta
+  // franja de abajo, así que este botón le quedaba por detrás.
+  const hayCapa = useCapaCompleta();
+  const avisoPuesto = useAvisoDeCookies();
+  const tapado = hayCapa || avisoPuesto;
   const href = `https://wa.me/${site.whatsappNumber}?text=${encodeURIComponent(MESSAGE)}`;
   return (
     <a

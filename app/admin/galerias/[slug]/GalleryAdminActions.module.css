@@ -108,6 +108,21 @@
 .error:empty {
   display: none;
 }
+/* Generar y Cambiar, en la misma línea mientras quepan. */
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+/* El mismo botón, en hueco: generar una contraseña no es la acción de este
+   formulario, guardarla sí. */
+.botonSecundario {
+  composes: boton;
+  color: var(--color-ink);
+  background: none;
+}
+
 .botonPeligro {
   color: var(--color-danger);
   background: none;

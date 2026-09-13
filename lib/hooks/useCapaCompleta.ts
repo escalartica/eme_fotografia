@@ -53,3 +53,59 @@ export function useCapaCompleta(): boolean {
 /** El atributo que pone quien tapa la pantalla. Exportado para que no haya
  *  dos literales que puedan divergir. */
 export const ATRIBUTO_CAPA = 'data-capa-completa';
+
+/**
+ * Lo que pone el aviso de cookies mientras está a la vista.
+ *
+ * NO es una capa a pantalla completa --no tapa la página, sólo la franja de
+ * abajo-- así que va por su cuenta: los dos botones flotantes se apartan, y
+ * el propio aviso no se aparta de sí mismo, que es lo que pasaría si usara el
+ * mismo atributo (lo lee él).
+ */
+export const ATRIBUTO_AVISO = 'data-aviso-cookies';
+
+/** ¿Está puesto el aviso de cookies? Mismo mecanismo que `useCapaCompleta`, y
+ *  por el mismo motivo: quien se aparta y quien tapa no se conocen. */
+export function useAvisoDeCookies(): boolean {
+  const subscribe = useCallback((avisar: () => void) => {
+    const observador = new MutationObserver(avisar);
+    observador.observe(document.body, { attributes: true, attributeFilter: [ATRIBUTO_AVISO] });
+    return () => observador.disconnect();
+  }, []);
+
+  const leer = useCallback(() => document.body.hasAttribute(ATRIBUTO_AVISO), []);
+
+  return useSyncExternalStore(subscribe, leer, () => false);
+}
+
+/**
+ * EL CANDADO DEL SCROLL, CONTADO.
+ *
+ * Dos capas pueden coincidir --el visor de una galería abierto dentro de una
+ * página cuyo menú también se abre-- y con cada una guardando y restaurando
+ * el `overflowY` por su cuenta, la primera que cierra se lo devuelve a la
+ * página mientras la otra sigue tapándola. Con un contador, el `body` sólo se
+ * toca en el paso de cero a uno y de uno a cero.
+ *
+ * SÓLO EL EJE VERTICAL. El horizontal del `body` no es libre: la hoja global
+ * le pone `overflow-x: clip`, del que dependen todas las secciones a sangre
+ * del sitio (el comentario largo está en components/layout/MobileMenu.tsx).
+ */
+let capasAbiertas = 0;
+let overflowAnterior = '';
+
+export function bloquearElScroll(): () => void {
+  if (capasAbiertas === 0) {
+    overflowAnterior = document.body.style.overflowY;
+    document.body.style.overflowY = 'hidden';
+  }
+  capasAbiertas += 1;
+
+  let liberado = false;
+  return () => {
+    if (liberado) return;
+    liberado = true;
+    capasAbiertas -= 1;
+    if (capasAbiertas === 0) document.body.style.overflowY = overflowAnterior;
+  };
+}

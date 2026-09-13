@@ -94,7 +94,7 @@
 
 /* Phones: each row becomes a small card, the column heading printed
    before every cell, so nothing forces the page wider than the screen. */
-@media (max-width: 700px) {
+@media (max-width: 699.98px) {
   .table thead {
     position: absolute;
     width: 1px;

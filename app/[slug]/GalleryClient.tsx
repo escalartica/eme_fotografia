@@ -21,7 +21,12 @@ type Guardado = 'quieto' | 'guardando' | 'guardado' | 'fallo';
 
 /** Lo que se espera desde la última tecla hasta guardar el borrador. Bastante
  *  para que marcar diez fotos seguidas sea UNA escritura y no diez. */
+/** Lo que hay que arrastrar para que cuente como pasar de foto. */
+const MINIMO_DESLIZAR = 48;
+
 const ESPERA_GUARDADO_MS = 1500;
+/** Lo que se espera antes de volver a intentar un guardado que ha fallado. */
+const REINTENTO_MS = 15_000;
 
 function initialState(photos: GalleryPhoto[], selection: Selection | null): Record<string, ItemState> {
   const byId = new Map((selection?.items ?? []).map((it) => [it.photoId, it]));
@@ -51,6 +56,20 @@ export function GalleryClient({
   const [openCommentId, setOpenCommentId] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>('todas');
   const [visorEn, setVisorEn] = useState<number | null>(null);
+  /**
+   * LA LISTA QUE RECORRE EL VISOR SE CONGELA AL ABRIRLO.
+   *
+   * Si recorriera `visibles`, con el filtro en «favoritas» quitarle el
+   * corazón a la foto que se está mirando la sacaría de la lista AL
+   * INSTANTE: la fotografía cambiaría sola debajo del dedo, y si era la
+   * última, el visor se cerraría de golpe. Y quitar corazones mirando las
+   * favoritas es exactamente lo que hace una pareja repasando su selección.
+   *
+   * Congelada, quitar el corazón hace lo que se espera: la foto se queda
+   * donde está, sin marcar. La cuadrícula de debajo ya se ha enterado, y al
+   * cerrar el visor se ve actualizada.
+   */
+  const [listaCongelada, setListaCongelada] = useState<GalleryPhoto[] | null>(null);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'done' | 'error'>('idle');
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [lastSubmittedAt, setLastSubmittedAt] = useState<string | null>(
@@ -67,6 +86,10 @@ export function GalleryClient({
     if (filtro === 'notas') return photos.filter((p) => items[p.id]?.comment.trim() !== '');
     return photos;
   }, [filtro, photos, items]);
+
+  /** Lo que recorre el visor: la lista de cuando se abrió, o la de ahora si
+   *  está cerrado. Ver el comentario de `listaCongelada`. */
+  const listaVisor = listaCongelada ?? visibles;
 
   const enviar = useCallback(
     async (borrador: boolean) => {
@@ -110,13 +133,36 @@ export function GalleryClient({
       noGuardarTodavia.current = false;
       return;
     }
-    const t = setTimeout(() => {
+    /**
+     * Y SI FALLA, SE REINTENTA DE VERDAD.
+     *
+     * El aviso decía «lo reintentamos solo» y no era cierto: sólo se volvía a
+     * intentar si la pareja tocaba algo más. Quien marcaba su última foto
+     * justo cuando se cae el wifi perdía ese último cambio sin enterarse,
+     * porque el texto le decía que estaba resuelto.
+     */
+    let cancelado = false;
+    let reintento: number | undefined;
+
+    const guardar = () => {
       setGuardado('guardando');
       enviar(true)
-        .then(() => setGuardado('guardado'))
-        .catch(() => setGuardado('fallo'));
-    }, ESPERA_GUARDADO_MS);
-    return () => clearTimeout(t);
+        .then(() => {
+          if (!cancelado) setGuardado('guardado');
+        })
+        .catch(() => {
+          if (cancelado) return;
+          setGuardado('fallo');
+          reintento = window.setTimeout(guardar, REINTENTO_MS);
+        });
+    };
+
+    const t = window.setTimeout(guardar, ESPERA_GUARDADO_MS);
+    return () => {
+      cancelado = true;
+      window.clearTimeout(t);
+      if (reintento) window.clearTimeout(reintento);
+    };
   }, [items, enviar]);
 
   // Flechas para pasar de foto con el visor abierto. No se roban cuando el
@@ -127,12 +173,12 @@ export function GalleryClient({
     const alPulsar = (e: KeyboardEvent) => {
       const destino = e.target as HTMLElement | null;
       if (destino && /^(TEXTAREA|INPUT)$/.test(destino.tagName)) return;
-      if (e.key === 'ArrowRight') setVisorEn((i) => (i === null ? null : Math.min(i + 1, visibles.length - 1)));
+      if (e.key === 'ArrowRight') setVisorEn((i) => (i === null ? null : Math.min(i + 1, listaVisor.length - 1)));
       if (e.key === 'ArrowLeft') setVisorEn((i) => (i === null ? null : Math.max(i - 1, 0)));
     };
     document.addEventListener('keydown', alPulsar);
     return () => document.removeEventListener('keydown', alPulsar);
-  }, [visorEn, visibles.length]);
+  }, [visorEn, listaVisor.length]);
 
   function toggleLike(photoId: string) {
     setItems((prev) => ({ ...prev, [photoId]: { ...prev[photoId], liked: !prev[photoId].liked } }));
@@ -169,10 +215,48 @@ export function GalleryClient({
     }
   }
 
-  const foto = visorEn === null ? null : (visibles[visorEn] ?? null);
+  const foto = visorEn === null ? null : (listaVisor[visorEn] ?? null);
+
+  function abrirVisor(index: number) {
+    setListaCongelada(visibles);
+    setVisorEn(index);
+  }
+
+  const cerrarVisor = useCallback(() => {
+    setVisorEn(null);
+    setListaCongelada(null);
+  }, []);
+
+  /**
+   * DESLIZAR PARA PASAR DE FOTO. En un móvil, el gesto de pasar una foto es
+   * arrastrar, no buscar una flecha de 44 px con el pulgar. Las flechas se
+   * quedan: son las que funcionan con ratón, con teclado y para quien no
+   * sabe que se puede deslizar.
+   *
+   * Solo cuenta el arrastre horizontal y solo si es más largo que el
+   * vertical, que si no, bajar por el visor pasaría fotos sin querer.
+   */
+  const tacto = useRef<{ x: number; y: number } | null>(null);
+
+  function alEmpezarElGesto(e: React.TouchEvent) {
+    const t = e.touches[0];
+    tacto.current = { x: t.clientX, y: t.clientY };
+  }
+
+  function alTerminarElGesto(e: React.TouchEvent) {
+    const inicio = tacto.current;
+    tacto.current = null;
+    if (!inicio || visorEn === null) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - inicio.x;
+    const dy = t.clientY - inicio.y;
+    if (Math.abs(dx) < MINIMO_DESLIZAR || Math.abs(dx) <= Math.abs(dy)) return;
+    if (dx < 0) setVisorEn(Math.min(visorEn + 1, listaVisor.length - 1));
+    else setVisorEn(Math.max(visorEn - 1, 0));
+  }
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} data-visor={foto ? 'abierto' : 'cerrado'}>
       <header className={styles.header}>
         <div>
           <p className={styles.eyebrow}>Galería privada — {site.brandName}</p>
@@ -236,7 +320,7 @@ export function GalleryClient({
                 <button
                   type="button"
                   className={styles.photoButton}
-                  onClick={() => setVisorEn(index)}
+                  onClick={() => abrirVisor(index)}
                   aria-label={`Ver ${photo.alt} en grande`}
                 >
                   <img
@@ -350,11 +434,31 @@ export function GalleryClient({
         </button>
       </div>
 
-      <Lightbox isOpen={foto !== null} onClose={() => setVisorEn(null)}>
+      <Lightbox isOpen={foto !== null} onClose={cerrarVisor}>
         {foto && visorEn !== null && (
           <div className={styles.visor}>
-            <div className={styles.lightboxImageWrap}>
+            <div
+              className={styles.lightboxImageWrap}
+              onTouchStart={alEmpezarElGesto}
+              onTouchEnd={alTerminarElGesto}
+            >
               <img {...srcSetVisor(slug, foto.filename)} alt={foto.alt} />
+              {/* LA SIGUIENTE Y LA ANTERIOR, PEDIDAS YA. Son fotos de boda a
+                  pantalla completa: sin esto, cada flecha (y cada gesto) deja
+                  un hueco en blanco mientras descarga. Van vacías de texto
+                  alternativo y fuera del árbol de accesibilidad porque no son
+                  contenido, son una descarga adelantada. */}
+              {[visorEn - 1, visorEn + 1]
+                .filter((i) => i >= 0 && i < listaVisor.length && i !== visorEn)
+                .map((i) => (
+                  <img
+                    key={listaVisor[i].id}
+                    {...srcSetVisor(slug, listaVisor[i].filename)}
+                    alt=""
+                    aria-hidden="true"
+                    className={styles.precarga}
+                  />
+                ))}
             </div>
 
             {/* MARCAR Y COMENTAR SIN SALIR DEL VISOR. Antes había que cerrar,
@@ -383,15 +487,15 @@ export function GalleryClient({
                   {items[foto.id].liked ? 'Me gusta' : 'Marcar'}
                 </button>
                 <span className={styles.visorCuenta}>
-                  {visorEn + 1} de {visibles.length}
+                  {visorEn + 1} de {listaVisor.length}
                 </span>
               </div>
 
               <button
                 type="button"
                 className={styles.visorNav}
-                onClick={() => setVisorEn(Math.min(visorEn + 1, visibles.length - 1))}
-                disabled={visorEn === visibles.length - 1}
+                onClick={() => setVisorEn(Math.min(visorEn + 1, listaVisor.length - 1))}
+                disabled={visorEn === listaVisor.length - 1}
                 aria-label="Foto siguiente"
               >
                 <ArrowGlyph dir="right" />
@@ -410,6 +514,15 @@ export function GalleryClient({
                 placeholder="Ej. esta para el álbum; o: aquí sale mi abuela, no puede faltar"
                 rows={2}
               />
+              {/* La barra de abajo, que es donde vive el «Guardado», se
+                  esconde mientras el visor está abierto: sin esta línea,
+                  escribir una nota aquí dentro no confirmaba nada. */}
+              <p className={styles.visorGuardado} aria-live="polite">
+                {guardado === 'guardando' && 'Guardando…'}
+                {guardado === 'guardado' && 'Guardado'}
+                {guardado === 'fallo' && 'No hemos podido guardar. Lo reintentamos solo.'}
+                {guardado === 'quieto' && 'Se guarda solo'}
+              </p>
             </div>
           </div>
         )}

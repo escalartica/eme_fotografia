@@ -12,7 +12,7 @@
   gap: var(--space-4);
   align-items: start;
 }
-@media (min-width: 960px) {
+@media (min-width: 900px) {
   .layout {
     grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
     gap: var(--space-5);
@@ -169,7 +169,7 @@
   composes: arrowLink from global;
   margin-block-start: var(--space-1);
 }
-@media (min-width: 960px) {
+@media (min-width: 900px) {
   .jump {
     display: none;
   }
@@ -190,7 +190,7 @@
   border: 1px solid var(--color-hairline);
   background: var(--color-paper);
 }
-@media (min-width: 960px) {
+@media (min-width: 900px) {
   .formPanel {
     position: sticky;
     top: var(--space-4);

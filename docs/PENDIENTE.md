@@ -91,15 +91,16 @@ ese mismo día está en el historial; esto es lo que queda, por orden.
 
 **Disponibilidad (lo más serio que queda):**
 
-1. `/api/galeria/[slug]/seleccion` no limita CUÁNTOS elementos acepta ni
-   deduplica, y es la única ruta que cambia estado sin limitador de
-   peticiones. Quien tenga la contraseña de una galería --o a quien la pareja
-   le haya reenviado el enlace-- puede escribir un `selection.json` de cientos
-   de MB en bucle, y el panel lee esos ficheros para pintar el listado.
-   Además `saveSelection` escribe sin el patrón temporal+rename que sí usa
-   `escribirMetaAtomico` doce líneas más arriba: si el proceso muere a media
-   escritura, la selección entera de la pareja desaparece EN SILENCIO --el
-   panel dice «El cliente todavía no ha enviado su selección».
+1. ~~`/api/galeria/[slug]/seleccion` sin tope de elementos, sin deduplicar y
+   sin limitador~~ — **HECHO**. La ruta lleva limitador por sesión, tope de
+   entradas contra la lista real de fotos de la galería, una entrada por foto
+   y escritura atómica. El 13/09 se subió el limitador de 30 a 240 envíos por
+   diez minutos: desde que la galería guarda sola, cada corazón acaba en una
+   petición, y treinta corazones dejaban a la pareja el resto de la tarde con
+   «No hemos podido guardar». Y el guardado automático ahora **reintenta de
+   verdad** a los quince segundos, que el aviso decía que lo hacía y no era
+   cierto.
+
 2. Cualquiera puede dejar al estudio sin poder entrar en `/admin` durante
    quince minutos, en bucle, saturando el cubo global con contraseñas
    equivocadas. El cubo global existe justamente para no fiarse de la IP, así
@@ -136,23 +137,21 @@ ese mismo día está en el historial; esto es lo que queda, por orden.
    app/admin/galerias/nueva/NewGalleryForm.tsx, que es de donde sale el aviso.
    Añadir de paso `proxy_set_header X-Forwarded-Host $host;`.
 
-**Maquetación (nadie se ha quejado todavía, pero está medido):**
+**Maquetación — todo esto se hizo el 13/09:**
 
-7. **Dos bandas de anchura donde la página queda a medias.** A 700 px exactos
-   conviven reglas `max-width: 700` y `min-width: 700` de módulos distintos.
-   Y entre 900 y 959 px la cabecera ya es de escritorio mientras `/trabajos` y
-   `/contacto` siguen pintando la versión de teléfono, porque esos dos cambian
-   en 960 y todo lo demás en 900. Se ve en un iPad en apaisado con Split View.
-   Arreglo: bajar los nueve `960` a `900` y pasar los `max-width: 700` a
-   `699.98px`.
-8. Los nombres del equipo en `/sobre-nosotros` se pintan al 42 % de opacidad
-   en REPOSO, que sobre papel da 2,8:1 contra los 4,5:1 que pide la norma. Es
-   sólo escritorio. 0,62 da 4,6:1.
-9. El aviso de cookies tapa los dos botones flotantes en un teléfono: mide
-   unos 170 px de alto y ocupa justo su franja. Sólo en la primera visita.
-10. El único indicador de foco de los campos del formulario es un filete que
-    pasa de 1 px a 2 px, y el `:hover` pinta ese mismo filete: con ratón,
-    «encima» y «enfocado» no se distinguen.
+7. ~~Dos bandas de anchura donde la página queda a medias~~ — los nueve
+   `min-width: 960px` de `/trabajos` y `/contacto` bajados a 900, que es donde
+   cambia todo lo demás, y los `max-width: 700px` pasados a `699.98px` para
+   que a 700 exactos no se apliquen las dos reglas a la vez.
+8. ~~Los nombres del equipo al 42 % de opacidad~~ — a 0,62 (4,6:1). El
+   comentario que decía que 0,42 cumplía la norma estaba mal y se ha
+   corregido con los números medidos.
+9. ~~El aviso de cookies tapa los dos botones flotantes~~ — el aviso pone
+   `data-aviso-cookies` en el `body` mientras está a la vista y los dos
+   botones se apartan. Un atributo distinto del `data-capa-completa` del menú
+   a propósito: ese lo lee el propio aviso para apartarse él.
+10. ~~El foco de los campos del formulario no se distinguía del `:hover`~~ —
+    ahora llevan el mismo anillo que el panel y la galería privada.
 
 ### 5. Retratos del equipo — estudio
 
@@ -255,3 +254,105 @@ solo por la extensión de vídeo del sitemap. Google exige `uploadDate` y no
 acepta sustitutos; rellenarlo con un 1 de enero inventado fue exactamente lo
 que se retiró. Con las fechas reales, los vídeos pueden aparecer en la búsqueda
 de vídeo de Google.
+
+### 13. Lo que enseñó la primera galería creada de verdad — 13/09/2026
+
+El estudio creó `jesusyandrea` desde su móvil, sin nadie al lado. Cuatro cosas
+que no se ven mirando el código:
+
+- **La contraseña que se escribió fue `12345678`.** El campo estaba vacío, el
+  mínimo eran ocho caracteres, y eso fue lo que se tecleó. No es descuido: un
+  campo vacío pregunta «¿qué contraseña quieres?» con cuarenta fotos
+  esperando a subirse. Ahora el campo **viene relleno** con diez caracteres al
+  azar (`lib/gallery-credentials.ts`), el mínimo son diez, y se rechaza lo que
+  solo son números, una secuencia del teclado o dos caracteres repetidos —
+  también en las dos rutas del API, que un POST puede no pasar por el
+  formulario.
+- **El mensaje de WhatsApp llegaba con los saltos en mitad de la frase.** El
+  texto estaba partido a mano al ancho del editor. Un test lo impide ahora:
+  una línea larga que no acabe en punto o dos puntos es una frase partida.
+- **El enlace se rompía por la mitad del dominio** en la pantalla de
+  confirmación (`emefot / ografiasevilla.com`). Un `<wbr>` antes de cada barra
+  le da al navegador sitios mejores por donde cortar, y en móvil el botón de
+  copiar baja a su propia línea para dejarle el ancho entero.
+- **Los tres botones de esa pantalla salían con tres anchos distintos** en un
+  móvil, cada uno el de su texto. Apilados y a la misma anchura.
+
+Queda sin tocar, porque no es un fallo: el enlace se escribió a mano sin
+guiones (`jesusyandrea`) mientras el usuario los conservaba
+(`jesus-y-andrea`). Los dos campos se sugieren igual; cambiar uno no cambia el
+otro, y así debe seguir.
+
+**Borrar la galería de prueba `jesusyandrea` cuando termine el test.**
+
+### 14. La galería privada, después de la primera prueba con una pareja — 13/09/2026
+
+Se probó entera desde un iPhone. Lo que salió:
+
+1. **El teclado se cerraba con cada letra al comentar una foto desde el
+   visor.** El efecto que monta la trampa de foco (`components/motion/Lightbox.tsx`)
+   dependía de `onClose`, que se escribe en el JSX y por tanto es una función
+   nueva en cada renderizado: cada tecla la desmontaba y la volvía a montar, y
+   `focus-trap` al activarse mueve el foco. Nueve montajes para ocho letras.
+   Ahora `onClose` vive en una referencia y el efecto sólo depende de `isOpen`.
+   `components/motion/Lightbox.foco.test.tsx` cuenta los montajes.
+2. **La barra fija de abajo se transparentaba por detrás del visor**: el telón
+   es un negro al 92 %, no al 100 %. Con el visor abierto la barra ya no se
+   puede usar, así que desaparece, y el campo de la nota del visor pasó de un
+   relleno al 8 % a opaco. Como el «Guardado» vivía en esa barra, se ha metido
+   también dentro del visor.
+3. **Deslizar para pasar de foto**, sólo en horizontal; las flechas siguen.
+4. **El visor tiene scroll propio**: con el teclado abierto la nota caía fuera
+   de la pantalla. Va en `.visor` y no en `.content`, que recortaría el botón
+   de cerrar.
+5. **La foto anterior y la siguiente se piden por adelantado**, que son fotos
+   a pantalla completa y cada flecha dejaba un hueco en blanco.
+6. **El visor bloquea el scroll de la página de debajo** y avisa al resto del
+   sitio de que hay una capa (lo mismo que ya hacía el menú): arrastrar sobre
+   el telón movía la página del fondo, y los botones flotantes se pintaban por
+   delante de la fotografía.
+7. **«29 De Agosto De 2026»** → «29 de agosto de 2026». Sobraba un
+   `text-transform: capitalize`.
+8. **El anillo de foco del campo de notas de la cuadrícula** se dibujaba por
+   fuera de un panel con `overflow: hidden` y lo que quedaba era media raya
+   cruzando la etiqueta. Ahora va hacia dentro.
+
+9. **Quitar el corazón desde el visor, con el filtro en «favoritas», cambiaba
+   la foto debajo del dedo** -- y si era la última, cerraba el visor de golpe.
+   El visor recorría la lista ya filtrada, que se recalcula al instante.
+   Ahora la lista se congela al abrir el visor. Repasar las favoritas quitando
+   corazones es justo lo que hace una pareja antes de enviar.
+10. **El iPhone ponía en mayúscula la primera letra del usuario**, que es
+    siempre un slug en minúsculas: la pareja no entraba y el mensaje --que a
+    propósito no dice cuál de los dos datos está mal-- no daba ninguna pista.
+    Al campo le faltaba el `autoCapitalize="none"` que el panel sí tenía, y
+    de paso el servidor compara ya sin distinguir mayúsculas ni espacios de
+    los bordes, para quien pega el dato desde el WhatsApp del estudio.
+11. La galería de la pareja **no tenía ninguna prueba**:
+    `app/[slug]/GalleryClient.test.tsx` cubre el contador, el filtro, el
+    guardado automático y la regresión del punto 9.
+
+### 15. Lo que se le añadió al panel el mismo día — 13/09/2026
+
+No salió de un fallo, salió de mirar qué pasa DESPUÉS de que llegue una
+selección.
+
+- **Aviso por correo cuando una pareja envía su selección**
+  (`avisarDeSeleccion` en lib/mail.ts). Antes la selección se quedaba
+  esperando en el panel hasta que a alguien se le ocurría entrar a mirar, y al
+  otro lado hay dos personas que pasan el día fuera, en bodas. **Del correo
+  salen los números y el enlace al panel, nunca las notas**: lo que la pareja
+  escribe en cada foto vive detrás de una contraseña y un correo se reenvía,
+  se queda en el móvil y pasa por servidores que no son nuestros. Sólo se
+  manda con el envío de verdad, no con cada guardado automático, y si el
+  servidor de correo está caído la selección se guarda igual: el aviso va
+  suelto, sin bloquear la respuesta.
+- **Filtrar en la vista del panel**: Todas / Marcadas / Con nota, las mismas
+  pastillas que ve la pareja. Una boda son ciento ochenta fotos y se marcan
+  treinta; sin filtro hay que bajar por las ciento ochenta buscando corazones.
+- **«Copiar los nombres de las marcadas»**, uno por línea. Lo siguiente que
+  pasa después de mirar esa pantalla es abrir el revelador y buscar esas
+  fotos en la tarjeta, y copiar treinta nombres a mano es donde se cuela el
+  error que luego aparece en el álbum.
+- `app/admin/galerias/[slug]/AdminGalleryView.test.tsx` es la primera prueba
+  que tiene el panel.
