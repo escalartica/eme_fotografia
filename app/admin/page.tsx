@@ -27,6 +27,9 @@ interface GalleryRow {
   likedCount: number;
   commentCount: number;
   submittedAt: string | null;
+  /** La pareja está marcando pero todavía no ha pulsado enviar. */
+  enCurso: boolean;
+  updatedAt: string | null;
 }
 
 async function loadGalleries(): Promise<GalleryRow[]> {
@@ -47,7 +50,9 @@ async function loadGalleries(): Promise<GalleryRow[]> {
         createdAt: meta.createdAt,
         likedCount,
         commentCount,
-        submittedAt: selection?.submittedAt ?? null,
+        submittedAt: selection?.submittedAt || null,
+        enCurso: selection?.draft === true,
+        updatedAt: selection?.updatedAt ?? null,
       };
       return row;
     })
@@ -115,12 +120,25 @@ export default async function AdminDashboardPage() {
                   </p>
                 )}
                 <p className={styles.cardMeta}>{gallery.photoCount} fotos · usuario {gallery.username}</p>
+                {/* TRES ESTADOS, NO DOS. La galería guarda sola mientras la
+                    pareja marca, así que ahora hay un estado intermedio real
+                    --«está en ello»-- que antes no se podía distinguir de
+                    «no ha empezado». Confundirlos significa o dar por
+                    cerrada una selección a medias, o llamar a una pareja que
+                    está trabajando en ella ahora mismo. */}
                 {gallery.submittedAt ? (
                   <p className={styles.cardStatusDone}>
                     {gallery.likedCount} seleccionadas · {gallery.commentCount} con nota
+                    {gallery.enCurso && ' · sigue cambiándola'}
+                  </p>
+                ) : gallery.enCurso ? (
+                  <p className={styles.cardStatusProgress}>
+                    Están eligiendo: {gallery.likedCount} marcadas
+                    {gallery.updatedAt &&
+                      ` · última vez el ${new Date(gallery.updatedAt).toLocaleDateString('es-ES')}`}
                   </p>
                 ) : (
-                  <p className={styles.cardStatusPending}>El cliente todavía no ha enviado su selección</p>
+                  <p className={styles.cardStatusPending}>Todavía no han entrado a elegir</p>
                 )}
               </Link>
             </li>

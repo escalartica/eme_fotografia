@@ -48,7 +48,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   } catch {
     return NextResponse.json({ error: 'Cuerpo de la petición no válido.' }, { status: 400 });
   }
-  const { items } = (body ?? {}) as { items?: unknown };
+  const { items, borrador } = (body ?? {}) as { items?: unknown; borrador?: unknown };
   if (!Array.isArray(items)) {
     return NextResponse.json({ error: 'Formato de selección no válido.' }, { status: 400 });
   }
@@ -81,6 +81,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     });
   }
 
-  await saveSelection(slug, cleaned);
+  await saveSelection(slug, cleaned, { borrador: borrador === true });
   return NextResponse.json({ ok: true });
 }

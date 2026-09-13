@@ -300,6 +300,50 @@ describe('selección del cliente', () => {
     expect(await store.getSelection('../../etc')).toBeNull();
     await expect(store.saveSelection('../../etc', [])).rejects.toThrow(/Invalid gallery slug/);
   });
+
+  /**
+   * EL BORRADOR NO PUEDE HACERSE PASAR POR UN ENVÍO.
+   *
+   * La galería guarda sola cada pocos segundos mientras la pareja marca, para
+   * que nadie pierda dos horas de trabajo por cerrar una pestaña. Si esos
+   * guardados silenciosos escribieran `submittedAt`, el panel del estudio
+   * diría «selección enviada» en cuanto alguien mira la primera foto, y eme
+   * se pondría a revelar con una lista a medias. Esto es lo que lo impide.
+   */
+  it('un borrador se marca como tal y NO pone fecha de envío', async () => {
+    await store.saveSelection('boda-ana', [{ photoId: 'foto-1', liked: true, comment: '' }], {
+      borrador: true,
+    });
+    const guardada = await store.getSelection('boda-ana');
+    expect(guardada?.draft).toBe(true);
+    expect(guardada?.submittedAt).toBe('');
+    expect(guardada?.updatedAt).toBeTruthy();
+  });
+
+  it('enviar de verdad pone la fecha y quita la marca de borrador', async () => {
+    await store.saveSelection('boda-ana', [{ photoId: 'foto-1', liked: true, comment: '' }], {
+      borrador: true,
+    });
+    await store.saveSelection('boda-ana', [{ photoId: 'foto-1', liked: true, comment: '' }]);
+    const guardada = await store.getSelection('boda-ana');
+    expect(guardada?.draft).toBe(false);
+    expect(guardada?.submittedAt).toBeTruthy();
+  });
+
+  /* Y al revés: si ya enviaron una vez y luego siguen cambiando cosas sin
+     volver a enviar, el panel tiene que seguir sabiendo cuándo fue el último
+     envío DE VERDAD. Perder esa fecha convertiría «lo mandaron el día 3» en
+     «no lo han mandado». */
+  it('un borrador posterior conserva la fecha del último envío', async () => {
+    await store.saveSelection('boda-ana', [{ photoId: 'foto-1', liked: true, comment: '' }]);
+    const enviada = await store.getSelection('boda-ana');
+    await store.saveSelection('boda-ana', [{ photoId: 'foto-1', liked: false, comment: 'mejor no' }], {
+      borrador: true,
+    });
+    const despues = await store.getSelection('boda-ana');
+    expect(despues?.submittedAt).toBe(enviada?.submittedAt);
+    expect(despues?.draft).toBe(true);
+  });
 });
 
 

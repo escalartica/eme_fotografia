@@ -1,18 +1,27 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { site } from '@/content/site';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { HeartIcon, CommentIcon, CheckIcon } from '@/components/ui/Icon';
+import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 import { Lightbox } from '@/components/motion/Lightbox';
 import type { GalleryPhoto, Selection } from '@/lib/gallery-store';
 import styles from './GalleryClient.module.css';
 import { srcSetMiniatura, srcSetVisor } from '@/lib/gallery-srcset';
+import { GalleryWelcome } from './GalleryWelcome';
 
 interface ItemState {
   liked: boolean;
   comment: string;
 }
+
+type Filtro = 'todas' | 'favoritas' | 'notas';
+type Guardado = 'quieto' | 'guardando' | 'guardado' | 'fallo';
+
+/** Lo que se espera desde la última tecla hasta guardar el borrador. Bastante
+ *  para que marcar diez fotos seguidas sea UNA escritura y no diez. */
+const ESPERA_GUARDADO_MS = 1500;
 
 function initialState(photos: GalleryPhoto[], selection: Selection | null): Record<string, ItemState> {
   const byId = new Map((selection?.items ?? []).map((it) => [it.photoId, it]));
@@ -40,27 +49,29 @@ export function GalleryClient({
   const router = useRouter();
   const [items, setItems] = useState<Record<string, ItemState>>(() => initialState(photos, initialSelection));
   const [openCommentId, setOpenCommentId] = useState<string | null>(null);
-  const [lightboxPhoto, setLightboxPhoto] = useState<GalleryPhoto | null>(null);
+  const [filtro, setFiltro] = useState<Filtro>('todas');
+  const [visorEn, setVisorEn] = useState<number | null>(null);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'done' | 'error'>('idle');
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [lastSubmittedAt, setLastSubmittedAt] = useState<string | null>(initialSelection?.submittedAt ?? null);
+  const [lastSubmittedAt, setLastSubmittedAt] = useState<string | null>(
+    initialSelection?.draft ? null : (initialSelection?.submittedAt ?? null)
+  );
+  const [guardado, setGuardado] = useState<Guardado>('quieto');
   const [loggingOut, setLoggingOut] = useState(false);
 
   const likedCount = useMemo(() => Object.values(items).filter((it) => it.liked).length, [items]);
+  const conNota = useMemo(() => Object.values(items).filter((it) => it.comment.trim() !== '').length, [items]);
 
-  function toggleLike(photoId: string) {
-    setItems((prev) => ({ ...prev, [photoId]: { ...prev[photoId], liked: !prev[photoId].liked } }));
-  }
+  const visibles = useMemo(() => {
+    if (filtro === 'favoritas') return photos.filter((p) => items[p.id]?.liked);
+    if (filtro === 'notas') return photos.filter((p) => items[p.id]?.comment.trim() !== '');
+    return photos;
+  }, [filtro, photos, items]);
 
-  function setComment(photoId: string, comment: string) {
-    setItems((prev) => ({ ...prev, [photoId]: { ...prev[photoId], comment } }));
-  }
-
-  async function handleSubmit() {
-    setSubmitStatus('submitting');
-    setSubmitError(null);
-    try {
+  const enviar = useCallback(
+    async (borrador: boolean) => {
       const body = {
+        borrador,
         items: photos.map((p) => ({
           photoId: p.id,
           liked: items[p.id]?.liked ?? false,
@@ -74,14 +85,77 @@ export function GalleryClient({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        setSubmitError(data?.error ?? 'No hemos podido enviar la selección. Probad otra vez en un momento.');
-        setSubmitStatus('error');
-        return;
+        throw new Error(data?.error ?? 'No hemos podido guardar.');
       }
+    },
+    [items, photos, slug]
+  );
+
+  /**
+   * GUARDADO AUTOMÁTICO. Revisar doscientas fotos es una tarea larga, y antes
+   * todo ese trabajo vivía en la memoria del navegador hasta que alguien
+   * pulsaba «Enviar»: cerrar la pestaña sin querer, quedarse sin batería o que
+   * el móvil descargara la página en segundo plano lo borraba entero.
+   *
+   * Se guarda como BORRADOR, no como envío: el panel del estudio tiene que
+   * seguir distinguiendo «está en ello» de «ya nos la ha mandado», o eme
+   * empezaría a revelar con una lista a medias (ver `draft` en
+   * lib/gallery-store.ts).
+   *
+   * El primer renderizado no guarda nada: entrar a mirar no es editar.
+   */
+  const noGuardarTodavia = useRef(true);
+  useEffect(() => {
+    if (noGuardarTodavia.current) {
+      noGuardarTodavia.current = false;
+      return;
+    }
+    const t = setTimeout(() => {
+      setGuardado('guardando');
+      enviar(true)
+        .then(() => setGuardado('guardado'))
+        .catch(() => setGuardado('fallo'));
+    }, ESPERA_GUARDADO_MS);
+    return () => clearTimeout(t);
+  }, [items, enviar]);
+
+  // Flechas para pasar de foto con el visor abierto. No se roban cuando el
+  // cursor está dentro de la nota: ahí las flechas mueven el cursor por el
+  // texto, que es lo que espera quien está escribiendo.
+  useEffect(() => {
+    if (visorEn === null) return;
+    const alPulsar = (e: KeyboardEvent) => {
+      const destino = e.target as HTMLElement | null;
+      if (destino && /^(TEXTAREA|INPUT)$/.test(destino.tagName)) return;
+      if (e.key === 'ArrowRight') setVisorEn((i) => (i === null ? null : Math.min(i + 1, visibles.length - 1)));
+      if (e.key === 'ArrowLeft') setVisorEn((i) => (i === null ? null : Math.max(i - 1, 0)));
+    };
+    document.addEventListener('keydown', alPulsar);
+    return () => document.removeEventListener('keydown', alPulsar);
+  }, [visorEn, visibles.length]);
+
+  function toggleLike(photoId: string) {
+    setItems((prev) => ({ ...prev, [photoId]: { ...prev[photoId], liked: !prev[photoId].liked } }));
+  }
+
+  function setComment(photoId: string, comment: string) {
+    setItems((prev) => ({ ...prev, [photoId]: { ...prev[photoId], comment } }));
+  }
+
+  async function handleSubmit() {
+    setSubmitStatus('submitting');
+    setSubmitError(null);
+    try {
+      await enviar(false);
       setLastSubmittedAt(new Date().toISOString());
       setSubmitStatus('done');
-    } catch {
-      setSubmitError('No hemos podido conectar. Comprobad la conexión y probad otra vez: lo que habéis marcado sigue aquí.');
+      setGuardado('quieto');
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error && err.message
+          ? err.message
+          : 'No hemos podido enviar la selección. Probad otra vez en un momento.'
+      );
       setSubmitStatus('error');
     }
   }
@@ -94,6 +168,8 @@ export function GalleryClient({
       router.refresh();
     }
   }
+
+  const foto = visorEn === null ? null : (visibles[visorEn] ?? null);
 
   return (
     <div className={styles.page}>
@@ -115,13 +191,43 @@ export function GalleryClient({
         </div>
       </header>
 
-      <p className={styles.instructions}>
-        Marcad con el corazón las fotos que queráis y, si hace falta, dejad una nota en cualquiera de ellas.
-        Cuando acabéis, pulsad <strong>Enviar selección</strong>. Podéis volver y cambiarla las veces que queráis.
-      </p>
+      <GalleryWelcome nombre={clientName} />
+
+      {/* Los filtros aparecen cuando sirven de algo. Con cero favoritas, un
+          botón «Favoritas (0)» solo enseña una pantalla vacía. */}
+      <div className={styles.filtros} role="group" aria-label="Filtrar las fotos">
+        <button
+          type="button"
+          className={styles.filtro}
+          aria-pressed={filtro === 'todas'}
+          onClick={() => setFiltro('todas')}
+        >
+          Todas <span className={styles.filtroCuenta}>{photos.length}</span>
+        </button>
+        {likedCount > 0 && (
+          <button
+            type="button"
+            className={styles.filtro}
+            aria-pressed={filtro === 'favoritas'}
+            onClick={() => setFiltro('favoritas')}
+          >
+            Favoritas <span className={styles.filtroCuenta}>{likedCount}</span>
+          </button>
+        )}
+        {conNota > 0 && (
+          <button
+            type="button"
+            className={styles.filtro}
+            aria-pressed={filtro === 'notas'}
+            onClick={() => setFiltro('notas')}
+          >
+            Con nota <span className={styles.filtroCuenta}>{conNota}</span>
+          </button>
+        )}
+      </div>
 
       <ul className={styles.grid}>
-        {photos.map((photo, index) => {
+        {visibles.map((photo, index) => {
           const state = items[photo.id];
           const commentOpen = openCommentId === photo.id;
           return (
@@ -130,8 +236,8 @@ export function GalleryClient({
                 <button
                   type="button"
                   className={styles.photoButton}
-                  onClick={() => setLightboxPhoto(photo)}
-                  aria-label={`Ver ${photo.alt} en tamaño completo`}
+                  onClick={() => setVisorEn(index)}
+                  aria-label={`Ver ${photo.alt} en grande`}
                 >
                   <img
                     {...srcSetMiniatura(slug, photo.filename)}
@@ -180,7 +286,7 @@ export function GalleryClient({
                     className={styles.commentInput}
                     value={state.comment}
                     onChange={(e) => setComment(photo.id, e.target.value)}
-                    placeholder="Ej. esta es una de mis favoritas, o: prefiero sin este encuadre…"
+                    placeholder="Ej. esta para el álbum; o: aquí sale mi abuela, no puede faltar"
                     rows={2}
                   />
                 </div>
@@ -189,6 +295,15 @@ export function GalleryClient({
           );
         })}
       </ul>
+
+      {visibles.length === 0 && (
+        <p className={styles.vacio}>
+          Aquí no hay ninguna todavía.{' '}
+          <button type="button" className={styles.enlaceBoton} onClick={() => setFiltro('todas')}>
+            Ver todas las fotos
+          </button>
+        </p>
+      )}
 
       <div className={styles.submitBar}>
         <div className={styles.submitInfo}>
@@ -199,19 +314,29 @@ export function GalleryClient({
               sabía cuántas llevaba (WCAG 4.1.3). El propio botón ya anuncia
               su aria-pressed; esto añade el total. */}
           <span className={styles.likedCount} aria-live="polite" aria-atomic="true">
-            {likedCount} {likedCount === 1 ? 'foto seleccionada' : 'fotos seleccionadas'}
+            {likedCount === 0
+              ? 'Todavía no habéis marcado ninguna'
+              : `${likedCount} ${likedCount === 1 ? 'foto favorita' : 'fotos favoritas'}`}
+            {conNota > 0 && ` · ${conNota} con nota`}
           </span>
+
           {submitStatus === 'done' && (
             <span className={styles.submitConfirm} role="status">
-              <CheckIcon size={16} /> Selección enviada. Ya la tenemos.
+              <CheckIcon size={16} /> Nos ha llegado. Gracias.
             </span>
           )}
           {submitStatus === 'error' && submitError && (
             <span className={styles.submitErrorText} role="alert">{submitError}</span>
           )}
-          {submitStatus !== 'done' && submitStatus !== 'error' && lastSubmittedAt && (
-            <span className={styles.lastSubmitted}>
-              Última selección enviada el {new Date(lastSubmittedAt).toLocaleDateString('es-ES')}
+          {submitStatus !== 'done' && submitStatus !== 'error' && (
+            <span className={styles.estadoGuardado} aria-live="polite">
+              {guardado === 'guardando' && 'Guardando…'}
+              {guardado === 'guardado' && 'Guardado. Podéis cerrar y seguir otro día.'}
+              {guardado === 'fallo' && 'No hemos podido guardar. Seguid marcando: lo reintentamos solo.'}
+              {guardado === 'quieto' &&
+                (lastSubmittedAt
+                  ? `Enviada el ${new Date(lastSubmittedAt).toLocaleDateString('es-ES')}`
+                  : 'Se guarda solo mientras marcáis')}
             </span>
           )}
         </div>
@@ -221,14 +346,71 @@ export function GalleryClient({
           onClick={handleSubmit}
           disabled={submitStatus === 'submitting'}
         >
-          {submitStatus === 'submitting' ? 'Enviando…' : 'Enviar selección'}
+          {submitStatus === 'submitting' ? 'Enviando…' : lastSubmittedAt ? 'Enviar de nuevo' : 'Enviar a eme'}
         </button>
       </div>
 
-      <Lightbox isOpen={lightboxPhoto !== null} onClose={() => setLightboxPhoto(null)}>
-        {lightboxPhoto && (
-          <div className={styles.lightboxImageWrap}>
-            <img {...srcSetVisor(slug, lightboxPhoto.filename)} alt={lightboxPhoto.alt} />
+      <Lightbox isOpen={foto !== null} onClose={() => setVisorEn(null)}>
+        {foto && visorEn !== null && (
+          <div className={styles.visor}>
+            <div className={styles.lightboxImageWrap}>
+              <img {...srcSetVisor(slug, foto.filename)} alt={foto.alt} />
+            </div>
+
+            {/* MARCAR Y COMENTAR SIN SALIR DEL VISOR. Antes había que cerrar,
+                buscar la foto en la cuadrícula y acertarle a un botón de la
+                esquina. Y el momento en que alguien decide que una foto le
+                encanta es justo este: viéndola grande. */}
+            <div className={styles.visorBarra}>
+              <button
+                type="button"
+                className={styles.visorNav}
+                onClick={() => setVisorEn(Math.max(visorEn - 1, 0))}
+                disabled={visorEn === 0}
+                aria-label="Foto anterior"
+              >
+                <ArrowGlyph dir="left" />
+              </button>
+
+              <div className={styles.visorAcciones}>
+                <button
+                  type="button"
+                  className={styles.visorCorazon}
+                  aria-pressed={items[foto.id].liked}
+                  onClick={() => toggleLike(foto.id)}
+                >
+                  <HeartIcon size={20} fill={items[foto.id].liked ? 'currentColor' : 'none'} />
+                  {items[foto.id].liked ? 'Me gusta' : 'Marcar'}
+                </button>
+                <span className={styles.visorCuenta}>
+                  {visorEn + 1} de {visibles.length}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                className={styles.visorNav}
+                onClick={() => setVisorEn(Math.min(visorEn + 1, visibles.length - 1))}
+                disabled={visorEn === visibles.length - 1}
+                aria-label="Foto siguiente"
+              >
+                <ArrowGlyph dir="right" />
+              </button>
+            </div>
+
+            <div className={styles.visorNota}>
+              <label htmlFor={`visor-nota-${foto.id}`} className={styles.commentLabel}>
+                Nota para esta foto
+              </label>
+              <textarea
+                id={`visor-nota-${foto.id}`}
+                className={styles.commentInput}
+                value={items[foto.id].comment}
+                onChange={(e) => setComment(foto.id, e.target.value)}
+                placeholder="Ej. esta para el álbum; o: aquí sale mi abuela, no puede faltar"
+                rows={2}
+              />
+            </div>
           </div>
         )}
       </Lightbox>

@@ -365,6 +365,279 @@
   filter: var(--photo-grade);
 }
 
+/* ====================================================================== */
+/* La bienvenida                                                          */
+/* ====================================================================== */
+
+/* Un bloque de papel dentro del papel: se separa por el filete y el aire, no
+   por un color de fondo distinto. En una pantalla que es una pared de
+   fotografías, cualquier caja de color compite con ellas. */
+.bienvenida {
+  max-width: 48rem;
+  margin-block-end: var(--space-3);
+  padding-block-end: var(--space-3);
+  border-bottom: 1px solid var(--color-hairline);
+}
+.bienvenidaEyebrow {
+  composes: eyebrow from global;
+  color: var(--color-muted);
+  margin: 0 0 var(--space-1);
+}
+.bienvenidaTitulo {
+  font-family: var(--font-serif);
+  font-size: var(--type-h2-sm);
+  line-height: 1.1;
+  font-weight: 400;
+  font-variation-settings: 'wght' 400;
+  margin: 0 0 var(--space-1);
+  text-wrap: balance;
+}
+.bienvenidaTexto {
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  color: var(--color-muted);
+  max-width: 60ch;
+  text-wrap: pretty;
+  margin: 0 0 var(--space-1);
+}
+
+.pasos {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.paso {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-1) var(--space-2);
+  align-items: start;
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  color: var(--color-muted);
+  max-width: 62ch;
+}
+.paso strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+/* El icono es el MISMO que el botón que van a pulsar. Es lo que convierte el
+   texto en una instrucción y no en una descripción: se reconoce el dibujo
+   cuando se llega a la foto. */
+.pasoIcono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--color-hairline);
+  border-radius: 999px;
+  color: var(--color-ink);
+}
+
+.bienvenidaCerrar {
+  composes: arrowLink from global;
+  margin-block-start: var(--space-2);
+  background: none;
+  border: none;
+  padding: 0.4rem 0;
+  cursor: pointer;
+  color: var(--color-ink);
+}
+
+/* ====================================================================== */
+/* Los filtros                                                            */
+/* ====================================================================== */
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-block-end: var(--space-2);
+}
+.filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: 2.75rem;
+  padding-inline: var(--space-2);
+  background: none;
+  border: 1px solid var(--color-hairline);
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-muted);
+  transition: color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+/* El estado seleccionado NO se marca solo con color: lleva además el filete
+   en tinta plena y el contador en negativo, porque el color como único
+   portador de significado es WCAG 1.4.1 -- y porque en un teléfono el hover
+   sintético de iOS haría que dos filtros parecieran activos a la vez. */
+.filtro[aria-pressed='true'] {
+  color: var(--color-ink);
+  border-color: var(--color-ink);
+}
+.filtro[aria-pressed='true'] .filtroCuenta {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+@media (hover: hover) and (pointer: fine) {
+  .filtro:hover { color: var(--color-ink); }
+}
+.filtro:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .filtro { transition: none; }
+}
+.filtroCuenta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.7em;
+  padding-inline: 0.4em;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+.vacio {
+  margin: var(--space-4) 0;
+  text-align: center;
+  color: var(--color-muted);
+  font-size: var(--type-body);
+}
+.enlaceBoton {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.estadoGuardado {
+  color: var(--color-muted);
+}
+
+/* ====================================================================== */
+/* El visor                                                               */
+/* ====================================================================== */
+
+/* Todo esto vive DENTRO del visor, que es siempre oscuro en los dos temas
+   (components/motion/Lightbox.module.css). Por eso los colores de aquí son
+   las constantes --color-night-text y no los tokens de tema: con
+   `--color-ink` el rótulo sería tinta sobre negro en modo claro. */
+.visor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+  color: var(--color-night-text);
+}
+
+.visorBarra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.visorAcciones {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.visorNav,
+.visorCorazon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding-inline: var(--space-1);
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--color-night-text) 30%, transparent);
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-night-text);
+  transition: border-color var(--duration-fast) var(--ease-standard),
+    background var(--duration-fast) var(--ease-standard),
+    transform var(--duration-press) var(--ease-standard);
+}
+.visorCorazon {
+  padding-inline: var(--space-2);
+}
+/* Marcada: el corazón se rellena y el botón se invierte. Dos señales, no una,
+   por lo mismo que los filtros. */
+.visorCorazon[aria-pressed='true'] {
+  background: var(--color-night-text);
+  color: var(--color-night);
+  border-color: var(--color-night-text);
+}
+.visorNav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+@media (hover: hover) and (pointer: fine) {
+  .visorNav:not(:disabled):hover,
+  .visorCorazon:hover {
+    border-color: var(--color-night-text);
+  }
+}
+.visorNav:focus-visible,
+.visorCorazon:focus-visible {
+  outline: 2px solid var(--color-night-text);
+  outline-offset: 3px;
+}
+.visorNav:active:not(:disabled),
+.visorCorazon:active {
+  transform: scale(0.96);
+}
+@media (prefers-reduced-motion: reduce) {
+  .visorNav, .visorCorazon { transition: none; }
+  .visorNav:active:not(:disabled),
+  .visorCorazon:active { transform: none; }
+}
+
+.visorCuenta {
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--color-night-text) 70%, transparent);
+}
+
+.visorNota {
+  display: grid;
+  gap: var(--space-0);
+}
+.visorNota .commentLabel {
+  color: color-mix(in srgb, var(--color-night-text) 70%, transparent);
+}
+.visorNota .commentInput {
+  background: color-mix(in srgb, var(--color-night-text) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-night-text) 30%, transparent);
+  color: var(--color-night-text);
+}
+.visorNota .commentInput::placeholder {
+  color: color-mix(in srgb, var(--color-night-text) 50%, transparent);
+}
+
 @media (max-width: 700px) {
   .grid {
     grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
@@ -375,5 +648,14 @@
   }
   .submitButton {
     width: 100%;
+  }
+  /* En un teléfono el visor tiene mucho menos alto: la foto cede sitio a los
+     controles en vez de empujarlos fuera de la pantalla. */
+  .lightboxImageWrap {
+    height: 58dvh;
+  }
+  .visorAcciones {
+    flex-direction: column;
+    gap: var(--space-0);
   }
 }

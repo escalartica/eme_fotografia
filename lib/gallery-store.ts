@@ -42,7 +42,20 @@ export interface SelectionItem {
 
 export interface Selection {
   items: SelectionItem[];
+  /** Cuándo la pareja pulsó «Enviar». Vacío mientras solo haya borrador. */
   submittedAt: string;
+  /** Cuándo se guardó por última vez, la enviaran o no. */
+  updatedAt?: string;
+  /**
+   * `true` mientras la pareja sigue marcando y no ha pulsado enviar.
+   *
+   * EXISTE PARA QUE EL GUARDADO AUTOMÁTICO NO MIENTA. La galería guarda sola
+   * cada pocos segundos --para que nadie pierda dos horas de trabajo por
+   * cerrar una pestaña--, y sin esta marca cada guardado silencioso habría
+   * aparecido en el panel del estudio como «selección enviada». Eme habría
+   * empezado a revelar con una lista a medias.
+   */
+  draft?: boolean;
 }
 
 const GALLERIES_DIR = path.join(process.cwd(), 'data', 'galleries');
@@ -200,12 +213,26 @@ export async function getSelection(slug: string): Promise<Selection | null> {
  * panel entonces dice «El cliente todavía no ha enviado su selección». El
  * estudio no ve un error, ve una pareja que no ha contestado.
  */
-export async function saveSelection(slug: string, items: SelectionItem[]): Promise<void> {
+export async function saveSelection(
+  slug: string,
+  items: SelectionItem[],
+  opciones: { borrador?: boolean } = {}
+): Promise<void> {
   const dir = galleryDir(slug);
   await fs.mkdir(dir, { recursive: true, mode: 0o700 });
+  const ahora = new Date().toISOString();
+  // Un borrador NO toca la fecha de envío: si la pareja ya envió una vez y
+  // luego vuelve a cambiar cosas sin enviar, el panel tiene que seguir
+  // diciendo cuándo fue el último envío de verdad.
+  const previa = opciones.borrador ? await getSelection(slug) : null;
   // Los comentarios del cliente sobre sus propias fotos de boda son suyos, no
   // del resto de cuentas del servidor: mismo 0o600 que meta.json.
-  const record: Selection = { items, submittedAt: new Date().toISOString() };
+  const record: Selection = {
+    items,
+    submittedAt: opciones.borrador ? (previa?.submittedAt ?? '') : ahora,
+    updatedAt: ahora,
+    draft: opciones.borrador === true,
+  };
   await escribirJsonAtomico(path.join(dir, 'selection.json'), record);
 }
 

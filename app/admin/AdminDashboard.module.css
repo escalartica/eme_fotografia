@@ -182,3 +182,16 @@
   color: var(--color-ink);
   border-color: var(--color-ink);
 }
+
+/* El tercer estado: la pareja está eligiendo ahora mismo. Ni el verde de
+   «terminado» ni el gris de «no ha pasado nada» -- es trabajo en marcha, y
+   se distingue por el filete de la izquierda además de por el color, que
+   solo no basta (WCAG 1.4.1). */
+.cardStatusProgress {
+  margin: var(--space-1) 0 0;
+  padding-inline-start: var(--space-1);
+  border-inline-start: 2px solid var(--color-accent);
+  font-size: var(--type-label);
+  line-height: 1.5;
+  color: var(--color-ink);
+}
