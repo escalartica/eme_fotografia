@@ -42,7 +42,9 @@ export default async function AdminGalleryDetailPage({ params }: { params: Promi
       shareUrl={shareUrl}
       photos={meta.photos}
       items={selection?.items ?? []}
-      submittedAt={selection?.submittedAt ?? null}
+      submittedAt={selection?.submittedAt || null}
+      enCurso={selection?.draft === true}
+      updatedAt={selection?.updatedAt ?? null}
     />
   );
 }

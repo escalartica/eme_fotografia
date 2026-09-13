@@ -172,3 +172,15 @@
   max-height: 85vh;
   display: block;
 }
+
+/* El estado intermedio: la pareja está eligiendo ahora mismo. Ni el de
+   «terminado» ni el de «no ha pasado nada», y se distingue por el filete
+   además de por el color -- el color solo no basta (WCAG 1.4.1). */
+.statusProgress {
+  margin: var(--space-1) 0 0;
+  padding-inline-start: var(--space-1);
+  border-inline-start: 2px solid var(--color-accent);
+  font-size: var(--type-label);
+  line-height: 1.6;
+  color: var(--color-ink);
+}

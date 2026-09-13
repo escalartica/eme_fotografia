@@ -6,6 +6,54 @@ import styles from './NewGalleryForm.module.css';
 
 const MAX_FILES = 60;
 const MAX_FILE_BYTES = 25 * 1024 * 1024;
+/**
+ * LO QUE ACEPTA NGINX DE UNA SOLA VEZ, y tiene que coincidir con
+ * `client_max_body_size` en docs/DESPLIEGUE.md §7.
+ *
+ * Importa porque quien lo supera NO ve un error de esta aplicación: ve una
+ * página 413 de nginx, en inglés y sin ninguna pista de qué hacer, después de
+ * haber estado subiendo varios minutos. Avisar antes de empezar cuesta una
+ * suma y ahorra esa subida entera.
+ */
+const LIMITE_SERVIDOR_BYTES = 64 * 1024 * 1024;
+
+function mb(bytes: number): string {
+  return `${(bytes / 1024 / 1024).toFixed(bytes > 10 * 1024 * 1024 ? 0 : 1)} MB`;
+}
+
+/**
+ * Sube con barra de progreso, que `fetch` todavía no sabe hacer.
+ *
+ * No es un adorno: cuarenta fotos de boda son varios cientos de megas y
+ * pueden tardar minutos. Con un botón que solo decía «Creando galería…», lo
+ * razonable desde el otro lado de la pantalla es pensar que se ha colgado,
+ * recargar, y perder la subida entera -- que es justo lo que no puede pasar
+ * cuando lo que se está subiendo es la boda de alguien.
+ */
+function subirConProgreso(
+  form: FormData,
+  alProgresar: (enviados: number, total: number) => void
+): Promise<{ ok: boolean; status: number; data: Record<string, unknown> | null }> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/admin/galerias');
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) alProgresar(e.loaded, e.total);
+    });
+    xhr.addEventListener('load', () => {
+      let data: Record<string, unknown> | null = null;
+      try {
+        data = JSON.parse(xhr.responseText) as Record<string, unknown>;
+      } catch {
+        // Un 413 de nginx llega como HTML, no como JSON. Que el `catch` lo
+        // deje en null es correcto: el mensaje lo pone quien llama.
+      }
+      resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, data });
+    });
+    xhr.addEventListener('error', () => reject(new Error('red')));
+    xhr.send(form);
+  });
+}
 const ALLOWED_TYPES = new Set(['image/webp', 'image/jpeg', 'image/png', 'image/avif']);
 const PASSWORD_ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789'; // no 0/O/1/l/i -- read aloud or typed from a note without ambiguity
 
@@ -52,6 +100,28 @@ interface StagedFile {
   previewUrl: string;
 }
 
+/** El texto que el estudio pega en WhatsApp. Escrito para que la pareja
+ *  entienda qué hay dentro y por qué merece la pena entrar, no solo para
+ *  entregarle tres datos. */
+function mensajeParaLaPareja(g: { clientName: string; shareUrl: string; username: string; password: string }): string {
+  return [
+    `Hola, ${g.clientName}:`,
+    '',
+    'Ya tenéis lista vuestra galería privada. Este enlace es solo vuestro:',
+    '',
+    g.shareUrl,
+    `Usuario: ${g.username}`,
+    `Contraseña: ${g.password}`,
+    '',
+    'Dentro podéis marcar con el corazón las fotos que más os gusten y dejarnos una nota en cualquiera',
+    'de ellas: lo que nos contéis es lo que usamos para preparar el álbum. Se guarda solo mientras vais',
+    'marcando, así que podéis tomároslo con calma y volver cuando queráis.',
+    '',
+    'Cualquier cosa, nos decís.',
+    'EME Fotografía Sevilla',
+  ].join('\n');
+}
+
 interface CreatedGallery {
   slug: string;
   clientName: string;
@@ -76,6 +146,7 @@ export function NewGalleryForm() {
   const [username, setUsername] = useState('');
   const [usernameTouched, setUsernameTouched] = useState(false);
   const [password, setPassword] = useState('');
+  const [progreso, setProgreso] = useState<{ enviados: number; total: number } | null>(null);
   const [showPassword, setShowPassword] = useState(true);
   const [files, setFiles] = useState<StagedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -108,6 +179,8 @@ export function NewGalleryForm() {
   const shareOrigin = useSyncExternalStore(subscribeNever, getOriginSnapshot, getServerOriginSnapshot);
 
   const effectiveSlug = slugTouched ? slug : slugify(clientName);
+  const pesoTotal = files.reduce((suma, f) => suma + f.file.size, 0);
+  const sePasaDelLimite = pesoTotal > LIMITE_SERVIDOR_BYTES;
   const effectiveUsername = usernameTouched ? username : usernameSuggestion(clientName);
 
   function addFiles(list: FileList | File[]) {
@@ -166,6 +239,7 @@ export function NewGalleryForm() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    setProgreso(null);
 
     if (!clientName.trim()) { setError('Indica el nombre del cliente.'); return; }
     if (!effectiveSlug.trim()) { setError('Indica el enlace de la galería.'); return; }
@@ -183,23 +257,38 @@ export function NewGalleryForm() {
       form.set('password', password);
       for (const staged of files) form.append('photos', staged.file);
 
-      const res = await fetch('/api/admin/galerias', { method: 'POST', body: form });
-      const data = await res.json().catch(() => null);
+      const res = await subirConProgreso(form, (enviados, total) => setProgreso({ enviados, total }));
+      const data = res.data;
       if (!res.ok) {
-        setError(data?.error ?? 'No se pudo crear la galería.');
+        if (res.status === 413) {
+          setError(
+            `El servidor no admite una subida tan grande de una vez (${mb(pesoTotal)}). ` +
+              'Crea la galería con una parte de las fotos y añade el resto en una segunda tanda.'
+          );
+        } else {
+          setError((data?.error as string) ?? 'No se pudo crear la galería.');
+        }
+        return;
+      }
+      // Una respuesta 2xx sin `slug` no debería existir, pero si llegara,
+      // seguir adelante dejaría a la vista un enlace roto para el cliente.
+      const slugCreado = typeof data?.slug === 'string' ? data.slug : '';
+      if (!slugCreado) {
+        setError('La galería se ha creado pero el servidor no ha devuelto su enlace. Míralo en el panel.');
         return;
       }
       setCreated({
-        slug: data.slug as string,
+        slug: slugCreado,
         clientName: clientName.trim(),
         username: effectiveUsername.trim(),
         password,
-        shareUrl: `${shareOrigin}/${data.slug}`,
+        shareUrl: `${shareOrigin}/${slugCreado}`,
       });
     } catch {
       setError('No se pudo conectar. Comprueba tu conexión e inténtalo de nuevo.');
     } finally {
       setIsSubmitting(false);
+      setProgreso(null);
     }
   }
 
@@ -245,6 +334,23 @@ export function NewGalleryForm() {
             </dd>
           </div>
         </dl>
+
+        {/* UN BOTÓN QUE COPIA EL MENSAJE ENTERO, no tres campos sueltos.
+            Lo que el estudio hace después de esta pantalla es abrir WhatsApp
+            y escribirle a la pareja; copiar tres cosas de una en una y
+            redactar el texto alrededor es el trabajo que esta pantalla puede
+            ahorrarle, y de paso el mensaje explica qué van a encontrar
+            dentro, que es lo que hace que entren. */}
+        <button
+          type="button"
+          className={styles.primaryButton}
+          onClick={() => copyValue('mensaje', mensajeParaLaPareja(created))}
+        >
+          {copiedField === 'mensaje' ? 'Mensaje copiado' : 'Copiar el mensaje para la pareja'}
+        </button>
+        <span className="sr-only" role="status">
+          {copiedField === 'mensaje' ? 'Mensaje copiado al portapapeles' : ''}
+        </span>
 
         <div className={styles.confirmActions}>
           <Link href={`/admin/galerias/${created.slug}`} className={styles.primaryButton}>
@@ -391,7 +497,18 @@ export function NewGalleryForm() {
 
         {files.length > 0 && (
           <>
-            <p className={styles.fileCount}>{files.length} foto{files.length === 1 ? '' : 's'} lista{files.length === 1 ? '' : 's'} para subir</p>
+            <p className={styles.fileCount}>
+              {files.length} foto{files.length === 1 ? '' : 's'} lista{files.length === 1 ? '' : 's'} para subir ·{' '}
+              {mb(pesoTotal)}
+            </p>
+            {/* El aviso llega ANTES de subir, no después de cinco minutos de
+                barra de progreso y un 413 en inglés. */}
+            {sePasaDelLimite && (
+              <p className={styles.avisoPeso} role="status">
+                Son más de {mb(LIMITE_SERVIDOR_BYTES)} y el servidor no admite tanto de una vez. Quita algunas y
+                súbelas en una segunda tanda; la galería se puede ampliar después.
+              </p>
+            )}
             <ul className={styles.previewGrid}>
               {files.map((staged) => (
                 <li key={staged.id} className={styles.previewItem}>
@@ -412,6 +529,25 @@ export function NewGalleryForm() {
       </div>
 
       {error && <p className={styles.error} role="alert">{error}</p>}
+
+      {progreso && (
+        <div className={styles.progreso}>
+          {/* `<progress>` nativo: el lector de pantalla lo anuncia solo y el
+              navegador lo pinta aunque falle el CSS. */}
+          <progress
+            className={styles.progresoBarra}
+            value={progreso.enviados}
+            max={progreso.total}
+            aria-label="Progreso de la subida"
+          />
+          <p className={styles.progresoTexto} aria-live="polite">
+            {progreso.enviados >= progreso.total
+              ? 'Fotos subidas. Preparando la galería…'
+              : `Subiendo… ${Math.round((progreso.enviados / progreso.total) * 100)} % · ${mb(progreso.enviados)} de ${mb(progreso.total)}`}
+          </p>
+          <p className={styles.progresoAviso}>No cierres esta pestaña hasta que termine.</p>
+        </div>
+      )}
 
       <div className={styles.actions}>
         <Link href="/admin" className={styles.secondaryButton}>Cancelar</Link>

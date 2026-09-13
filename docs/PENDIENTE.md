@@ -120,10 +120,21 @@ ese mismo día está en el historial; esto es lo que queda, por orden.
    máquina**, y dentro van los hashes de contraseña de cada galería, las fotos
    y los datos de las parejas. Poner `umask 077` al principio del script. De
    paso, excluir `data/galleries/*/derivados/`, que es caché regenerable.
-6. `client_max_body_size` de nginx (64 MB) contradice lo que la aplicación
-   anuncia (400 MB por galería): el fotógrafo recibe un 413 de nginx en vez
-   del mensaje cuidado de la aplicación. Decidir un número y ponerlo en los
-   dos sitios. Y añadir `proxy_set_header X-Forwarded-Host $host;`.
+6. **`client_max_body_size` de nginx sigue en 64 MB** y la aplicación anuncia
+   400 MB por galería. Mitigado el 13/09: el formulario ahora suma el peso de
+   las fotos, avisa ANTES de subir si se pasa de 64 MB y traduce el 413 de
+   nginx a un mensaje que dice qué hacer. Pero el arreglo de verdad es subir
+   el límite de nginx, porque cuarenta fotos de boda pasan de 64 MB sin
+   esfuerzo y partir la subida en dos tandas es una molestia recurrente:
+
+   ```
+   # /etc/nginx/sites-available/eme, dentro del server
+   client_max_body_size 420M;
+   ```
+   Y después `nginx -t && systemctl reload nginx`. Si se cambia, hay que
+   cambiar también `LIMITE_SERVIDOR_BYTES` en
+   app/admin/galerias/nueva/NewGalleryForm.tsx, que es de donde sale el aviso.
+   Añadir de paso `proxy_set_header X-Forwarded-Host $host;`.
 
 **Maquetación (nadie se ha quejado todavía, pero está medido):**
 

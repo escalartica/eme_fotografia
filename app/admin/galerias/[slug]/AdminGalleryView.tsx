@@ -18,6 +18,9 @@ interface Props {
   photos: GalleryPhoto[];
   items: SelectionItem[];
   submittedAt: string | null;
+  /** La pareja está marcando pero todavía no ha pulsado enviar. */
+  enCurso: boolean;
+  updatedAt: string | null;
 }
 
 /**
@@ -30,7 +33,7 @@ interface Props {
  * collapsible one) keeps "what a liked photo looks like" consistent
  * between the two people looking at the same gallery.
  */
-export function AdminGalleryView({ slug, clientName, weddingDate, username, shareUrl, photos, items, submittedAt }: Props) {
+export function AdminGalleryView({ slug, clientName, weddingDate, username, shareUrl, photos, items, submittedAt, enCurso, updatedAt }: Props) {
   const [lightboxPhoto, setLightboxPhoto] = useState<GalleryPhoto | null>(null);
   const byId = new Map(items.map((it) => [it.photoId, it]));
   const likedCount = items.filter((it) => it.liked).length;
@@ -67,13 +70,24 @@ export function AdminGalleryView({ slug, clientName, weddingDate, username, shar
           cliente la ha perdido, ponle una nueva ahí abajo.
         </p>
 
+        {/* Tres estados, no dos: desde que la galería guarda sola mientras la
+            pareja marca, «está en ello» dejó de ser lo mismo que «no ha
+            empezado». Ver el comentario de `draft` en lib/gallery-store.ts. */}
         {submittedAt ? (
           <p className={styles.statusDone}>
             Selección recibida el {new Date(submittedAt).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })}
             {' · '}{likedCount} fotos seleccionadas · {commentCount} con nota
+            {enCurso && ' · siguen cambiándola'}
+          </p>
+        ) : enCurso ? (
+          <p className={styles.statusProgress}>
+            Están eligiendo ahora mismo: {likedCount} marcadas · {commentCount} con nota
+            {updatedAt &&
+              ` · última vez el ${new Date(updatedAt).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })}`}
+            . Espera a que la envíen antes de dar la lista por buena.
           </p>
         ) : (
-          <p className={styles.statusPending}>Tu cliente todavía no ha enviado su selección.</p>
+          <p className={styles.statusPending}>Tu cliente todavía no ha entrado a elegir.</p>
         )}
       </header>
 

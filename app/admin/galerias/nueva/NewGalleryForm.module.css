@@ -357,3 +357,57 @@
   gap: var(--space-2);
   flex-wrap: wrap;
 }
+
+/* ---------- la subida ---------- */
+
+/* El aviso de peso llega antes de subir nada: quien se pasa del límite de
+   nginx no ve un error de esta aplicación, ve una página 413 en inglés
+   después de varios minutos de barra. */
+.avisoPeso {
+  margin: var(--space-1) 0 0;
+  padding: var(--space-1);
+  border-inline-start: 2px solid var(--color-danger);
+  font-size: var(--type-label);
+  line-height: 1.5;
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-danger) 6%, transparent);
+}
+
+.progreso {
+  display: grid;
+  gap: var(--space-0);
+  margin-block-start: var(--space-2);
+}
+/* `<progress>` nativo. Los navegadores lo pintan de formas distintas, así que
+   se le quita la apariencia del sistema y se le da la del sitio: un filete
+   que se llena de tinta. */
+.progresoBarra {
+  appearance: none;
+  width: 100%;
+  height: 0.4rem;
+  border: none;
+  background: var(--color-hairline);
+}
+.progresoBarra::-webkit-progress-bar {
+  background: var(--color-hairline);
+}
+.progresoBarra::-webkit-progress-value {
+  background: var(--color-accent);
+  transition: inline-size var(--duration-fast) linear;
+}
+.progresoBarra::-moz-progress-bar {
+  background: var(--color-accent);
+}
+.progresoTexto {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+.progresoAviso {
+  margin: 0;
+  font-size: var(--type-label);
+  color: var(--color-muted);
+}
