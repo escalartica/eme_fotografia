@@ -45,43 +45,34 @@ npx vitest run
 npm run pentest -- https://www.emefotografiasevilla.com
 ```
 
-### 4. Faltan fotos en cuatro reportajes — SOLO PUEDE HACERLO EL ESTUDIO
+### 4. ~~Faltan fotos en cuatro reportajes~~ — HECHO el 13/09/2026
 
-La mediana de los 30 reportajes publicados es de **18 fotos**. Estos cuatro se
-quedan muy por debajo y se nota al abrirlos:
+Las mandó el estudio por WeTransfer y quedaron en el disco duro externo, en
+`BODAS definitivas`. Los cinco reportajes cortos quedan así:
 
-| Reportaje | Fotos | Faltan para la mediana |
+| Reportaje | Antes | Ahora |
 |---|---|---|
-| `rocio-y-juanje` | 3 | 15 |
-| `maria-y-francisco-manuel` | 5 | 13 |
-| `marta-y-alvaro` | 7 | 11 |
-| `andrea-y-enrique` | 9 | 9 |
+| Rocío y Juanje | 3 | 22 |
+| María y Francisco Manuel | 5 | 20 |
+| Marta y Álvaro | 7 | 21 |
+| Andrea y Enrique | 9 | 22 |
+| Andrea y Jesús | 10 | 22 |
 
-**Ya se ha buscado en todo lo que hay conectado, y no hay más. 12/09/2026.**
-Se recorrieron una a una: `development/eme_fotografia/fotos eme/`, el DISCO
-DURO entero (BODAS DEFINITIVAS, PRE BODAS DEFINITIVAS, WEB-EME 26) y la
-tarjeta EOS_DIGITAL. Resultados:
+Todas pasadas por `scripts/grade-photos.py` (el mismo etalonado que el resto
+del sitio), a 2560 px de lado largo y webp de calidad 82. Cada una lleva su
+texto alternativo escrito mirando la foto, y un `focus` comprobado recortando
+la foto a la caja 4/5 en la que cae de verdad en la cuadrícula del reportaje.
 
-- Las siete carpetas de `fotos eme/` son EXACTAMENTE el origen de estas
-  galerías y están agotadas: 4 originales para Rocío y Juanje, 6 para María y
-  Francisco Manuel, 8 para Marta y Álvaro, 10 para Andrea y Enrique. Todos
-  publicados ya (comprobado foto a foto con huella perceptual, no por nombre
-  de fichero).
-- En «BODAS DEFINITIVAS» hay carpeta para diecisiete bodas, pero NINGUNA de
-  estas cuatro parejas.
-- La tarjeta EOS_DIGITAL tiene 485 RAW sin revelar (JD6A0001–0499) que no son
-  de ninguna boda publicada, más la carpeta «ISA YJOSE», de la que se
-  sacaron dos fotos más para esa galería.
+**Lo que enseñó hacerlo:** de doce fotos elegidas para Andrea y Jesús, cinco
+ya estaban en el reportaje con otro nombre de fichero. Antes de elegir hay que
+leerse los `alt` de lo que ya hay; mirar sólo los nombres de fichero no vale.
 
-O sea que esto NO es una tarea de desarrollo pendiente: hasta que el estudio
-no traiga más copias etalonadas de esas cuatro bodas, no hay nada que
-subir. No hace falta llegar a 18: con doce ya dejan de parecer fichas a medio
-hacer.
+Queda pendiente de estas mismas carpetas:
 
-Y un aviso para cuando lleguen: **no vale con mandar más fotogramas del mismo
-momento.** En la última revisión se descartaron cuatro candidatas por eso
-mismo --eran el mismo encuadre movido unos centímetros de fotos que ya
-estaban publicadas--, que es justo lo que el estudio pidió quitar.
+- **`maria-y-fran-by-n`**, el blanco y negro de María y Fran.
+- **`NUEVA. PRE BODA HUELVA ANGELICA`**: 8 JPG y 6 RAW que no se pueden abrir
+  aquí. Falta el **nombre completo de la pareja** y la **fecha** para poder
+  crear el reportaje.
 
 ### 4 bis. Lo que dejaron las dos auditorías del 12/09/2026 — desarrollo
 

@@ -17,8 +17,15 @@ import { motivoPasswordDebil } from '@/lib/gallery-credentials';
 import { getAdminSession } from '@/lib/auth/require-session';
 import { isSameOriginRequest } from '@/lib/auth/origin-check';
 
-const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25MB por foto
-const MAX_FILES = 60;
+// 60 MB por foto: lo normal es que lleguen encogidas a unos 600 KB desde el
+// navegador (lib/reducir-foto.ts), pero si ese paso falla --un navegador
+// viejo, un canvas sin memoria-- sube el original, y rechazarlo aquí sería
+// castigar a quien menos culpa tiene. El techo de píxeles (MAX_PIXELES) es el
+// que protege la memoria de verdad.
+const MAX_FILE_BYTES = 60 * 1024 * 1024;
+/** Una boda entera de una vez. Tiene que coincidir con el mismo tope del
+ *  formulario (app/admin/galerias/nueva/NewGalleryForm.tsx). */
+const MAX_FILES = 200;
 // Tope del conjunto, no solo de cada fichero: 60 x 25MB serían 1,5 GB en una
 // sola petición, suficiente para llenar el disco del servidor de una tacada.
 const MAX_TOTAL_BYTES = 400 * 1024 * 1024; // 400MB por galería

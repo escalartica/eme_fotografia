@@ -44,6 +44,44 @@
   .overlay { transition: none; }
 }
 
+/* LA X, ARRIBA A LA DERECHA, donde estaba el botón de la cabecera. Con
+   texto además del aspa: un aspa suelta es un jeroglífico, y aquí no falta
+   sitio. Va en el hueco que el `padding-top` del panel ya reservaba para la
+   barra fija, así que no empuja nada. */
+.cerrar {
+  /* `sticky` y no `absolute`: el panel es un contenedor de scroll, y con
+     `absolute` la X se iba hacia arriba en cuanto la lista se movía un poco.
+     Pegada, se queda donde se la busca. */
+  /* Arriba del todo aunque en el marcado vaya la última (ver el comentario
+     del componente: es lo que mantiene la vuelta del tabulador dentro del
+     panel). */
+  order: -1;
+  position: sticky;
+  top: 0;
+  align-self: flex-end;
+  margin-block-start: calc(var(--space-2) * -1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: 2.75rem;
+  padding-inline: var(--space-1);
+  background: none;
+  border: none;
+  color: color-mix(in srgb, var(--color-night-text) 70%, transparent);
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cerrar:hover { color: var(--color-night-text); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cerrar { transition: none; }
+}
+
 /* La lista OCUPA lo que hay, en vez de quedarse centrada en mitad de un
    panel alto. Antes era `align-items: center` sobre un `flex: 1`: en un
    teléfono de 844 px eso dejaba un agujero de más de 150 px entre la barra y
@@ -268,4 +306,25 @@
 .overlay :focus-visible {
   outline: 2px solid var(--color-night-text);
   outline-offset: -3px;
+}
+
+/* LAS CINCO FILAS NO LLEVAN CAJA.
+   Una fila ocupa el ancho entero del panel y mide más de 100 px de alto: un
+   rectángulo de 2 px alrededor de eso no se lee como «aquí está el foco», se
+   lee como que algo se ha roto -- y es lo que el estudio vio al abrir el menú
+   con el dedo, porque Chrome en Android trata el `focus()` que hace la trampa
+   de foco al abrir como si fuera foco de teclado.
+
+   En su lugar, el rótulo se subraya. Cambia el contraste de la propia letra,
+   que es lo que pide WCAG 2.4.11, se suma al desplazamiento que ya había, y
+   se parece a lo que hace el resto del sitio con sus enlaces. La caja se
+   queda para la X y para los enlaces del pie, que son pequeños y donde un
+   recuadro sí dice lo que tiene que decir. */
+.row:focus-visible {
+  outline: none;
+}
+.row:focus-visible .label {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.14em;
 }

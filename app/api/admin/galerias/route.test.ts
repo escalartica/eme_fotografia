@@ -170,8 +170,11 @@ describe('POST /api/admin/galerias', () => {
 
   it('rejects more photos than the per-gallery cap', async () => {
     await conSesionDeAdmin();
+    // Uno por encima del tope de la ruta (MAX_FILES), que subió de 60 a 200
+    // el 13/09/2026: desde que el formulario encoge las fotos en el navegador
+    // (lib/reducir-foto.ts), una boda entera cabe en un solo envío.
     const demasiadas = Array.from(
-      { length: 61 },
+      { length: 201 },
       (_, i): [string, Bytes, string] => [`foto-${i}.jpg`, JPG, 'image/jpeg']
     );
     const res = await route.POST(alta({}, demasiadas));

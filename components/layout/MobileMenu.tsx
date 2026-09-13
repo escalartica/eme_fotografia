@@ -9,6 +9,7 @@ import { motion } from '@/lib/motion-tokens';
 import { site } from '@/content/site';
 import { ATRIBUTO_CAPA } from '@/lib/hooks/useCapaCompleta';
 import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
+import { CloseIcon } from '@/components/ui/Icon';
 import styles from './MobileMenu.module.css';
 
 // Numbered index, the device danieleandmarilia.com uses for its overlay
@@ -42,6 +43,9 @@ const REDES = [
  * más largo de los dos caminos.
  */
 const SALIDA_MS = 340;
+
+/** Lo que hay que arrastrar hacia abajo para que el panel se cierre. */
+const UMBRAL_CIERRE = 60;
 
 
 export function MobileMenu({
@@ -169,6 +173,52 @@ export function MobileMenu({
       document.body.style.overflowY = previous;
     };
   }, [montado]);
+
+  /**
+   * CERRAR TIRANDO HACIA ABAJO, como se cierra cualquier hoja en un móvil.
+   *
+   * Sólo cuando el panel ya está arriba del todo (`scrollTop <= 0`): si no,
+   * el mismo gesto es el que sirve para subir por la lista, y el menú se
+   * cerraría cada vez que alguien quisiera volver al principio.
+   *
+   * El umbral son 60 px para que un roce no lo cierre. Y `wheel` además del
+   * tacto, que en un portátil con trackpad el gesto es el mismo.
+   */
+  useEffect(() => {
+    if (!montado || closing) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    let empezoEn: number | null = null;
+
+    const alEmpezar = (e: TouchEvent) => {
+      empezoEn = panel.scrollTop <= 0 ? e.touches[0].clientY : null;
+    };
+    const alMover = (e: TouchEvent) => {
+      if (empezoEn === null) return;
+      if (e.touches[0].clientY - empezoEn > UMBRAL_CIERRE) {
+        empezoEn = null;
+        onClose();
+      }
+    };
+    const alSoltar = () => {
+      empezoEn = null;
+    };
+    const alRodar = (e: WheelEvent) => {
+      if (panel.scrollTop <= 0 && e.deltaY < -UMBRAL_CIERRE) onClose();
+    };
+
+    panel.addEventListener('touchstart', alEmpezar, { passive: true });
+    panel.addEventListener('touchmove', alMover, { passive: true });
+    panel.addEventListener('touchend', alSoltar, { passive: true });
+    panel.addEventListener('wheel', alRodar, { passive: true });
+    return () => {
+      panel.removeEventListener('touchstart', alEmpezar);
+      panel.removeEventListener('touchmove', alMover);
+      panel.removeEventListener('touchend', alSoltar);
+      panel.removeEventListener('wheel', alRodar);
+    };
+  }, [montado, closing, onClose]);
 
   // AVISA AL RESTO DEL SITIO DE QUE HAY UNA CAPA A PANTALLA COMPLETA.
   // Lo leen el botón de WhatsApp, el de volver arriba y el aviso de cookies
@@ -345,6 +395,24 @@ export function MobileMenu({
           ))}
         </ul>
       </div>
+
+      {/* LA X VA DENTRO DEL PANEL, Y LA ÚLTIMA DEL MARCADO.
+
+          Dentro, porque el botón de la cabecera dejó de servir cuando el
+          panel pasó a colgar del <body>: la cabecera crea su propio contexto
+          de apilamiento con z-index 50, así que su botón --por mucho 101 que
+          se le ponga-- queda por debajo de este telón. El menú se abría y ya
+          no había manera de cerrarlo salvo con el botón atrás del navegador.
+
+          La última del marcado, y arriba del todo con `order: -1`, porque
+          `focus-trap` da la vuelta al llegar al FINAL de la lista: con la X
+          de primer elemento enfocable, esa vuelta acababa en el cuerpo del
+          documento en vez de dentro del panel. Así la primera parada del
+          tabulador sigue siendo «Inicio», como siempre. */}
+      <button type="button" className={styles.cerrar} onClick={onClose}>
+        <CloseIcon size={14} />
+        Cerrar
+      </button>
     </div>,
     document.body
   );

@@ -100,6 +100,18 @@ body {
 
 /* The scrollbar is chrome the page cannot opt out of, so it may as well
    belong to the palette. Firefox first, then the WebKit/Blink pseudos. */
+/* `hidden` TIENE QUE GANAR SIEMPRE.
+   El `display: none` que el navegador le da a `[hidden]` viene de su hoja de
+   usuario, con la especificidad más baja que existe: cualquier `.clase { display: … }`
+   del sitio lo pisa. Eso es lo que dejaba el botón de WhatsApp y el de volver
+   arriba pintados POR ENCIMA del menú a pantalla completa --los dos se
+   esconden poniéndose `hidden` desde React-- y a la vista incluso cuando el
+   de volver arriba no tocaba. Una regla y deja de haber dos maneras de
+   esconder algo. */
+[hidden] {
+  display: none !important;
+}
+
 html {
   scrollbar-width: thin;
   scrollbar-color: rgba(var(--color-ink-rgb), 0.28) transparent;

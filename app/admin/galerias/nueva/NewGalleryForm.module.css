@@ -415,6 +415,14 @@
 /* ---------- lo que se vio en el primer uso real, desde un móvil ---------- */
 
 /* La nota bajo la contraseña: explica por qué viene rellenada sin gritar. */
+/* Lo que va a pasar con las fotos, dicho antes de que pase. */
+.notaPeso {
+  margin: var(--space-1) 0 0;
+  font-size: var(--type-label);
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+
 .ayudaCampo {
   margin: 0; /* el hueco lo pone el gap de .field */
   font-size: var(--type-label);

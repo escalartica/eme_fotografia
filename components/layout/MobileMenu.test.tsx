@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MobileMenu } from './MobileMenu';
 
@@ -31,9 +31,59 @@ describe('MobileMenu', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  /**
+   * EL FOCO VA AL PANEL, NO AL PRIMER ENLACE.
+   *
+   * Lo enfocaba `focus-trap` por defecto, y Chrome en Android trata ese
+   * `focus()` como foco de teclado: al abrir el menú con el dedo aparecía un
+   * rectángulo blanco de 2 px alrededor de «Inicio». El estudio lo vio en su
+   * teléfono y lo describió como que el desplegable «se ve mal».
+   *
+   * Enfocar el propio diálogo es además lo que recomienda la guía de ARIA
+   * para este patrón: el lector de pantalla anuncia el diálogo y su nombre,
+   * y el anillo aparece cuando alguien tabula, que es cuando sirve.
+   */
+  /**
+   * CERRAR TIRANDO HACIA ABAJO, que es como se cierra cualquier hoja en un
+   * móvil, y lo que el estudio pidió después de ver que el panel se abría sin
+   * salida visible.
+   */
+  it('se cierra al arrastrar hacia abajo desde arriba del panel', () => {
+    const onClose = vi.fn();
+    render(<MobileMenu isOpen onClose={onClose} />);
+    const panel = screen.getByRole('dialog');
+
+    fireEvent.touchStart(panel, { touches: [{ clientY: 100 }] });
+    fireEvent.touchMove(panel, { touches: [{ clientY: 180 }] });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  /** Un roce no cuenta: sin umbral, el menú se cerraría solo al intentar
+   *  bajar por la lista. */
+  it('un arrastre corto no lo cierra', () => {
+    const onClose = vi.fn();
+    render(<MobileMenu isOpen onClose={onClose} />);
+    const panel = screen.getByRole('dialog');
+
+    fireEvent.touchStart(panel, { touches: [{ clientY: 100 }] });
+    fireEvent.touchMove(panel, { touches: [{ clientY: 130 }] });
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it('pone el foco en el primer enlace del menú al abrirse', () => {
     render(<MobileMenu isOpen onClose={vi.fn()} />);
     expect(screen.getByRole('link', { name: 'Inicio' })).toHaveFocus();
+  });
+
+  /** Sin una salida visible, el panel se abría y ya no había forma de
+   *  cerrarlo: el botón de la cabecera queda por debajo de este telón desde
+   *  que cuelga del <body>. */
+  it('lleva una X dentro del panel que cierra el menú', async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    render(<MobileMenu isOpen onClose={onClose} />);
+    await user.click(screen.getByRole('button', { name: /cerrar/i }));
+    expect(onClose).toHaveBeenCalled();
   });
 
   /**
@@ -65,7 +115,10 @@ describe('MobileMenu', () => {
     // foco tiene que dar la vuelta en vez de salirse por el final.
     for (let i = 0; i <= links.length; i++) {
       await user.tab();
-      expect(panel).toContainElement(document.activeElement as HTMLElement);
+      // El propio panel cuenta: es donde empieza el foco al abrirse, y
+      // `toContainElement` no considera que un elemento se contenga a sí
+      // mismo.
+      expect(panel.contains(document.activeElement)).toBe(true);
     }
     expect(screen.getByText('Outside link before')).not.toHaveFocus();
     expect(screen.getByText('Outside link after')).not.toHaveFocus();

@@ -475,7 +475,7 @@ server {
     server_name emefotografiasevilla.com www.emefotografiasevilla.com;
 
     # Las fotos de boda pesan. Sin esto, subir una galería da un 413.
-    client_max_body_size 64M;
+    client_max_body_size 420M;
 
     location / {
         proxy_pass http://127.0.0.1:3000;
