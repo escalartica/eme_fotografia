@@ -6,7 +6,16 @@ import 'next/server';
 import { createTempDataRoot } from '@/lib/test-helpers/temp-data-root';
 import { CLIENT_COOKIE, ADMIN_COOKIE } from '@/lib/auth/cookies';
 
-const mocks = vi.hoisted(() => ({ jar: {} as Record<string, string> }));
+const mocks = vi.hoisted(() => ({
+  jar: {} as Record<string, string>,
+  avisar: vi.fn(async (_datos: { favoritas: number; conNota: number; total: number; panelUrl: string; clientName: string }) => ({ id: 'x' })),
+}));
+// El aviso por correo, sin abrir un socket: lo que se comprueba aquí es
+// CUÁNDO se manda, no qué pone (eso está en lib/mail.test.ts).
+vi.mock('@/lib/mail', () => ({
+  isMailConfigured: () => true,
+  avisarDeSeleccion: mocks.avisar,
+}));
 vi.mock('next/headers', () => ({
   cookies: async () => ({
     get: (name: string) => (mocks.jar[name] === undefined ? undefined : { name, value: mocks.jar[name] }),
@@ -47,6 +56,7 @@ async function crearGaleria(slug: string, photoIds: string[]): Promise<void> {
 
 beforeEach(async () => {
   mocks.jar = {};
+  mocks.avisar.mockClear();
   await crearGaleria(ANA, ['foto-1', 'foto-2']);
   await crearGaleria(EVA, ['eva-1']);
 });
@@ -188,6 +198,56 @@ describe('POST /api/galeria/[slug]/seleccion', () => {
     const item = (await store.getSelection(ANA))!.items[0];
     expect(item.liked).toBe(false);
     expect(item.comment).toBe('');
+  });
+
+  /**
+   * EL AVISO NO PUEDE SER UN AMPLIFICADOR. El limitador de la ruta permite
+   * 240 escrituras cada diez minutos --tiene que permitirlas: cada corazón
+   * que marca una pareja acaba en una--, y un correo por cada envío
+   * definitivo son 240 correos en diez minutos al buzón del estudio,
+   * disparables por cualquiera que tenga el enlace y la contraseña. Suficiente
+   * para quemar la cuota del proveedor y, con ella, el formulario de
+   * contacto.
+   *
+   * Sin mala intención tampoco hace falta: quien pulsa «Enviar» tres veces
+   * porque no vio la confirmación mandaría tres.
+   */
+  it('avisa al estudio del primer envío, y no de los tres clics siguientes', async () => {
+    await sesionDe(ANA);
+    const cuerpo = { items: [{ photoId: 'foto-1', liked: true, comment: '' }] };
+
+    for (let i = 0; i < 4; i += 1) {
+      const res = await route.POST(enviar(cuerpo), ctx());
+      expect(res.status).toBe(200);
+    }
+
+    expect(mocks.avisar).toHaveBeenCalledTimes(1);
+    const datos = mocks.avisar.mock.calls[0][0];
+    expect(datos.favoritas).toBe(1);
+    expect(datos.total).toBe(2);
+    expect(datos.panelUrl).toContain(`/admin/galerias/${ANA}`);
+  });
+
+  /** El guardado automático manda un borrador cada pocos segundos mientras la
+   *  pareja marca. Si cada uno avisara, el buzón quedaría enterrado. */
+  it('no avisa de los borradores del guardado automático', async () => {
+    await sesionDe(ANA);
+    for (let i = 0; i < 5; i += 1) {
+      await route.POST(enviar({ borrador: true, items: [{ photoId: 'foto-1', liked: true, comment: '' }] }), ctx());
+    }
+    expect(mocks.avisar).not.toHaveBeenCalled();
+  });
+
+  /** Y el correo no puede tumbar el envío: la selección ya está en disco. */
+  it('si el correo falla, la selección se guarda igual', async () => {
+    await sesionDe(ANA);
+    mocks.avisar.mockRejectedValueOnce(new Error('el servidor de correo no responde'));
+
+    const res = await route.POST(enviar({ items: [{ photoId: 'foto-1', liked: true, comment: '' }] }), ctx());
+    expect(res.status).toBe(200);
+
+    const guardada = await store.getSelection(ANA);
+    expect(guardada!.items).toHaveLength(1);
   });
 
   it('replaces the previous submission when the client changes their mind', async () => {

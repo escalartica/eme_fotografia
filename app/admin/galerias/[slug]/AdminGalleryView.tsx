@@ -39,6 +39,7 @@ export function AdminGalleryView({ slug, clientName, weddingDate, username, shar
   const [lightboxPhoto, setLightboxPhoto] = useState<GalleryPhoto | null>(null);
   const [filtro, setFiltro] = useState<Filtro>('todas');
   const [copiado, setCopiado] = useState(false);
+  const [nombresALaVista, setNombresALaVista] = useState<string | null>(null);
   const byId = new Map(items.map((it) => [it.photoId, it]));
   const likedCount = items.filter((it) => it.liked).length;
   const commentCount = items.filter((it) => it.comment.trim().length > 0).length;
@@ -68,13 +69,18 @@ export function AdminGalleryView({ slug, clientName, weddingDate, username, shar
    */
   async function copiarNombres() {
     const nombres = photos.filter((p) => byId.get(p.id)?.liked).map((p) => p.filename).join('\n');
+    setNombresALaVista(null);
     try {
       await navigator.clipboard.writeText(nombres);
       setCopiado(true);
       window.setTimeout(() => setCopiado(false), 1800);
     } catch {
-      // El portapapeles puede no estar disponible (contexto no seguro). No es
-      // la única forma de llegar a los nombres: están en la propia lista.
+      // El portapapeles puede no estar disponible (un contexto no seguro, un
+      // navegador viejo). Callarse era lo peor: el botón no cambiaba, y desde
+      // el otro lado eso se lee como «no le he dado bien» y se vuelve a
+      // pulsar. Si no se puede copiar, al menos se enseñan para copiarlos a
+      // mano -- la cuadrícula tiene fotos, no nombres de fichero.
+      setNombresALaVista(nombres);
     }
   }
 
@@ -163,14 +169,20 @@ export function AdminGalleryView({ slug, clientName, weddingDate, username, shar
             )}
           </div>
 
+          {/* El propio texto del botón es el acuse: cambiarlo ya lo anuncia un
+              lector de pantalla. Con una región viva además, lo decía dos
+              veces. */}
           {likedCount > 0 && (
             <button type="button" className={styles.copiarNombres} onClick={copiarNombres}>
               {copiado ? 'Nombres copiados' : 'Copiar los nombres de las marcadas'}
             </button>
           )}
-          <span className="sr-only" role="status">
-            {copiado ? 'Nombres de fichero copiados al portapapeles' : ''}
-          </span>
+          {nombresALaVista && (
+            <label className={styles.nombresSueltos}>
+              Tu navegador no nos ha dejado copiarlos. Aquí los tienes:
+              <textarea readOnly rows={4} value={nombresALaVista} />
+            </label>
+          )}
         </div>
       )}
 

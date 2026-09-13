@@ -213,11 +213,19 @@ Host eme
 
 A partir de ahí se entra con `ssh eme`.
 
+**Y SIEMPRE CON `ssh eme`, NUNCA CON `ssh root@LA_IP`.** No son lo mismo: el
+bloque de arriba lleva `IdentitiesOnly yes`, que significa «para este host,
+ofrece ESTA clave y ninguna otra», y ese bloque solo se aplica cuando se
+escribe el nombre `eme`. Con la IP a pelo, SSH no encuentra ninguna clave que
+ofrecer --si no hay una `id_ed25519` o `id_rsa`, que aquí no la hay-- y
+responde `Permission denied (publickey)`, que parece un problema del servidor
+y no lo es. Costó un despliegue entero el 13/09/2026.
+
 Ahora, **sin cerrar esa sesión**, abre una segunda terminal y comprueba que
 entras sin contraseña:
 
 ```bash
-ssh root@IP_DEL_SERVIDOR
+ssh eme
 ```
 
 Solo cuando la segunda entre sola, en el servidor:
@@ -526,7 +534,7 @@ DMARC del dominio) o los correos del formulario acabarán en spam.
 ```bash
 npm run build
 rsync -az --delete .next/ eme@IP:/var/www/eme/app/.next/
-ssh root@IP 'systemctl restart eme'
+ssh eme 'systemctl restart eme'
 ```
 
 Tiene que compilarse con la **misma versión de Node** que corre en el servidor.
@@ -606,14 +614,18 @@ systemctl restart eme
 
 ## 11. Actualizar la web
 
+Desde el Mac, de una sola vez (ver §4 sobre por qué `ssh eme` y no la IP):
+
 ```bash
+ssh eme 'bash -s' << 'REMOTO'
 sudo -u eme -H bash -c 'cd /var/www/eme/app \
   && git fetch --depth 1 origin worktree-eme-fotografia-build \
   && git reset --hard FETCH_HEAD \
   && npm ci \
   && npm run build \
-  && npm prune --omit=dev'
-systemctl restart eme
+  && npm prune --omit=dev' \
+  && systemctl restart eme && echo "--- LISTO ---"
+REMOTO
 ```
 
 **Dos cosas de este bloque que aquí estaban mal escritas y rompen el

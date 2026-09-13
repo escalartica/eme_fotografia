@@ -25,8 +25,11 @@ type Guardado = 'quieto' | 'guardando' | 'guardado' | 'fallo';
 const MINIMO_DESLIZAR = 48;
 
 const ESPERA_GUARDADO_MS = 1500;
-/** Lo que se espera antes de volver a intentar un guardado que ha fallado. */
+/** Lo que se espera antes de volver a intentar un guardado que ha fallado. Se
+ *  dobla con cada fallo seguido hasta el tope, para no martillear una red que
+ *  no está ni el limitador del servidor. */
 const REINTENTO_MS = 15_000;
+const REINTENTO_MAX_MS = 5 * 60_000;
 
 function initialState(photos: GalleryPhoto[], selection: Selection | null): Record<string, ItemState> {
   const byId = new Map((selection?.items ?? []).map((it) => [it.photoId, it]));
@@ -92,7 +95,7 @@ export function GalleryClient({
   const listaVisor = listaCongelada ?? visibles;
 
   const enviar = useCallback(
-    async (borrador: boolean) => {
+    async (borrador: boolean, signal?: AbortSignal) => {
       const body = {
         borrador,
         items: photos.map((p) => ({
@@ -105,10 +108,13 @@ export function GalleryClient({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        signal,
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        throw new Error(data?.error ?? 'No hemos podido guardar.');
+        // El estado viaja con el error: el reintento automático necesita
+        // saber si tiene sentido volver a intentarlo (ver más abajo).
+        throw Object.assign(new Error(data?.error ?? 'No hemos podido guardar.'), { status: res.status });
       }
     },
     [items, photos, slug]
@@ -140,26 +146,54 @@ export function GalleryClient({
      * intentar si la pareja tocaba algo más. Quien marcaba su última foto
      * justo cuando se cae el wifi perdía ese último cambio sin enterarse,
      * porque el texto le decía que estaba resuelto.
+     *
+     * Y UNA SOLA PETICIÓN EN VUELO. Marcar `cancelado` no bastaba: el `fetch`
+     * seguía vivo. Con una red lenta salían dos POST solapados con cuerpos
+     * distintos, el servidor escribe el último que LLEGA y no hay garantía de
+     * orden -- podía ganar el estado viejo, y la pantalla decía «Guardado»
+     * igual, porque el que se ignoraba era el otro.
      */
+    const control = new AbortController();
     let cancelado = false;
     let reintento: number | undefined;
+    let espera = REINTENTO_MS;
 
     const guardar = () => {
       setGuardado('guardando');
-      enviar(true)
+      enviar(true, control.signal)
         .then(() => {
           if (!cancelado) setGuardado('guardado');
         })
-        .catch(() => {
+        .catch((err: unknown) => {
           if (cancelado) return;
           setGuardado('fallo');
-          reintento = window.setTimeout(guardar, REINTENTO_MS);
+
+          /**
+           * ESPERA CRECIENTE, Y NO CONTRA UNA PUERTA CERRADA.
+           *
+           * Reintentar cada quince segundos para siempre son 240 peticiones
+           * al día desde una pestaña olvidada de fondo. Y si lo que devuelve
+           * el servidor es un 429 --su propio limitador-- insistir cada
+           * quince segundos no puede funcionar: sólo mantiene el cubo lleno
+           * y retrasa el momento en que vuelve a dejar pasar.
+           *
+           * Los 4xx que no son 408 ni 429 no se reintentan: un cuerpo que el
+           * servidor rechaza por su forma lo va a rechazar igual dentro de un
+           * minuto. El siguiente cambio de la pareja lo volverá a intentar.
+           */
+          const estado = (err as { status?: number } | null)?.status ?? 0;
+          const noVaAMejorar = estado >= 400 && estado < 500 && estado !== 408 && estado !== 429;
+          if (noVaAMejorar) return;
+
+          reintento = window.setTimeout(guardar, espera);
+          espera = Math.min(espera * 2, REINTENTO_MAX_MS);
         });
     };
 
     const t = window.setTimeout(guardar, ESPERA_GUARDADO_MS);
     return () => {
       cancelado = true;
+      control.abort();
       window.clearTimeout(t);
       if (reintento) window.clearTimeout(reintento);
     };
@@ -239,11 +273,21 @@ export function GalleryClient({
   const tacto = useRef<{ x: number; y: number } | null>(null);
 
   function alEmpezarElGesto(e: React.TouchEvent) {
+    // DOS DEDOS NO SON UN GESTO DE PASAR PÁGINA, son un zoom. Al levantarlos
+    // después de ampliar una foto, el desplazamiento del primero pasa de
+    // sobra los 48 px y el visor cambiaba de foto: justo cuando alguien
+    // acababa de acercarse a mirar una cara.
+    if (e.touches.length > 1) {
+      tacto.current = null;
+      return;
+    }
     const t = e.touches[0];
     tacto.current = { x: t.clientX, y: t.clientY };
   }
 
   function alTerminarElGesto(e: React.TouchEvent) {
+    // Si queda algún dedo en la pantalla, el gesto no ha terminado.
+    if (e.touches.length > 0) return;
     const inicio = tacto.current;
     tacto.current = null;
     if (!inicio || visorEn === null) return;
@@ -441,6 +485,10 @@ export function GalleryClient({
               className={styles.lightboxImageWrap}
               onTouchStart={alEmpezarElGesto}
               onTouchEnd={alTerminarElGesto}
+              // El sistema puede quedarse el gesto a medias (una llamada, el
+              // gesto de volver atrás del borde): sin esto, el punto de
+              // partida viejo se usaría en el siguiente toque.
+              onTouchCancel={() => { tacto.current = null; }}
             >
               <img {...srcSetVisor(slug, foto.filename)} alt={foto.alt} />
               {/* LA SIGUIENTE Y LA ANTERIOR, PEDIDAS YA. Son fotos de boda a

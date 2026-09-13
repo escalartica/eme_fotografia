@@ -86,9 +86,15 @@ function usernameSuggestion(value: string): string {
  * trae diez caracteres al azar solo pide copiarlos. El botón «Generar»
  * sigue estando para sacar otra, y el campo se puede sobrescribir.
  *
- * La primera se calcula una sola vez por carga y se guarda aquí fuera para
- * que getSnapshot devuelva siempre el mismo valor (si cambiara en cada
- * llamada, React entraría en un bucle de renders).
+ * La primera se calcula una sola vez y se guarda aquí fuera para que
+ * getSnapshot devuelva siempre el mismo valor (si cambiara en cada llamada,
+ * React entraría en un bucle de renders).
+ *
+ * Y SE TIRA EN CUANTO SE USA. Si no, dos galerías creadas seguidas sin
+ * recargar la página --volver al formulario desde la pantalla de
+ * confirmación, o con el botón atrás-- llegarían con la MISMA contraseña
+ * sugerida. Y como viene rellenada, nadie la mira: es justo el gesto que este
+ * campo relleno explota a su favor, vuelto en contra.
  */
 let passwordSugerida = '';
 function getPasswordSnapshot() {
@@ -296,6 +302,10 @@ export function NewGalleryForm() {
         setError('La galería se ha creado pero el servidor no ha devuelto su enlace. Míralo en el panel.');
         return;
       }
+      // La sugerida ya ha viajado a una galería: la siguiente tiene que ser
+      // otra. Ver el comentario de `passwordSugerida`.
+      passwordSugerida = '';
+
       setCreated({
         slug: slugCreado,
         clientName: clientName.trim(),

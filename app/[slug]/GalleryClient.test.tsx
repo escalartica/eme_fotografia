@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+
+/** Los mismos números que GalleryClient.tsx, aquí a la vista. */
+const ESPERA = 1500;
+const REINTENTO = 15_000;
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { GalleryPhoto, Selection } from '@/lib/gallery-store';
 
@@ -96,20 +100,115 @@ describe('GalleryClient', () => {
     expect(screen.getByText('1 foto favorita')).toBeInTheDocument();
   });
 
-  it('guarda solo un rato después de marcar, y como borrador', async () => {
-    const user = userEvent.setup();
-    pintar();
-    await user.click(screen.getAllByRole('button', { name: 'Me gusta esta foto' })[0]);
+  /**
+   * Con relojes falsos y no con una espera de cuatro segundos: el guardado
+   * automático es todo temporizadores, y esperarlos de verdad hace la prueba
+   * lenta y frágil justo en la máquina más cargada, que es la de integración.
+   */
+  describe('el guardado automático', () => {
+    function relojesFalsos() {
+      // `shouldAdvanceTime`: los relojes son falsos para poder saltar quince
+      // segundos de un tirón, pero siguen corriendo solos, que es lo que
+      // necesitan `userEvent` y React para no quedarse esperándose el uno al
+      // otro.
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      return userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    }
 
-    await vi.waitFor(
-      () => {
-        expect(fetch).toHaveBeenCalled();
-      },
-      { timeout: 4000 }
-    );
+    afterEach(() => {
+      vi.useRealTimers();
+    });
 
-    const [url, init] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toBe('/api/galeria/jesus-y-andrea/seleccion');
-    expect(JSON.parse(init.body).borrador).toBe(true);
+    async function pasan(ms: number) {
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(ms);
+      });
+    }
+
+    it('guarda un rato después de marcar, y como borrador', async () => {
+      const user = relojesFalsos();
+      const enviado = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
+      vi.stubGlobal('fetch', enviado);
+
+      pintar();
+      await user.click(screen.getAllByRole('button', { name: 'Me gusta esta foto' })[0]);
+      expect(enviado).not.toHaveBeenCalled();
+
+      await pasan(ESPERA + 10);
+      expect(enviado).toHaveBeenCalledTimes(1);
+
+      const [url, init] = enviado.mock.calls[0];
+      expect(url).toBe('/api/galeria/jesus-y-andrea/seleccion');
+      expect(JSON.parse(init.body).borrador).toBe(true);
+    });
+
+    /**
+     * LO QUE EL AVISO PROMETÍA Y NO HACÍA. Decía «lo reintentamos solo» y sólo
+     * se volvía a intentar si la pareja tocaba algo más: quien marcaba su
+     * última foto justo cuando se cae el wifi perdía ese cambio creyendo que
+     * estaba guardado.
+     */
+    it('si falla, lo reintenta solo', async () => {
+      const user = relojesFalsos();
+      const falla = vi.fn().mockRejectedValue(new Error('red'));
+      vi.stubGlobal('fetch', falla);
+
+      pintar();
+      await user.click(screen.getAllByRole('button', { name: 'Me gusta esta foto' })[0]);
+      await pasan(ESPERA + 10);
+      expect(falla).toHaveBeenCalledTimes(1);
+      expect(screen.getByText(/No hemos podido guardar/)).toBeInTheDocument();
+
+      await pasan(REINTENTO + 10);
+      expect(falla).toHaveBeenCalledTimes(2);
+    });
+
+    /**
+     * Y LA ESPERA CRECE. Reintentar cada quince segundos para siempre son
+     * doscientas y pico peticiones al día desde una pestaña olvidada de
+     * fondo, y contra un 429 --el limitador del propio servidor-- insistir
+     * sólo mantiene el cubo lleno.
+     */
+    it('cada reintento espera el doble que el anterior', async () => {
+      const user = relojesFalsos();
+      const falla = vi.fn().mockRejectedValue(new Error('red'));
+      vi.stubGlobal('fetch', falla);
+
+      pintar();
+      await user.click(screen.getAllByRole('button', { name: 'Me gusta esta foto' })[0]);
+      await pasan(ESPERA + 10);
+      await pasan(REINTENTO + 10);
+      expect(falla).toHaveBeenCalledTimes(2);
+
+      // A los quince segundos del segundo fallo todavía no toca: ahora son
+      // treinta.
+      await pasan(REINTENTO + 10);
+      expect(falla).toHaveBeenCalledTimes(2);
+
+      await pasan(REINTENTO);
+      expect(falla).toHaveBeenCalledTimes(3);
+    });
+
+    /**
+     * Un cuerpo que el servidor rechaza por su forma lo va a rechazar igual
+     * dentro de un minuto: insistir sólo gasta batería y datos.
+     */
+    it('no reintenta lo que el servidor ha rechazado por mal formado', async () => {
+      const user = relojesFalsos();
+      const rechaza = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({ error: 'Formato de selección no válido.' }),
+      });
+      vi.stubGlobal('fetch', rechaza);
+
+      pintar();
+      await user.click(screen.getAllByRole('button', { name: 'Me gusta esta foto' })[0]);
+      await pasan(ESPERA + 10);
+      expect(rechaza).toHaveBeenCalledTimes(1);
+
+      await pasan(REINTENTO * 4);
+      expect(rechaza).toHaveBeenCalledTimes(1);
+    });
   });
 });

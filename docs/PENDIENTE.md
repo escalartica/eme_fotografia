@@ -356,3 +356,55 @@ selección.
   error que luego aparece en el álbum.
 - `app/admin/galerias/[slug]/AdminGalleryView.test.tsx` es la primera prueba
   que tiene el panel.
+
+### 16. Lo que sacó la revisión de todo lo anterior — 13/09/2026
+
+Se pasó el diff entero por una revisión independiente. Lo que encontró, ya
+arreglado:
+
+1. **El aviso por correo era un amplificador.** El mismo cambio que subía el
+   limitador de selecciones de 30 a 240 cada diez minutos --que tenía que
+   subirlo: cada corazón que marca una pareja acaba en una petición-- añadía
+   un correo por cada envío. Juntos: 240 correos en diez minutos al buzón del
+   estudio, disparables por cualquiera con el enlace y la contraseña de una
+   galería, y suficiente para quemar la cuota del proveedor y con ella el
+   formulario de contacto. Ahora se avisa como mucho una vez por hora y por
+   galería, contado desde el último envío ya guardado (`AVISO_MIN_MS`). Tres
+   pruebas nuevas en la ruta.
+2. **El guardado automático no abortaba la petición anterior.** Con una red
+   lenta salían dos POST solapados con cuerpos distintos y podía ganar el
+   estado viejo, con la pantalla diciendo «Guardado». `AbortController`.
+3. **El reintento no crecía ni se rendía nunca**: 240 peticiones al día desde
+   una pestaña olvidada, y contra un 429 sólo mantenía el cubo lleno. Ahora
+   dobla la espera hasta cinco minutos y no reintenta un 4xx que no sea 408 o
+   429. Cuatro pruebas con relojes falsos.
+4. **La contraseña sugerida del panel se calculaba una vez por carga**: dos
+   galerías creadas seguidas sin recargar habrían compartido contraseña, y
+   como viene rellenada nadie la mira. Se tira en cuanto se usa.
+5. **Hacer pinch para ampliar una foto pasaba de foto** (el gesto tomaba el
+   primer dedo sin mirar cuántos había), y faltaba `onTouchCancel`. De paso,
+   `touch-action: pan-y` a secas desactivaba el zoom de dos dedos: ahora es
+   `pan-y pinch-zoom`.
+6. **El `max-height: 100%` del visor no hacía nada**: un porcentaje sólo se
+   resuelve contra un contenedor con altura definida, y `.content` sólo tiene
+   `max-height`. O sea que el scroll que arreglaba lo de la nota bajo el
+   teclado no existía. Ahora lleva el mismo `calc()` que `.content`.
+7. **Abrir el visor movía la página del fondo ~10 px** al quitarle la barra de
+   scroll. `scrollbar-gutter: stable` en la hoja global. Se notaba sobre todo
+   en las galerías públicas, donde el visor se abre una vez por foto.
+8. **El candado del scroll no contaba capas**: si dos coincidían, la primera
+   en cerrarse se lo devolvía a una página todavía tapada. `bloquearElScroll`
+   lleva un contador.
+9. El aviso de cookies y los dos botones flotantes se entienden ahora por el
+   mismo mecanismo que ya usaba el menú (un atributo en el `body` y un gancho)
+   en vez de por una regla de CSS aparte.
+10. **La prueba de privacidad del correo no podía fallar**: comprobaba que el
+    texto contuviera una frase. Ahora se le pasan notas de verdad y se
+    comprueba que NO salen. Y el nombre de la pareja se escapa en el HTML.
+11. **`generarPassword` no se validaba contra sus propias reglas.** Una vez
+    cada tres millones habría devuelto algo que el propio formulario rechaza.
+    Se revisa antes de entregar, y hay mil tiradas que lo comprueban.
+12. `ssh root@LA_IP` no es lo mismo que `ssh eme`: el `~/.ssh/config` del Mac
+    lleva `IdentitiesOnly yes`, así que con la IP a pelo SSH no tiene ninguna
+    clave que ofrecer. Corregido en `docs/DESPLIEGUE.md` §4 y §11, que es de
+    donde salía el comando equivocado.

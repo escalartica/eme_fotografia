@@ -21,14 +21,28 @@ export const MIN_PASSWORD_LENGTH = 10;
  *  a mano desde una nota, y esos cinco caracteres son los que se confunden. */
 const ALFABETO = 'abcdefghjkmnpqrstuvwxyz23456789';
 
-/** Diez caracteres al azar. `globalThis.crypto` existe igual en el navegador
- *  y en Node, así que esta función sirve en las dos pantallas del panel. */
+/**
+ * Diez caracteres al azar. `globalThis.crypto` existe igual en el navegador y
+ * en Node, así que esta función sirve en las dos pantallas del panel.
+ *
+ * SE COMPRUEBA CONTRA LAS MISMAS REGLAS QUE APLICA EL FORMULARIO. Con diez
+ * caracteres de un alfabeto de treinta y uno, salir con tres símbolos
+ * distintos o menos pasa una vez cada tres millones -- pero cuando pasa, lo
+ * que ve el estudio es su propio panel rechazando la contraseña que su propio
+ * panel acaba de proponerle, y eso no se entiende desde el otro lado de la
+ * pantalla. Volver a tirar los dados cuesta nada.
+ */
 export function generarPassword(): string {
-  const bytes = new Uint32Array(MIN_PASSWORD_LENGTH);
-  globalThis.crypto.getRandomValues(bytes);
-  let out = '';
-  for (const n of bytes) out += ALFABETO[n % ALFABETO.length];
-  return out;
+  for (let intento = 0; intento < 10; intento += 1) {
+    const bytes = new Uint32Array(MIN_PASSWORD_LENGTH);
+    globalThis.crypto.getRandomValues(bytes);
+    let out = '';
+    for (const n of bytes) out += ALFABETO[n % ALFABETO.length];
+    if (!motivoPasswordDebil(out)) return out;
+  }
+  // Diez intentos fallidos seguidos no puede pasar; si pasara, un error claro
+  // es mejor que devolver a ciegas algo que el formulario va a rechazar.
+  throw new Error('No se ha podido generar una contraseña.');
 }
 
 const SECUENCIAS = ['0123456789', 'abcdefghijklmnopqrstuvwxyz', 'qwertyuiop', 'asdfghjkl'];

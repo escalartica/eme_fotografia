@@ -371,9 +371,12 @@
   position: relative;
   width: 100%;
   height: 80vh;
-  /* El gesto horizontal es nuestro (pasar de foto); el vertical se lo queda
-     la página, que con el teclado abierto hay que poder subir hasta la nota. */
-  touch-action: pan-y;
+  /* El gesto horizontal es nuestro (pasar de foto); el vertical se lo queda la
+     página, que con el teclado abierto hay que poder subir hasta la nota. Y
+     `pinch-zoom` explícito: `pan-y` a secas se lleva por delante el zoom de
+     dos dedos, y acercarse a mirar una cara en una foto de su boda es de las
+     primeras cosas que va a hacer una pareja. */
+  touch-action: pan-y pinch-zoom;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -562,11 +565,19 @@
   gap: var(--space-1);
   width: 100%;
   color: var(--color-night-text);
-  /* Con el teclado abierto, un móvil deja unos 300 px de alto útiles: la
-     nota quedaba por debajo del borde y no había forma de llegar a ella. El
-     scroll va aquí y no en `.content` del visor, que recortaría el botón de
-     cerrar, anclado por fuera de esa caja. */
-  max-height: 100%;
+  /* Con el teclado abierto, un móvil deja unos 300 px de alto útiles: la nota
+     quedaba por debajo del borde y no había forma de llegar a ella. El scroll
+     va aquí y no en `.content` del visor, que recortaría el botón de cerrar,
+     anclado por fuera de esa caja.
+
+     EN UNIDADES DE PANTALLA, NO EN PORCENTAJE. `max-height: 100%` sólo se
+     resuelve si el contenedor tiene una altura definida, y `.content` sólo
+     tiene `max-height`: el porcentaje se computaba como `none` y este scroll
+     no llegaba a existir. El valor es el mismo que el de `.content` en
+     components/motion/Lightbox.module.css --el alto de la ventana menos el
+     margen del telón y el hueco del botón de cerrar-- y tiene que seguir
+     siéndolo. */
+  max-height: calc(100dvh - var(--space-3) * 2 - 3.5rem);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -672,10 +683,11 @@
 .visorNota .commentLabel {
   color: color-mix(in srgb, var(--color-night-text) 70%, transparent);
 }
-/* OPACO. Con un relleno al 8% se veía la página a través del texto que se
-   está escribiendo. */
+/* OPACO DE VERDAD. Con un relleno al 8% se veía la página a través del texto
+   que se está escribiendo. Y mezclar con `--color-scrim` tampoco valía: ese
+   token lleva su propio canal alfa y se hereda en la mezcla. Negro sólido. */
 .visorNota .commentInput {
-  background: color-mix(in srgb, var(--color-scrim) 88%, var(--color-night-text));
+  background: color-mix(in srgb, #000 88%, var(--color-night-text));
   border-color: color-mix(in srgb, var(--color-night-text) 30%, transparent);
   color: var(--color-night-text);
 }

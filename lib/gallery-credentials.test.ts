@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MIN_PASSWORD_LENGTH, mensajeParaLaPareja, motivoPasswordDebil } from './gallery-credentials';
+import { MIN_PASSWORD_LENGTH, generarPassword, mensajeParaLaPareja, motivoPasswordDebil } from './gallery-credentials';
 
 const EJEMPLO = {
   clientName: 'Jesús y Andrea',
@@ -28,6 +28,25 @@ describe('motivoPasswordDebil', () => {
 
   it('acepta una contraseña generada', () => {
     expect(motivoPasswordDebil('k7m3qr9tzb')).toBeNull();
+  });
+
+  /**
+   * LAS DOS MITADES TIENEN QUE ENCAJAR. Si el generador puede sacar algo que
+   * estas mismas reglas rechazan, lo que ve el estudio es su propio panel
+   * negándose a aceptar la contraseña que su propio panel acaba de
+   * proponerle, y eso no hay forma de entenderlo desde el otro lado.
+   *
+   * Mil tiradas: con diez caracteres de un alfabeto de treinta y uno, una
+   * mala sale una vez cada tres millones, así que esto no la va a encontrar
+   * por suerte -- lo que comprueba es que el generador no pueda devolverla,
+   * porque se revisa a sí mismo antes de entregarla.
+   */
+  it('todo lo que genera pasa sus propias reglas', () => {
+    for (let i = 0; i < 1000; i += 1) {
+      const generada = generarPassword();
+      expect(generada.length).toBe(MIN_PASSWORD_LENGTH);
+      expect(motivoPasswordDebil(generada), generada).toBeNull();
+    }
   });
 
   it('siempre dice qué hacer, no solo que está mal', () => {

@@ -130,11 +130,34 @@ describe('avisarDeSeleccion', () => {
    */
   it('manda los números, no lo que han escrito', async () => {
     const enviar = vi.fn<EnviarCorreo>().mockResolvedValue({ messageId: 'x' });
-    await avisarDeSeleccion(SELECCION, ENTORNO, enviar);
+    // Un objeto con notas dentro, como el que tendría a mano quien un día
+    // decida «ya que estamos, que se vean»: si alguien las pinta, esto falla.
+    const conNotas = {
+      ...SELECCION,
+      comentarios: ['Esta en blanco y negro', 'Aquí sale mi abuela, no puede faltar'],
+    };
+    await avisarDeSeleccion(conNotas, ENTORNO, enviar);
 
     const mensaje = enviar.mock.calls[0][0];
+    for (const parte of [mensaje.text, mensaje.html, mensaje.subject]) {
+      expect(parte).not.toContain('blanco y negro');
+      expect(parte).not.toContain('abuela');
+    }
     expect(mensaje.text).toContain('están ahí, no en este correo');
-    expect(mensaje.html).toContain('están en el panel, no en este correo');
+  });
+
+  /**
+   * El nombre lo escribe el estudio a mano en el panel, y de ahí sale un
+   * asunto y un HTML. Una comilla angular suelta no puede romper el mensaje.
+   */
+  it('escapa el nombre de la pareja en el HTML', async () => {
+    const enviar = vi.fn<EnviarCorreo>().mockResolvedValue({ messageId: 'x' });
+    await avisarDeSeleccion({ ...SELECCION, clientName: 'Ana & <script>Luis' }, ENTORNO, enviar);
+
+    const mensaje = enviar.mock.calls[0][0];
+    expect(mensaje.html).not.toContain('<script>');
+    expect(mensaje.html).toContain('&lt;script&gt;');
+    expect(mensaje.html).toContain('&amp;');
   });
 
   it('en singular cuando solo han marcado una', async () => {

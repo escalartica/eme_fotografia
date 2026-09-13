@@ -103,6 +103,11 @@ body {
 html {
   scrollbar-width: thin;
   scrollbar-color: rgba(var(--color-ink-rgb), 0.28) transparent;
+  /* EL HUECO DE LA BARRA SE QUEDA AUNQUE LA BARRA NO ESTÉ.
+     Abrir el visor de una galería bloquea el scroll del `body`, y sin esto la
+     barra desaparece, la página de debajo se ensancha sus diez píxeles y todo
+     el fondo salta -- al abrir y otra vez al cerrar, una vez por foto. */
+  scrollbar-gutter: stable;
 }
 ::-webkit-scrollbar {
   width: 10px;
