@@ -117,9 +117,11 @@ describe.each(services.map((s) => [s.slug, s] as const))('ServicioDetalle (%s)',
     const galeria = service.gallery ?? [];
     if (galeria.length < 2) return;
     const { container } = render(<ServicioDetalle service={service} />);
-    // Una por cada pieza de la galería: la del interludio más las del mural.
+    // Una por cada pieza de la galería, más la banda del medio cuando ésta
+    // es un clip: con `interludioVideo` no se levanta ninguna fotografía de
+    // la galería --el mural las lleva todas-- y la banda es una figura más.
     const figuras = container.querySelectorAll('figure');
-    expect(figuras).toHaveLength(galeria.length);
+    expect(figuras).toHaveLength(galeria.length + (service.interludioVideo ? 1 : 0));
     // Y ninguna de ellas vive dentro de un contenedor enfocable, que era el
     // apaño que necesitaba la tira para que el teclado pudiera recorrerla.
     expect(container.querySelectorAll('[role="group"][tabindex]')).toHaveLength(0);

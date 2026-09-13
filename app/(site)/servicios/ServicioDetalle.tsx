@@ -60,8 +60,11 @@ export function ServicioDetalle({ service }: { service: Service }) {
     (mejor, item, i) => (item.width > galeria[mejor].width ? i : mejor),
     0,
   );
-  const interludio = galeria[iInterludio];
-  const mural = galeria.filter((_, i) => i !== iInterludio);
+  // Cuando el servicio trae su propio clip para la banda, no se levanta
+  // ninguna fotografía de la galería: el mural las lleva todas.
+  const clip = service.interludioVideo;
+  const interludio = clip ? undefined : galeria[iInterludio];
+  const mural = clip ? galeria : galeria.filter((_, i) => i !== iInterludio);
   return (
     <ScrollReveal className={styles.revealWrap}>
       <article className={styles.servicio}>
@@ -186,7 +189,7 @@ export function ServicioDetalle({ service }: { service: Service }) {
             amontonadas al final en una tira que hay que arrastrar.
             Es una fotografía de una boda de verdad, la misma que antes abría
             esa tira. */}
-        {interludio && (
+        {(clip || interludio) && (
           <figure className={styles.interludio}>
             <div className={styles.interludioMarco}>
               {/* LA CAPA QUE SE MUEVE. El paralaje no puede ir sobre la
@@ -195,23 +198,36 @@ export function ServicioDetalle({ service }: { service: Service }) {
                   regla de la hoja. Así que lo que se sobredimensiona y se
                   desplaza es esta capa, y la imagen la rellena. */}
               <div className={styles.interludioCapa}>
-                <Image
-                  src={interludio.src}
-                  alt={interludio.alt}
-                  fill
-                  sizes="100vw"
-                  className={styles.image}
-                  style={focusOf(interludio.src)}
-                />
+                {clip ? (
+                  <ShowreelClip fill src={clip.src} poster={clip.poster} alt={clip.alt} />
+                ) : (
+                  <Image
+                    src={interludio!.src}
+                    alt={interludio!.alt}
+                    fill
+                    sizes="100vw"
+                    className={styles.image}
+                    style={focusOf(interludio!.src)}
+                  />
+                )}
               </div>
             </div>
             {/* El pie se estrecha a la caja de 75rem aunque la banda vaya a
                 sangre, para alinear con el resto del texto. Se hace con el
                 ancho del propio <figcaption> y no metiéndolo en un <div>:
                 el HTML exige que sea hijo directo de <figure>. */}
-            <figcaption className={styles.interludioPie}>
-              {esPelicula ? 'Un fotograma de una boda real' : 'Una fotografía de una boda real'}
-            </figcaption>
+            {/* EL PIE SÓLO VA CUANDO LA BANDA ES UNA FOTOGRAFÍA.
+                Decía «Un fotograma de una boda real» debajo de una imagen
+                quieta; ahora ahí se mueve un plano de la película y no hay
+                nada que aclarar --se ve. Y en la página de fotografía, el pie
+                deja de repetir lo que el lector ya sabe (que eso es una foto
+                de una boda) para decir lo único que no puede comprobar por su
+                cuenta: que NINGUNA de las de esta web es de banco. */}
+            {!clip && (
+              <figcaption className={styles.interludioPie}>
+                Ni una foto de archivo: todas las de esta web son de bodas que hemos hecho.
+              </figcaption>
+            )}
           </figure>
         )}
 
@@ -249,8 +265,14 @@ export function ServicioDetalle({ service }: { service: Service }) {
                 `view()` dentro de una caja pegada se queda congelada a medias
                 -- el proyecto ya lo tiene documentado en «Quien soy» y en el
                 <h2> del formulario de contacto. */}
+            {/* «De bodas reales» era una etiqueta de procedencia, y encima
+                repetía lo que el pie de la banda ya decía dos pantallas más
+                arriba. Esto dice qué es lo que el lector va a mirar, que es
+                exactamente lo que ha venido a ver antes de escribir. */}
             <h2 id="trabajo-heading" className={styles.capituloTitulo}>
-              <RevealWords segments={[{ text: 'De bodas reales' }]} />
+              <RevealWords
+                segments={[{ text: esPelicula ? 'Así se ve una película nuestra' : 'Así se ve un reportaje nuestro' }]}
+              />
             </h2>
             {/* UN MURAL, NO UNA TIRA QUE HAY QUE ARRASTRAR.
                 Esto era un carril horizontal con la barra escondida: en un

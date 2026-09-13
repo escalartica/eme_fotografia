@@ -30,25 +30,27 @@ export interface FeaturedFrame {
  * seguidas ni dos cuadradas en las once.
  */
 export const featuredFrames: FeaturedFrame[] = [
-  /* MAITE Y NEREA ABRE LA TIRA, pero con 01 y no con la portada.
-     La portada --las dos novias besándose al fondo del camino y, en primer
-     plano, el perro con pajarita sobre la corona de flores-- ya no está aquí
-     porque está DOS METROS MÁS ARRIBA, entera y sin recortar, junto a la
-     entradilla de esta misma sección. Tenerla en los dos sitios sería
-     enseñar la misma fotografía dos veces con doscientos píxeles de
-     separación.
-     Y es además la que peor se llevaba con este marco: el carrete recorta
-     las verticales de 2:3 a 3:4 y lo que hace gracia de esa foto está pegado
-     al borde de abajo. 01 es vertical igual --así que el ritmo P L P L P S P
-     L S L P de las once no se mueve-- y lleva el mismo perro, esta vez en
-     brazos, que es el centro del encuadre y no su esquina. */
-  { projectSlug: 'maite-y-nerea', src: '/images/trabajos/maite-y-nerea/01.webp', alt: 'Una de las novias sosteniendo en brazos al perro salchicha, apoyadas en un pino', width: 1707, height: 2560 },
+  /* ABRE LA PREBODA DE CARMEN Y ALBERTO, no Maite y Nerea.
+     El carrete abría con la otra fotografía del perro salchicha, y justo
+     encima --a dos metros de scroll, en la entradilla de esta misma
+     sección-- está la portada de esa boda, que ES el perro con pajarita
+     sobre la corona de flores. Dos fotografías seguidas del mismo perro: lo
+     vio el estudio en su teléfono y tiene razón, la segunda se lee como una
+     repetición de la primera y no como una boda distinta.
+     El cambio es un INTERCAMBIO con la que estaba en séptimo lugar, y eso
+     importa: las dos son verticales, así que el ritmo de formas de las once
+     (P L P L P S P L S L P) no se mueve ni un puesto. SelectedReel deduce la
+     forma de cada horizontal de su índice, y meter o sacar una sola pieza
+     reordena todas las de detrás.
+     Maite y Nerea sigue en el carrete --sacarla del sitio no podía costarle
+     la boda--, ahora en séptimo, lejos ya de su propia portada. */
+  { projectSlug: 'preboda-de-carmen-y-alberto', src: '/images/trabajos/preboda-de-carmen-y-alberto/cover.webp', alt: 'La pareja abrazada junto a las columnas de un patio a la luz dorada', width: 1707, height: 2560 },
   { projectSlug: 'angelica-y-jesus', src: '/images/trabajos/angelica-y-jesus/12.webp', alt: 'Vista cenital de los novios sobre la línea de la carretera con el velo extendido', width: 2560, height: 1579 },
   { projectSlug: 'carmen-y-enrique', src: '/images/trabajos/carmen-y-enrique/cover.webp', alt: 'Silueta de los novios bajo el velo frente a los faros del coche clásico', width: 1706, height: 2560 },
   { projectSlug: 'miriam-y-alejandro', src: '/images/trabajos/miriam-y-alejandro/13.webp', alt: 'Los novios caminando por la alfombra roja entre los árboles de la hacienda', width: 2560, height: 1707 },
   { projectSlug: 'postboda-de-maria-y-alberto', src: '/images/trabajos/postboda-de-maria-y-alberto/cover.webp', alt: 'La novia haciendo volar el velo en una calle empedrada del pueblo', width: 1707, height: 2560 },
   { projectSlug: 'reyes-y-francisco', src: '/images/trabajos/reyes-y-francisco/15.webp', alt: 'Primer baile entre bengalas frías', width: 2560, height: 1707 },
-  { projectSlug: 'preboda-de-carmen-y-alberto', src: '/images/trabajos/preboda-de-carmen-y-alberto/cover.webp', alt: 'La pareja abrazada junto a las columnas de un patio a la luz dorada', width: 1707, height: 2560 },
+  { projectSlug: 'maite-y-nerea', src: '/images/trabajos/maite-y-nerea/01.webp', alt: 'Una de las novias sosteniendo en brazos al perro salchicha, apoyadas en un pino', width: 1707, height: 2560 },
   { projectSlug: 'kuki-y-jose', src: '/images/trabajos/kuki-y-jose/cover.webp', alt: 'Pasillo de sables de luz para los novios', width: 2560, height: 1706 },
   { projectSlug: 'silvia-y-jordi', src: '/images/trabajos/silvia-y-jordi/10.webp', alt: 'Los novios ante el cortijo blanco iluminado de noche', width: 2560, height: 1707 },
   { projectSlug: 'virginia-y-jorge', src: '/images/trabajos/virginia-y-jorge/12.webp', alt: 'Los novios de noche frente a los faros del coche clásico', width: 2560, height: 1706 },

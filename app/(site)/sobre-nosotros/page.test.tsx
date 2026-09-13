@@ -16,7 +16,12 @@ describe('/sobre-nosotros page', () => {
     // El apartado de equipo se busca por lo que DICE su titular, no por la
     // palabra «Equipo»: esa pasó a ser el antetítulo el día que el titular
     // dejó de ser una etiqueta y pasó a decir algo.
-    expect(screen.getByRole('heading', { name: /trabajan juntas todo el año/i })).toBeInTheDocument();
+    // Y lo que dice ya no es el censo del estudio --«cinco personas que
+    // trabajan juntas todo el año», que es un dato del que la pareja no sabe
+    // qué hacer-- sino para qué le sirve a ella que sean cinco. El número
+    // sigue en el primer párrafo, y esta prueba lo comprueba ahí.
+    expect(screen.getByRole('heading', { name: /nadie esté mirando/i })).toBeInTheDocument();
+    expect(screen.getByText(/somos cinco y trabajamos juntos todo el año/i)).toBeInTheDocument();
     expect(screen.getByText('Equipo')).toBeInTheDocument();
     expect(screen.getAllByText(new RegExp(site.founderName)).length).toBeGreaterThan(0);
   });
@@ -93,8 +98,11 @@ describe('/sobre-nosotros page', () => {
        sólo mira los nodos de texto hijos directos -- no encontraría nada.
        El nombre accesible sí se compone del texto completo. */
     expect(
-      screen.getByRole('heading', { name: /pasad las fotos muy deprisa/i }),
+      screen.getByRole('heading', { name: /muchas bodas, muy deprisa/i }),
     ).toBeInTheDocument();
+    // La advertencia sigue estando, que era lo único que el rótulo anterior
+    // tenía que sostener: esto son fotografías, no metraje.
+    expect(screen.getByText(/no es vídeo/i)).toBeInTheDocument();
     expect(screen.getByRole('region', { name: /cifras/i })).toBeInTheDocument();
   });
 });

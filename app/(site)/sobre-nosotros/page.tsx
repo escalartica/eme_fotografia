@@ -371,20 +371,28 @@ export default function Page() {
                 directamente por el dato. La palabra «Equipo» sigue en el
                 antetítulo, para quien viene buscándola. */}
             <span className={styles.teamKicker}>Equipo</span>
+            {/* EL TITULAR DA EL MOTIVO, NO EL CENSO. «Cinco personas que
+                trabajan juntas todo el año» es un dato de plantilla: cierto,
+                comprobable y del que la pareja no sabe qué hacer. Lo que de
+                verdad compra con eso estaba enterrado en la mitad del segundo
+                párrafo --«que no exista el momento que nadie estaba
+                cubriendo»--, o sea en el renglón al que menos gente llega.
+                Ahora abre el capítulo, y el número sigue en el primer
+                párrafo, donde es un apoyo y no una pregunta. */}
             <h2 id="equipo-heading" className={styles.heading}>
-              <RevealWords segments={[{ text: 'Cinco personas que trabajan juntas todo el año.' }]} />
+              <RevealWords segments={[{ text: 'No hay un solo momento que nadie esté mirando.' }]} />
             </h2>
             {/* Los tres párrafos llegaban a la vez debajo de un titular que
                 se revela palabra a palabra. `--turno` los pone en fila (ver
                 lib/turno.ts y `.teamCopy p` en la hoja). */}
             <p style={turno(0)}>
-              Al frente está eme, {site.founderName}, dirigiendo un equipo permanente de especialistas en foto y vídeo,
-              con los ángulos repartidos antes de que empiece el día.
+              Somos cinco y trabajamos juntos todo el año. Al frente está eme, {site.founderName}, dirigiendo un equipo
+              permanente de especialistas en foto y vídeo, con los ángulos repartidos antes de que empiece el día.
             </p>
             <p style={turno(1)}>
               Mientras una cámara está en la cara de la novia, otra está en la de su padre. Mientras el dron abre el
-              plano de la finca, otro objetivo cierra sobre las manos. Ser un equipo sirve para una cosa concreta: que
-              no exista el momento que nadie estaba cubriendo. Cuántos vamos a vuestra boda lo decide el día -- las
+              plano de la finca, otro objetivo cierra sobre las manos. Para eso sirve ser un equipo y no un fotógrafo
+              con un ayudante. Cuántos vamos a vuestra boda lo decide el día -- las
               horas, el número de invitados, si lleváis vídeo -- y lo acordamos con vosotros antes de firmar.
             </p>
             <p style={turno(2)}>Si queréis conocernos antes de decidir, escribidnos: la primera conversación es siempre sin compromiso.</p>
@@ -511,10 +519,19 @@ export default function Page() {
                 literalmente lo que hace un montaje de fotografías. La
                 entradilla remata la broma y da el dato. */}
             <h2 id="montaje-heading" className={styles.heading}>
-              <RevealWords segments={[{ text: 'Pasad las fotos muy deprisa.' }]} />
+              <RevealWords segments={[{ text: 'Muchas bodas, muy deprisa.' }]} />
             </h2>
+            {/* CUARTO RÓTULO, Y EL MOTIVO DEL CAMBIO ES OTRO QUE EL DE LOS
+                TRES ANTERIORES. «Pasad las fotos muy deprisa» era una
+                instrucción sin objeto: el lector no sabe qué fotos ni dónde,
+                y la entradilla tenía que explicarle el chiste --que es
+                justamente lo que mata un chiste--. Éste describe lo que hay
+                debajo en cuatro palabras, y la entradilla se queda con lo
+                único que hacía falta advertir (que no es vídeo) y con el
+                dato. El «muy deprisa» del estudio no se pierde: cambia de
+                renglón. */}
             <p className={styles.lede}>
-              Eso es exactamente esto: fotografías fijas, una detrás de otra, de bodas distintas.
+              No es vídeo: son fotografías fijas, una detrás de otra, de bodas distintas.
               Veinticuatro segundos.
             </p>
           </header>

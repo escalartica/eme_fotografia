@@ -133,11 +133,34 @@ export const services: Service[] = [
       poster: '/videos/posters/andrea-y-jesus-hacienda-aerea.webp',
       alt: 'Vista aérea completa de la hacienda y los campos que la rodean, desde el dron',
     },
+    // LA BANDA DEL MEDIO ES VÍDEO, NO UN FOTOGRAMA.
+    // Era la caja más grande de la página --a sangre, hasta 44rem de alto en
+    // escritorio-- y la ocupaba una imagen quieta sacada de una película, en
+    // la página que vende películas. Doce segundos de dron bajando sobre el
+    // muro de la hacienda a la hora dorada, 1920x1080 del máster, tal cual
+    // salió: no se recorta ni se reexporta, sólo se coloca.
+    // Se reproduce sola, en silencio y en bucle, y --esto importa para lo que
+    // pesa la página-- no se descarga hasta que entra en pantalla ni sigue
+    // corriendo cuando sale: lo hace ShowreelClip con `preload="none"` y un
+    // IntersectionObserver.
+    interludioVideo: {
+      src: '/videos/previews/andrea-y-jesus-golden-hour.mp4',
+      poster: '/videos/posters/andrea-y-jesus-golden-hour.webp',
+      alt: 'Plano de dron bajando sobre el muro de la hacienda a la hora dorada, con los novios paseando',
+    },
     relatedCategory: 'video',
+    // El póster de la hora dorada SALE de esta lista: es el primer fotograma
+    // del clip de arriba, y tenerlo aquí abajo sería enseñar quieta la misma
+    // imagen que se está moviendo a dos pantallas de distancia.
+    //
+    // Y se queda en DOS, no se rellena a tres. Los dos candidatos que había
+    // para el hueco no valían: el de la llegada lleva al equipo de rodaje
+    // dentro del encuadre, y el de la recepción es otra aérea de la misma
+    // hacienda que la primera de esta lista. Dos piezas distintas dicen más
+    // que tres con una repetida.
     gallery: [
       { src: '/videos/posters/andrea-y-jesus-aerial.webp', alt: 'La hacienda y la pareja vistas desde el aire', width: 1920, height: 1080 },
       { src: '/videos/posters/virginia-y-jorge-nocturna.webp', alt: 'Los novios de noche bajo la luz de las farolas', width: 1280, height: 720 },
-      { src: '/videos/posters/andrea-y-jesus-golden-hour.webp', alt: 'Paseo de los novios entre olivos a la hora dorada', width: 1920, height: 1080 },
     ],
     process: [
       { step: 1, title: 'Guion emocional', description: 'Decidimos juntos qué momentos y qué personas tienen que protagonizar la película.' },

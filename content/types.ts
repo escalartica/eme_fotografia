@@ -109,6 +109,20 @@ export interface Service {
    */
   previewVideo?: { src: string; poster: string; alt: string };
   /**
+   * El clip que ocupa la banda a sangre entre los dos capítulos de la página
+   * del servicio, en lugar de una fotografía.
+   *
+   * Existe porque en la página de vídeo esa banda era un FOTOGRAMA: la única
+   * caja grande de una página que vende películas, ocupada por una imagen
+   * quieta sacada de una de ellas. Lo pidió el estudio con estas palabras --
+   * «quita el fotograma del vídeo y sustitúyelo por un trozo de vídeo».
+   *
+   * Cuando está, la galería entera baja al mural (no se levanta ninguna
+   * pieza), y el clip NO debe tener su propio póster repetido ahí abajo: se
+   * vería dos veces lo mismo, una quieta y otra en movimiento.
+   */
+  interludioVideo?: { src: string; poster: string; alt: string };
+  /**
    * Optional strip of real work shown under the service copy -- a few
    * frames from projects already on the site, never stock. Dimensions are
    * the real intrinsic pixel sizes of the files (same rule as ProjectMedia).

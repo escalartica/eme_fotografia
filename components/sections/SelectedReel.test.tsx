@@ -105,10 +105,21 @@ describe('el carrete de la home', () => {
     }
   });
 
-  /* La tira sigue abriendo con Maite y Nerea: es la boda que hace sonreír
-     antes de que nadie haya leído un titular, y el ritmo de formas de las
-     once (P L P L P S P L S L P) depende de que la primera sea vertical. */
-  it('abre la tira con Maite y Nerea', () => {
-    expect(featuredFrames[0].projectSlug).toBe('maite-y-nerea');
+  /* LA TIRA YA NO ABRE CON MAITE Y NEREA, y ésa es la mitad de la prueba.
+     Abría con la otra fotografía del perro salchicha, justo debajo de la
+     entradilla que enseña la portada de esa misma boda --el perro con
+     pajarita sobre la corona de flores--, así que la primera pieza del
+     carrete se leía como una repetición de la fotografía de encima. Lo
+     señaló el estudio mirando la home en su teléfono.
+     La otra mitad es la que sostiene el diseño: la primera tiene que seguir
+     siendo VERTICAL. SelectedReel deduce la forma de cada horizontal de su
+     índice, y el ritmo de las once (P L P L P S P L S L P) se descuadra
+     entero si la cabeza cambia de forma. */
+  it('no abre la tira con la boda cuya portada va justo encima', () => {
+    expect(featuredFrames[0].projectSlug).not.toBe('maite-y-nerea');
+  });
+
+  it('abre con una vertical, que es de lo que depende el ritmo de formas', () => {
+    expect(featuredFrames[0].height).toBeGreaterThan(featuredFrames[0].width);
   });
 });
