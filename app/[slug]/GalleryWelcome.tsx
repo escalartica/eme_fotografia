@@ -63,8 +63,8 @@ export function GalleryWelcome({ nombre }: { nombre: string }) {
         Hola, {nombre}
       </h2>
       <p className={styles.bienvenidaTexto}>
-        Estas son las fotos de vuestra boda. Este enlace es solo vuestro: nadie más puede entrar aquí, y podéis
-        volver las veces que queráis.
+        Estas son las fotos de vuestra boda. Este enlace es solo vuestro y hace falta la contraseña para entrar,
+        así que aquí no llega nadie más: guardadlo para vosotros y podéis volver las veces que queráis.
       </p>
       <p className={styles.bienvenidaTexto}>
         Ahora nos toca elegir juntos. Lo que marquéis aquí es lo que usamos para preparar el álbum y para decidir

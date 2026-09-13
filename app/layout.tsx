@@ -3,6 +3,7 @@ import { Bodoni_Moda } from 'next/font/google';
 import localFont from 'next/font/local';
 import { site } from '@/content/site';
 import { SmoothScrollProvider } from '@/components/motion/SmoothScrollProvider';
+import { ProteccionDeFotos } from '@/components/ui/ProteccionDeFotos';
 import { Cursor } from '@/components/motion/Cursor';
 import { siteGraph, jsonLd } from '@/lib/schema';
 import { ogImage } from '@/lib/seo';
@@ -152,6 +153,11 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLd(siteGraph()) }}
         />
+        {/* Quita el menú del botón derecho, el arrastre y la pulsación larga
+            SOBRE LAS FOTOS. No protege nada por sí solo --ver la cabecera del
+            componente--, pero cierra los tres caminos de un clic por los que se
+            va casi toda copia real. */}
+        <ProteccionDeFotos />
         <SmoothScrollProvider>
           <Cursor />
           {/* Skip-link target: every route provides its own #main-content

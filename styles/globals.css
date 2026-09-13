@@ -261,3 +261,46 @@ main img,
 main video {
   object-position: 50% 18%;
 }
+
+
+/* ====================================================================== */
+/* Las fotografías no se arrastran ni se pulsan largo                     */
+/* ====================================================================== */
+
+/* La mitad en CSS del pestillo que pone components/ui/ProteccionDeFotos.tsx.
+   Va aquí y no allí porque `-webkit-touch-callout` no se puede impedir desde
+   JavaScript: el menú de la pulsación larga en iOS --ese que ofrece «Añadir a
+   Fotos»-- lo dibuja el sistema y solo se apaga con esta propiedad.
+
+   NO PROTEGE LAS FOTOS, y conviene que quede escrito donde alguien lo vaya a
+   leer: quien sepa abrir las herramientas del navegador se las lleva igual, y
+   una captura de pantalla no hay forma de impedirla desde una página web. Lo
+   que cierra son los caminos de un clic, que es por donde se va casi toda
+   copia real. La barrera de verdad para las fotos de una boda es la
+   contraseña de su galería privada.
+
+   `user-select` además de lo demás: sin él, arrastrar sobre una foto la
+   «selecciona» y deja un rectángulo azul encima, que en una pared de
+   fotografías se ve fatal. */
+img,
+picture,
+[data-foto] {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* El texto SÍ se selecciona. La regla de arriba no puede alcanzarlo porque
+   solo toca imágenes, pero si alguien amplía ese selector algún día, esto
+   deja escrito que copiar un texto de esta web tiene que seguir siendo
+   posible: es lo que hace falta para pegar una dirección en el navegador o
+   un correo en el cliente de correo. */
+p,
+li,
+h1, h2, h3, h4,
+code,
+address {
+  user-select: text;
+  -webkit-user-select: text;
+}
