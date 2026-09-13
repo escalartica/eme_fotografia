@@ -41,7 +41,7 @@ describe('POST /api/contacto', () => {
   let tmpDir: string;
 
   beforeEach(async () => {
-    // La ruta limita envíos por IP (5/hora) y en total (60/hora). Los
+    // La ruta limita envíos por IP (5/hora) y en total (200/hora). Los
     // contadores viven en memoria del proceso, así que sin este reset el orden
     // de ejecución decidiría qué test se come el 429 -- y el fallo aparecería
     // en un test que no tiene nada que ver con el límite.

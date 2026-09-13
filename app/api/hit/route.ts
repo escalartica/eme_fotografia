@@ -21,8 +21,17 @@ import {
 // dirección dan de sobra para una visita real (una línea por página vista) y
 // el cubo global pone el techo absoluto que un X-Forwarded-For falsificado no
 // puede saltarse.
+//
+// EL TECHO GLOBAL ESTUVO EN 5.000 Y SE QUEDABA CORTO PARA UN DÍA BUENO. Cada
+// página vista es una línea, así que una visita que mira cinco bodas son seis
+// o siete: 5.000 son unos 700 visitantes en una hora, y una publicación que
+// funcione en Instagram los trae. Lo que pasaba al llegar al tope no era un
+// error visible, era peor: las visitas se tiraban en silencio justo en la
+// hora punta, es decir, se perdía exactamente el dato por el que se hace la
+// campaña. 30.000 líneas por hora son ~3,5 MB en el peor caso, que sigue
+// siendo un techo de sobra para lo que esto tiene que frenar.
 const PER_IP_MAX = 120;
-const GLOBAL_MAX = 5000;
+const GLOBAL_MAX = 30000;
 const WINDOW_MS = 60 * 60 * 1000; // 1 hora
 
 export async function POST(request: Request) {

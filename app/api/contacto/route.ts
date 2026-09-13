@@ -10,8 +10,16 @@ import { isSameOriginRequest } from '@/lib/auth/origin-check';
 // portazo. El cubo global es el que de verdad frena a un bot: la clave por IP
 // sale de X-Forwarded-For, que se puede falsificar en cada petición, así que
 // sin un techo absoluto por ruta el límite por IP no frena nada.
+//
+// EL CUBO GLOBAL ESTUVO EN 60 Y ERA UN RIESGO MAL REPARTIDO: nadie manda 60
+// consultas de boda en una hora, así que ese número no frenaba nada que el
+// tope por IP no frenara ya, y en cambio convertía a cualquier bot con
+// X-Forwarded-For rotatorio en un interruptor para apagar el formulario
+// durante una hora entera. Un 429 a una pareja de verdad cuesta una boda;
+// 200 sigue siendo un techo absoluto contra el llenado de disco y los correos
+// de pago, y ya no se cruza por accidente en una noche de estreno.
 const PER_IP_MAX = 5;
-const GLOBAL_MAX = 60;
+const GLOBAL_MAX = 200;
 const WINDOW_MS = 60 * 60 * 1000; // 1 hora
 
 /**
