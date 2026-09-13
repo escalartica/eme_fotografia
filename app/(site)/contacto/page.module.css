@@ -165,22 +165,33 @@
 }
 
 /* ---------- form panel ---------- */
+/* LOS DOS ATAJOS VAN UNO DEBAJO DEL OTRO, NO SEGUIDOS.
+   `arrowLink` es `inline-flex`, así que los dos enlaces caían en el mismo
+   renglón; y como en el JSX no hay espacio entre ellos --hay un comentario
+   por medio, y JSX se come el salto de línea--, en un teléfono se leía
+   «IR AL FORMULARIO ↓¿TIENES DUDAS? ↓»: la flecha del primero pegada al
+   texto del segundo, como una sola frase rota.
+   El apilado va en el PADRE y no en los enlaces: cambiarles el `display` a
+   ellos sería pelearse con el `inline-flex` que les llega por `composes`,
+   y quién gana esa pelea depende del orden en que se sirvan dos hojas
+   distintas. Aquí no hay nada que ganar: la rejilla decide. */
+.atajos {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
+  margin-block-start: var(--space-1);
+}
+
 .jump {
   composes: arrowLink from global;
-  margin-block-start: var(--space-1);
 }
 @media (min-width: 900px) {
   .jump {
     display: none;
   }
 }
-
-/* A diferencia de .jump, este se queda en todas las anchuras: en escritorio
-   el formulario ya se ve, pero las respuestas siguen estando al pie de una
-   página larga y nada las anuncia. */
 .jumpFaq {
   composes: arrowLink from global;
-  margin-block-start: var(--space-1);
 }
 
 .formPanel {

@@ -41,7 +41,9 @@ describe('projects content', () => {
     // 2026-09-13: 30 -> 32. Del disco duro del cliente entran la preboda de
     // Angélica y Jesús (la misma pareja que la boda de diciembre de 2023) y
     // la boda de Sandra y Jesús, en Utrera.
-    expect(projects).toHaveLength(32);
+    // 2026-09-13: 32 -> 33. Y esa misma tarde, Carlos y Paloma, del 12 de
+    // septiembre de 2026: la boda más reciente del estudio.
+    expect(projects).toHaveLength(33);
     const slugs = projects.map((p) => p.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
   });
@@ -121,7 +123,7 @@ describe('projects content', () => {
       // preboda / postboda sessions from EOS_DIGITAL
       'postboda-en-el-real-alcazar', 'preboda-de-carmen-y-alberto', 'postboda-de-maria-y-alberto', 'preboda-en-la-playa', 'preboda-en-santa-cruz',
       // 2026-09-13, del disco duro del cliente
-      'preboda-de-angelica-y-jesus', 'sandra-y-jesus',
+      'preboda-de-angelica-y-jesus', 'sandra-y-jesus', 'carlos-y-paloma',
     ];
     for (const project of projects) {
       const isReal = realSlugs.includes(project.slug);

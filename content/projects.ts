@@ -1621,4 +1621,58 @@ export const projects: Project[] = [
       { type: 'image', src: '/images/trabajos/sandra-y-jesus/26.webp', alt: 'La novia bailando con unas alas de luz al final de la noche', isPlaceholderMedia: false, width: 2560, height: 1707 },
     ],
   },
+  {
+    // Fotografías reales del estudio, entregadas el mismo día en el disco duro
+    // del cliente (carpeta «carlos-y-paloma-12-sep-26», 48 archivos; aquí van
+    // los 26 que cuentan la jornada sin repetir plano). La fecha viene del
+    // nombre de la carpeta: 12 de septiembre de 2026.
+    //
+    // El lugar sí está comprobado: en una de las fotografías de los
+    // preparativos del novio se ve la Giralda por la ventana, y la iglesia es
+    // sevillana de retablo dorado. No se nombra el templo porque eso el
+    // estudio no lo ha dicho.
+    slug: 'carlos-y-paloma',
+    title: 'Carlos y Paloma',
+    category: 'boda',
+    year: 2026,
+    client: 'Boda privada',
+    location: 'Sevilla',
+    description: 'Una boda de centro de Sevilla, de las que empiezan en una casa con patio: los gemelos que le pone su padre, los zapatos azules esperando, la escalera del escudo, el retablo dorado y una fiesta que acabó con su nombre escrito en luces.',
+    cover: {
+      type: 'image',
+      src: '/images/trabajos/carlos-y-paloma/cover.webp',
+      alt: 'La novia con el ramo en la escalera de la casa, junto al escudo de azulejos',
+      isPlaceholderMedia: false,
+      width: 1707,
+      height: 2560,
+    },
+    gallery: [
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/01.webp', alt: 'Los gemelos pasando de una mano a otra, con la corbata del novio al lado', isPlaceholderMedia: false, width: 2560, height: 1707 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/02.webp', alt: 'Su padre abrochándole el gemelo al novio en el salón de casa', isPlaceholderMedia: false, width: 2560, height: 1707 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/03.webp', alt: 'El novio ajustándose los tirantes junto a la cómoda', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/04.webp', alt: 'Anudándole la corbata al novio, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/05.webp', alt: 'Los zapatos azules de la novia colgados de la pared dorada', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/06.webp', alt: 'Bodegón con el zapato de pedrería, los pendientes y el pintalabios', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/07.webp', alt: 'La novia maquillándose ante el espejo de bombillas', isPlaceholderMedia: false, width: 2560, height: 1707 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/08.webp', alt: 'Los zapatos azules a contraluz, aún en su caja', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/09.webp', alt: 'Los zapatos asomando bajo el vestido, vistos desde arriba', isPlaceholderMedia: false, width: 2560, height: 1707 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/10.webp', alt: 'La novia abrazando a una invitada, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/11.webp', alt: 'La novia riéndose con sus amigas antes de salir, en blanco y negro', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/12.webp', alt: 'La novia ya vestida, sentada junto a la ventana de la habitación', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/13.webp', alt: 'La novia bajando la escalera de la casa, vista desde arriba', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/14.webp', alt: 'La novia y su padre bajo el portón de rejería, a punto de salir', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/15.webp', alt: 'La novia vista desde el otro lado del patio, entre los arcos, en blanco y negro', isPlaceholderMedia: false, width: 2560, height: 1707 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/16.webp', alt: 'La novia entrando en la iglesia del brazo de su padre', isPlaceholderMedia: false, width: 2560, height: 1707 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/17.webp', alt: 'El pasillo central alfombrado de rojo, con los invitados de pie', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/18.webp', alt: 'El novio riéndose con su madre mientras espera en el altar', isPlaceholderMedia: false, width: 2560, height: 1707 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/19.webp', alt: 'La ceremonia ante el retablo dorado', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/20.webp', alt: 'Los novios sentados durante la ceremonia, con la iglesia entera detrás, en blanco y negro', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/21.webp', alt: 'La firma, ella escribiendo y él mirándola', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/22.webp', alt: 'Los novios saliendo por el portón de la iglesia', isPlaceholderMedia: false, width: 2560, height: 1707 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/23.webp', alt: 'La novia subiendo al coche en plena calle de Sevilla', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/24.webp', alt: 'El brindis de los dos bajo el emparrado', isPlaceholderMedia: false, width: 2560, height: 1707 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/25.webp', alt: 'La novia bailando con su nombre escrito en luces al fondo', isPlaceholderMedia: false, width: 1707, height: 2560 },
+      { type: 'image', src: '/images/trabajos/carlos-y-paloma/26.webp', alt: 'Un abrazo en mitad de la fiesta, rodeados de invitados', isPlaceholderMedia: false, width: 2560, height: 1707 },
+    ],
+  },
 ];

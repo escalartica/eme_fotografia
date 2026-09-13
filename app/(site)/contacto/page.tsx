@@ -68,21 +68,25 @@ export default function Page() {
             Contadnos la fecha, el lugar y cómo os imagináis el día. Con eso nos basta para deciros si estamos
             libres y qué podemos hacer por vosotros.
           </p>
-          {/* Phones stack the columns, so the form starts a screen and a
-              half down: one link takes them straight to it. */}
-          <a href="#formulario" className={styles.jump}>
-            Ir al formulario
-            <ArrowGlyph dir="down" />
-          </a>
+          {/* Los dos atajos, en su propia rejilla para que caigan uno
+              debajo del otro. Ver `.atajos` en la hoja de esta página. */}
+          <div className={styles.atajos}>
+            {/* Phones stack the columns, so the form starts a screen and a
+                half down: one link takes them straight to it. */}
+            <a href="#formulario" className={styles.jump}>
+              Ir al formulario
+              <ArrowGlyph dir="down" />
+            </a>
           {/* Las preguntas están al pie, debajo del formulario, y las tres
               primeras (¿tenéis libre mi fecha?, ¿con cuánta antelación?,
               ¿cuánto cuesta?) son justo las que traen antes de escribir.
               Este enlace las pone a un clic sin bajar el formulario media
               página, que es lo que costaría subirlas. */}
-          <a href="#preguntas-frecuentes" className={styles.jumpFaq}>
-            ¿Tienes dudas?
-            <ArrowGlyph dir="down" />
-          </a>
+            <a href="#preguntas-frecuentes" className={styles.jumpFaq}>
+              ¿Tienes dudas?
+              <ArrowGlyph dir="down" />
+            </a>
+          </div>
 
           <figure className={styles.figure}>
             <Image
