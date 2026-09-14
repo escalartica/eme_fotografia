@@ -1,0 +1,68 @@
+name: Bug / Algo no funciona
+description: Algo de la web o del código no hace lo que debería. Something is not behaving as it should.
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por el aviso. Si lo que has encontrado puede exponer material de clientes,
+        **no sigas aquí**: lee [SECURITY.md](../blob/worktree-eme-fotografia-build/SECURITY.md).
+
+        Thanks for the report. If what you found could expose client material, **stop here** and
+        read [SECURITY.md](../blob/worktree-eme-fotografia-build/SECURITY.md) instead.
+
+  - type: textarea
+    id: que-pasa
+    attributes:
+      label: Qué pasa / What happens
+      description: Dilo como se lo contarías a una persona, no como un stack trace.
+    validations:
+      required: true
+
+  - type: textarea
+    id: que-deberia
+    attributes:
+      label: Qué debería pasar / What should happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproducir
+    attributes:
+      label: Cómo reproducirlo / Steps to reproduce
+      placeholder: |
+        1. Abrir /trabajos
+        2. Pulsar el tercer reportaje
+        3. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: donde
+    attributes:
+      label: Dónde / Where
+      options:
+        - Web publicada (emefotografiasevilla.com)
+        - En local (npm run dev)
+        - En local (npm run build && npm start)
+        - Tests o CI
+    validations:
+      required: true
+
+  - type: input
+    id: entorno
+    attributes:
+      label: Navegador y sistema / Browser and OS
+      placeholder: Safari 18 en iPhone 13, o Chrome 130 en Windows 11
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: comprobado
+    attributes:
+      label: Antes de enviar / Before submitting
+      options:
+        - label: He mirado si ya hay una issue abierta con esto.
+          required: true
+        - label: Si es del código, he ejecutado `npm test` y digo abajo si algo falla.
+          required: false

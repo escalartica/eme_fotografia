@@ -1,0 +1,55 @@
+name: Mejora / Improvement
+description: Una propuesta para el código, la accesibilidad, el rendimiento o la documentación.
+labels: ['mejora']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de escribir: el diseño, los textos y el material fotográfico los decide el estudio,
+        así que esas propuestas suelen cerrarse. Todo lo demás es bienvenido. Ver
+        [CONTRIBUTING.md](../blob/worktree-eme-fotografia-build/CONTRIBUTING.md).
+
+        Before you write: design, copy and photographic material are the studio's call, so those
+        proposals usually get closed. Everything else is welcome.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área / Area
+      options:
+        - Accesibilidad
+        - Seguridad (no explotable, si lo es ver SECURITY.md)
+        - Rendimiento
+        - Código y arquitectura
+        - Tests
+        - Documentación
+        - Otra
+    validations:
+      required: true
+
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qué problema resuelve / What problem it solves
+      description: Empieza por el problema, no por la solución.
+    validations:
+      required: true
+
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: Propuesta / Proposal
+    validations:
+      required: true
+
+  - type: textarea
+    id: medicion
+    attributes:
+      label: Medición, si la hay / Measurement, if any
+      description: Para accesibilidad y rendimiento, el número de antes y el de después es lo que convence.
+
+  - type: textarea
+    id: descartado
+    attributes:
+      label: Qué has descartado / What you ruled out
+      description: Alternativas que consideraste y por qué no.

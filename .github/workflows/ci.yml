@@ -1,0 +1,72 @@
+# Integración continua.
+#
+# Un detalle que no es cosmético: el checkout NO se trae `public/images` ni
+# `public/videos`. Son unos 626 MB dentro de git (ver docs/PLAN-MEDIA-FUERA-DE-GIT.md)
+# y ninguna de las tres comprobaciones de aquí los necesita: los tests no leen
+# ficheros de imagen, y `next typegen` solo mira las rutas de `app/`. Con
+# `filter: blob:none` y un sparse-checkout que los excluye, cada ejecución baja
+# unos pocos MB en vez de casi un giga.
+#
+# `public/fonts` SÍ hace falta: app/layout.tsx carga GeneralSans con
+# next/font/local desde ahí, y sin ese fichero el typecheck falla.
+#
+# No hay trabajo de `next build` todavía, y es a propósito: un build sí necesita
+# `public/` entero, o sea el clon completo. Entra en cuanto el material salga de
+# git, que es el paso 4 del plan enlazado arriba.
+
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint, tipos y tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout sin el material pesado
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/public/images
+            !/public/videos
+            !/_to_delete
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci --no-audit --no-fund
+
+      - name: ESLint
+        run: npx eslint
+
+      # `tsc --noEmit` a secas falla: app/layout.tsx usa LayoutProps, un tipo
+      # que Next genera en .next/types y que no existe en un clon limpio.
+      - name: Generar los tipos de las rutas
+        run: npx next typegen
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npx vitest run --reporter=default

@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Vulnerabilidad de seguridad / Security vulnerability
+    url: https://github.com/escalartica/eme_fotografia/blob/worktree-eme-fotografia-build/SECURITY.md
+    about: No abras una issue pública. Escribe a info@emefotografiasevilla.com con SECURITY en el asunto.
+  - name: Contratar al estudio / Hire the studio
+    url: https://www.emefotografiasevilla.com/contacto
+    about: Para bodas, presupuestos o cualquier cosa que no sea el código.
+  - name: Preguntas sobre el proyecto / Project questions
+    url: https://github.com/escalartica/eme_fotografia/discussions
+    about: Dudas sobre cómo funciona algo, o sobre reutilizar un módulo.
