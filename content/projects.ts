@@ -561,6 +561,7 @@ export const projects: Project[] = [
     client: 'Boda privada',
     location: 'Sevilla',
     description: 'Una boda entre palmeras que tiene tráiler y tiene fotos: la llegada en descapotable, la ceremonia al aire libre bajo la carpa, los pétalos a la salida, una entrada a la fiesta entre bengalas y, de noche, los faros de un coche clásico como única luz para el retrato. Foto y vídeo de boda en Sevilla, en junio.',
+    videoUploadDate: '2025-06',
     cover: {
       // EL RESUMEN MONTADO DEL TRÁILER ENTREGADO, a 1080p.
       //
@@ -1221,6 +1222,7 @@ export const projects: Project[] = [
     client: 'Boda privada',
     location: 'Sevilla',
     description: 'La boda desde el aire y desde dentro: la puerta de la hacienda abriéndose al campo, el coche clásico, el paseo entre olivos y el banquete a contraluz, y de noche el primer baile bajo luces de escenario.',
+    videoUploadDate: '2026-08',
     cover: {
       type: 'video',
       src: '/videos/previews/andrea-y-jesus-preview.mp4',
