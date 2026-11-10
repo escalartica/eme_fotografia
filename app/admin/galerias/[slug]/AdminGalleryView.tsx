@@ -5,8 +5,10 @@ import { HeartIcon, CommentIcon } from '@/components/ui/Icon';
 import { Lightbox } from '@/components/motion/Lightbox';
 import type { GalleryPhoto, SelectionItem } from '@/lib/gallery-store';
 import styles from './AdminGalleryView.module.css';
+import { usePocoAPoco } from '@/lib/hooks/usePocoAPoco';
 import { srcSetMiniatura, srcSetVisor } from '@/lib/gallery-srcset';
 import { GalleryAdminActions } from './GalleryAdminActions';
+import { AnadirFotos } from './AnadirFotos';
 import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 
 type Filtro = 'todas' | 'marcadas' | 'notas';
@@ -58,6 +60,8 @@ export function AdminGalleryView({ slug, clientName, weddingDate, username, shar
     // byId se reconstruye en cada render a partir de items; la dependencia real es items.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtro, photos, items]);
+  // Con 1.200 fotos no se montan todas a la vez: ver lib/hooks/usePocoAPoco.ts.
+  const { pintadas, hayMas, centinela, verMas } = usePocoAPoco(visibles, filtro);
 
   /**
    * LOS NOMBRES DE FICHERO DE LAS MARCADAS, al portapapeles.
@@ -187,7 +191,7 @@ export function AdminGalleryView({ slug, clientName, weddingDate, username, shar
       )}
 
       <ul className={styles.grid}>
-        {visibles.map((photo) => {
+        {pintadas.map((photo) => {
           const item = byId.get(photo.id);
           const liked = item?.liked ?? false;
           const comment = item?.comment.trim() ?? '';
@@ -216,6 +220,15 @@ export function AdminGalleryView({ slug, clientName, weddingDate, username, shar
           );
         })}
       </ul>
+      {hayMas && (
+        <div ref={centinela} className={styles.verMas}>
+          <button type="button" onClick={verMas}>
+            Ver más fotos ({(visibles.length - pintadas.length).toLocaleString('es-ES')} por ver)
+          </button>
+        </div>
+      )}
+
+      <AnadirFotos slug={slug} fotosActuales={photos.length} />
 
       <GalleryAdminActions slug={slug} clientName={clientName} />
 
