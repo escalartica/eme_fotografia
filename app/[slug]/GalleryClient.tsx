@@ -8,6 +8,7 @@ import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 import { Lightbox } from '@/components/motion/Lightbox';
 import type { GalleryPhoto, Selection } from '@/lib/gallery-store';
 import styles from './GalleryClient.module.css';
+import { usePocoAPoco } from '@/lib/hooks/usePocoAPoco';
 import { srcSetMiniatura, srcSetVisor } from '@/lib/gallery-srcset';
 import { GalleryWelcome } from './GalleryWelcome';
 
@@ -89,6 +90,8 @@ export function GalleryClient({
     if (filtro === 'notas') return photos.filter((p) => items[p.id]?.comment.trim() !== '');
     return photos;
   }, [filtro, photos, items]);
+  // Con 1.200 fotos no se montan todas a la vez: ver lib/hooks/usePocoAPoco.ts.
+  const { pintadas, hayMas, centinela, verMas } = usePocoAPoco(visibles, filtro);
 
   /** Lo que recorre el visor: la lista de cuando se abrió, o la de ahora si
    *  está cerrado. Ver el comentario de `listaCongelada`. */
@@ -355,7 +358,7 @@ export function GalleryClient({
       </div>
 
       <ul className={styles.grid}>
-        {visibles.map((photo, index) => {
+        {pintadas.map((photo, index) => {
           const state = items[photo.id];
           const commentOpen = openCommentId === photo.id;
           return (
@@ -423,6 +426,13 @@ export function GalleryClient({
           );
         })}
       </ul>
+      {hayMas && (
+        <div ref={centinela} className={styles.verMas}>
+          <button type="button" onClick={verMas}>
+            Ver más fotos ({(visibles.length - pintadas.length).toLocaleString('es-ES')} por ver)
+          </button>
+        </div>
+      )}
 
       {visibles.length === 0 && (
         <p className={styles.vacio}>

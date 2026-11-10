@@ -134,7 +134,7 @@ describe('POST /api/admin/galerias', () => {
     await conSesionDeAdmin();
     const res = await route.POST(alta({ slug: '  Boda-Ana-Y-Luis  ' }));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true, slug: 'boda-ana-y-luis' });
+    expect(await res.json()).toEqual({ ok: true, slug: 'boda-ana-y-luis', total: 1 });
     expect(await store.getGalleryMeta('boda-ana-y-luis')).not.toBeNull();
   });
 
@@ -168,11 +168,11 @@ describe('POST /api/admin/galerias', () => {
     expect((await route.POST(alta({}, []))).status).toBe(400);
   });
 
-  it('rejects more photos than the per-gallery cap', async () => {
+  it('rejects more photos than fit in one request', async () => {
     await conSesionDeAdmin();
-    // Uno por encima del tope de la ruta (MAX_FILES), que subió de 60 a 200
-    // el 13/09/2026: desde que el formulario encoge las fotos en el navegador
-    // (lib/reducir-foto.ts), una boda entera cabe en un solo envío.
+    // Uno por encima del tope POR PETICIÓN (MAX_FOTOS_POR_PETICION). Desde
+    // noviembre de 2026 una galería puede tener muchas más (las demás llegan
+    // por /api/admin/galerias/<slug>/fotos), pero una sola petición no.
     const demasiadas = Array.from(
       { length: 201 },
       (_, i): [string, Bytes, string] => [`foto-${i}.jpg`, JPG, 'image/jpeg']
@@ -234,7 +234,7 @@ describe('POST /api/admin/galerias', () => {
     await conSesionDeAdmin();
     const res = await route.POST(alta({}, [['a.jpg', JPG, 'image/jpeg'], ['b.png', PNG, 'image/png']]));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true, slug: CAMPOS_VALIDOS.slug });
+    expect(await res.json()).toEqual({ ok: true, slug: CAMPOS_VALIDOS.slug, total: 2 });
 
     const meta = await store.getGalleryMeta(CAMPOS_VALIDOS.slug);
     expect(meta!.clientName).toBe('Ana y Luis');
@@ -258,6 +258,25 @@ describe('POST /api/admin/galerias', () => {
     const res = await route.POST(alta({ clientName: 'Otra pareja', password: 'otra-contra-1234' }));
     expect(res.status).toBe(409);
     expect((await store.getGalleryMeta(CAMPOS_VALIDOS.slug))!.clientName).toBe('Ana y Luis');
+  });
+
+  it('answers a retried creation as a success instead of a slug clash', async () => {
+    // La primera petición entró, pero su respuesta se perdió: el navegador
+    // repite con el mismo identificador de tanda. No es otra galería.
+    await conSesionDeAdmin();
+    const tanda = '0b9c6a52-3f4e-4c1a-9a1e-5d2b8f1e7c30';
+    const primera = alta();
+    const form = await primera.formData();
+    form.set('tanda', tanda);
+    const conTanda = () => new Request('http://localhost:3000/api/admin/galerias', { method: 'POST', body: form });
+    expect((await route.POST(conTanda())).status).toBe(200);
+    const repetida = await route.POST(conTanda());
+    expect(repetida.status).toBe(200);
+    expect(await repetida.json()).toEqual({ ok: true, slug: CAMPOS_VALIDOS.slug, total: 1 });
+    expect((await store.getGalleryMeta(CAMPOS_VALIDOS.slug))!.photos).toHaveLength(1);
+
+    // Sin ese identificador, sí es un choque.
+    expect((await route.POST(alta())).status).toBe(409);
   });
 
   it('never leaks an internal path in an error message', async () => {

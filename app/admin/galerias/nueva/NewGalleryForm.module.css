@@ -458,3 +458,42 @@
     flex-direction: column;
   }
 }
+
+/* «Añadir fotos» (app/admin/galerias/[slug]/AnadirFotos.tsx): en la ficha de
+   una galería y en la confirmación del alta cuando faltaron fotos. */
+.anadir {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+.anadirFila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  align-items: center;
+}
+.anadirFila .secondaryButton {
+  gap: 0.5em;
+}
+
+/* Con una boda entera en la lista no se pintan mil doscientas miniaturas:
+   cada una es una foto de 45 megapíxeles que el navegador tiene que
+   decodificar. Se enseñan las primeras y esta línea dice cuántas más hay. */
+.previewMas {
+  color: var(--color-muted);
+  font-size: var(--type-label);
+  margin: var(--space-1) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  align-items: center;
+}
+.previewMas button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}

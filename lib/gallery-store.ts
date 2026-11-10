@@ -32,6 +32,16 @@ export interface GalleryMeta {
   passwordHash: string;
   createdAt: string;
   photos: GalleryPhoto[];
+  /**
+   * Las últimas tandas de fotos que se han apuntado, por el identificador que
+   * pone el navegador a cada una (lib/subir-por-tandas.ts).
+   *
+   * EXISTE PARA QUE UN REINTENTO NO DUPLIQUE FOTOS. Si la tanda llega y se
+   * guarda pero la respuesta se pierde por el camino (la wifi se corta justo
+   * entonces), el navegador la vuelve a mandar; sin esta lista, la pareja
+   * vería esas cuarenta fotos dos veces.
+   */
+  tandasRecibidas?: string[];
 }
 
 export interface SelectionItem {
@@ -297,6 +307,10 @@ export async function updateGalleryPasswordHash(
   slug: string,
   passwordHash: string
 ): Promise<boolean> {
+  // En la misma cola que los añadidos de fotos: si no, un cambio de
+  // contraseña a mitad de una subida podía perderse (o borrar de la ficha las
+  // fotos de la tanda que se estaba apuntando). Ver `enCola`.
+  return enCola(slug, async () => {
   const meta = await getGalleryMeta(slug);
   if (!meta) return false;
   // ESCRIBE SOBRE UN FICHERO QUE TIENE QUE EXISTIR YA, y no pasa por
@@ -311,6 +325,80 @@ export async function updateGalleryPasswordHash(
   // escritura falla y no resucita nada.
   await escribirMetaExistente(slug, { ...meta, passwordHash });
   return true;
+  });
+}
+
+/**
+ * UNA COLA POR GALERÍA PARA LO QUE REESCRIBE meta.json A PARTIR DE LO QUE YA
+ * HAY.
+ *
+ * Añadir fotos es leer la ficha, sumarle las nuevas y escribirla entera. Dos
+ * añadidos a la vez sobre la misma galería --dos pestañas del panel, o un
+ * reintento que llega mientras la tanda anterior aún se está guardando--
+ * leerían la misma ficha y el segundo en escribir borraría las fotos del
+ * primero de la lista, con los ficheros en disco y sin forma de verlas.
+ *
+ * Basta con una cola en memoria porque la web corre en UN proceso (el
+ * servicio de systemd, docs/DESPLIEGUE.md §6). Si algún día se reparte entre
+ * varios, esto tendrá que pasar a un bloqueo en disco.
+ */
+const colas = new Map<string, Promise<unknown>>();
+
+function enCola<T>(slug: string, trabajo: () => Promise<T>): Promise<T> {
+  const anterior = colas.get(slug) ?? Promise.resolve();
+  const este = anterior.catch(() => {}).then(trabajo);
+  const cola = este.catch(() => {});
+  colas.set(slug, cola);
+  void cola.then(() => {
+    if (colas.get(slug) === cola) colas.delete(slug);
+  });
+  return este;
+}
+
+/**
+ * Apunta en meta.json fotos que YA están escritas en photos/.
+ *
+ * Devuelve:
+ *   - 'no-existe' si la galería no está (o la han borrado mientras subía);
+ *   - 'lleno' si con estas se pasaría de `maxFotos`;
+ *   - el total de fotos que tiene ahora, si todo ha ido bien.
+ *
+ * En los dos primeros casos no toca nada: borrar los ficheros que ya se
+ * habían escrito es cosa de quien llama, que es quien sabe cuáles son.
+ */
+export async function appendGalleryPhotos(
+  slug: string,
+  nuevas: GalleryPhoto[],
+  maxFotos: number,
+  tanda?: string
+): Promise<'no-existe' | 'lleno' | 'repetida' | number> {
+  return enCola(slug, async () => {
+    const meta = await getGalleryMeta(slug);
+    if (!meta) return 'no-existe' as const;
+    if (tanda && meta.tandasRecibidas?.includes(tanda)) return 'repetida' as const;
+    if (meta.photos.length + nuevas.length > maxFotos) return 'lleno' as const;
+    const photos = [...meta.photos, ...nuevas];
+    const tandasRecibidas = tanda ? recordarTanda(meta.tandasRecibidas, tanda) : meta.tandasRecibidas;
+    // Sobre un fichero que tiene que existir ya: ver `updateGalleryPasswordHash`
+    // para por qué un borrado a mitad de subida no debe resucitar la galería.
+    await escribirMetaExistente(slug, { ...meta, photos, tandasRecibidas });
+    return photos.length;
+  });
+}
+
+/** Cuántas tandas se recuerdan. Un reintento llega segundos después del
+ *  original, así que basta con las últimas; guardarlas todas haría crecer
+ *  meta.json con cada subida para nada. */
+const TANDAS_RECORDADAS = 200;
+
+export function recordarTanda(previas: string[] | undefined, tanda: string): string[] {
+  return [...(previas ?? []), tanda].slice(-TANDAS_RECORDADAS);
+}
+
+/** Lo que el navegador manda como identificador de tanda: un UUID. Cualquier
+ *  otra cosa se ignora, para que no acabe texto arbitrario en meta.json. */
+export function tandaValida(valor: unknown): string | undefined {
+  return typeof valor === 'string' && /^[0-9a-f-]{36}$/i.test(valor) ? valor : undefined;
 }
 
 /** Extensiones que este proyecto acepta subir y sirve después. */

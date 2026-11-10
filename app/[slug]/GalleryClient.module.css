@@ -716,3 +716,24 @@
     gap: var(--space-0);
   }
 }
+
+/* Final de lo pintado en una galería grande (lib/hooks/usePocoAPoco.ts). Al
+   acercarse a la pantalla se pintan más fotos solas; el botón queda para
+   quien navega con teclado. */
+.verMas {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3, 2rem) 0;
+}
+.verMas button {
+  min-height: 2.75rem;
+  padding: 0.8em 1.4em;
+  background: none;
+  border: 1px solid var(--color-muted);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  cursor: pointer;
+}

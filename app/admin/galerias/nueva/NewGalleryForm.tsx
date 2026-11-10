@@ -3,72 +3,37 @@ import { Fragment, useEffect, useRef, useState, useSyncExternalStore, type Chang
 import Link from 'next/link';
 import { UploadIcon, TrashIcon } from '@/components/ui/Icon';
 import { MIN_PASSWORD_LENGTH, generarPassword, mensajeParaLaPareja, motivoPasswordDebil } from '@/lib/gallery-credentials';
-import { LADO_LARGO, reducirFoto } from '@/lib/reducir-foto';
+import { LADO_LARGO } from '@/lib/reducir-foto';
+import { MAX_FOTOS_POR_GALERIA } from '@/lib/gallery-limits';
+import { enviarConProgreso, subirEnTandas, type Avance } from '@/lib/subir-por-tandas';
+import { AnadirFotos, ProgresoSubida } from '../[slug]/AnadirFotos';
 import styles from './NewGalleryForm.module.css';
 
-/** Una boda entera de una vez. Antes eran 60 y había que partirla en tandas;
- *  desde que las fotos se encogen en el navegador antes de salir
- *  (lib/reducir-foto.ts), doscientas pesan menos que las sesenta de antes. */
-const MAX_FILES = 200;
+/**
+ * CUÁNTAS FOTOS ADMITE UNA GALERÍA: las de una boda entera para que la pareja
+ * elija, 1.200 o más. Antes eran 200 y viajaban todas en una sola petición;
+ * ahora se suben por tandas (lib/subir-por-tandas.ts) y el tope está en
+ * lib/gallery-limits.ts, compartido con el servidor.
+ */
+const MAX_FILES = MAX_FOTOS_POR_GALERIA;
 /** El tope de lo que se ACEPTA del disco, no de lo que se sube: un JPEG recién
  *  exportado a 45 megapíxeles pasa de 25 MB sin esfuerzo, y lo que acaba
  *  saliendo de aquí ronda los 600 KB. */
 const MAX_FILE_BYTES = 120 * 1024 * 1024;
 /**
- * LO QUE SE PUEDE SUBIR DE UNA SOLA VEZ.
+ * CUÁNTAS MINIATURAS SE PINTAN MIENTRAS SE PREPARA LA SUBIDA.
  *
- * nginx acepta 420 MB (`client_max_body_size`, docs/DESPLIEGUE.md §7) y la
- * propia aplicación corta en 400 (`MAX_TOTAL_BYTES` en
- * app/api/admin/galerias/route.ts). Manda el más bajo de los dos, que es este.
- *
- * Con las fotos ya encogidas es un techo que no se toca ni con doscientas,
- * pero sigue puesto: alguien puede arrastrar una carpeta de TIFF, o fallar el
- * encogido y subirse los originales.
- *
- * Importa porque quien lo supera NO ve un error de esta aplicación: ve una
- * página 413 de nginx, en inglés y sin ninguna pista de qué hacer, después de
- * haber estado subiendo varios minutos. Avisar antes de empezar cuesta una
- * suma y ahorra esa subida entera.
+ * Cada miniatura es el ORIGINAL, que el navegador decodifica entero para
+ * dibujarlo pequeño: con mil doscientas en pantalla la pestaña se queda sin
+ * memoria antes de empezar a subir. Se enseñan las primeras, que bastan para
+ * comprobar que es la carpeta buena, y una línea dice cuántas más van.
  */
-const LIMITE_SERVIDOR_BYTES = 400 * 1024 * 1024;
+const MINIATURAS_VISIBLES = 60;
 
 function mb(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(bytes > 10 * 1024 * 1024 ? 0 : 1)} MB`;
 }
 
-/**
- * Sube con barra de progreso, que `fetch` todavía no sabe hacer.
- *
- * No es un adorno: cuarenta fotos de boda son varios cientos de megas y
- * pueden tardar minutos. Con un botón que solo decía «Creando galería…», lo
- * razonable desde el otro lado de la pantalla es pensar que se ha colgado,
- * recargar, y perder la subida entera -- que es justo lo que no puede pasar
- * cuando lo que se está subiendo es la boda de alguien.
- */
-function subirConProgreso(
-  form: FormData,
-  alProgresar: (enviados: number, total: number) => void
-): Promise<{ ok: boolean; status: number; data: Record<string, unknown> | null }> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/api/admin/galerias');
-    xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable) alProgresar(e.loaded, e.total);
-    });
-    xhr.addEventListener('load', () => {
-      let data: Record<string, unknown> | null = null;
-      try {
-        data = JSON.parse(xhr.responseText) as Record<string, unknown>;
-      } catch {
-        // Un 413 de nginx llega como HTML, no como JSON. Que el `catch` lo
-        // deje en null es correcto: el mensaje lo pone quien llama.
-      }
-      resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, data });
-    });
-    xhr.addEventListener('error', () => reject(new Error('red')));
-    xhr.send(form);
-  });
-}
 const ALLOWED_TYPES = new Set(['image/webp', 'image/jpeg', 'image/png', 'image/avif']);
 
 function slugify(value: string): string {
@@ -169,6 +134,11 @@ interface CreatedGallery {
   username: string;
   password: string;
   shareUrl: string;
+  /** Cuántas fotos han entrado, de cuántas se eligieron. */
+  subidas: number;
+  /** Las que no llegaron a subir si la subida se cortó a medias. */
+  faltan: File[];
+  avisoFaltan: string | null;
 }
 
 /**
@@ -188,8 +158,7 @@ export function NewGalleryForm() {
   const [usernameTouched, setUsernameTouched] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordTouched, setPasswordTouched] = useState(false);
-  const [progreso, setProgreso] = useState<{ enviados: number; total: number } | null>(null);
-  const [preparando, setPreparando] = useState<{ hechas: number; total: number } | null>(null);
+  const [avance, setAvance] = useState<Avance | null>(null);
   const [showPassword, setShowPassword] = useState(true);
   const [files, setFiles] = useState<StagedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -224,7 +193,6 @@ export function NewGalleryForm() {
 
   const effectiveSlug = slugTouched ? slug : slugify(clientName);
   const pesoTotal = files.reduce((suma, f) => suma + f.file.size, 0);
-  const sePasaDelLimite = pesoTotal > LIMITE_SERVIDOR_BYTES;
   const effectiveUsername = usernameTouched ? username : usernameSuggestion(clientName);
   const effectivePassword = passwordTouched ? password : passwordPropuesta;
 
@@ -234,7 +202,7 @@ export function NewGalleryForm() {
     const combined = [...files];
     for (const file of incoming) {
       if (combined.length >= MAX_FILES) {
-        setError(`Máximo ${MAX_FILES} fotos por galería.`);
+        setError(`Máximo ${MAX_FILES.toLocaleString('es-ES')} fotos por galería.`);
         break;
       }
       if (!ALLOWED_TYPES.has(file.type)) {
@@ -269,6 +237,12 @@ export function NewGalleryForm() {
     });
   }
 
+  function quitarTodas() {
+    for (const staged of files) URL.revokeObjectURL(staged.previewUrl);
+    setFiles([]);
+    setError(null);
+  }
+
   async function copyValue(field: string, value: string) {
     try {
       await navigator.clipboard.writeText(value);
@@ -284,7 +258,6 @@ export function NewGalleryForm() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    setProgreso(null);
 
     if (!clientName.trim()) { setError('Indica el nombre del cliente.'); return; }
     if (!effectiveSlug.trim()) { setError('Indica el enlace de la galería.'); return; }
@@ -294,57 +267,52 @@ export function NewGalleryForm() {
     if (files.length === 0) { setError('Sube al menos una foto.'); return; }
 
     setIsSubmitting(true);
+    const originales = files.map((f) => f.file);
     try {
       /**
-       * PRIMERO SE ENCOGEN, DESPUÉS SE SUBEN. Una a una y no todas a la vez:
-       * cada foto ocupa su tamaño descomprimido en memoria mientras se dibuja
-       * --una de 45 megapíxeles son 180 MB-- y hacerlo en paralelo tumba la
-       * pestaña. De una en una son unas décimas de segundo cada una, y la
-       * cuenta va a la vista.
+       * LA GALERÍA SE CREA CON LA PRIMERA TANDA Y LAS DEMÁS SE AÑADEN DETRÁS.
+       *
+       * Las fotos se encogen y se mandan de cuarenta en cuarenta
+       * (lib/subir-por-tandas.ts): mil doscientas fotos no caben en una sola
+       * petición. La primera tanda viaja con los datos de la pareja y crea la
+       * galería; las siguientes van a /api/admin/galerias/<slug>/fotos.
        */
-      setPreparando({ hechas: 0, total: files.length });
-      const listas: File[] = [];
-      for (const staged of files) {
-        listas.push(await reducirFoto(staged.file));
-        setPreparando({ hechas: listas.length, total: files.length });
-      }
-      setPreparando(null);
+      let slugCreado = '';
+      const r = await subirEnTandas({
+        fotos: originales,
+        alAvanzar: setAvance,
+        enviarTanda: async (tanda, indice, alProgresar, idTanda) => {
+          const form = new FormData();
+          form.set('tanda', idTanda);
+          for (const f of tanda) form.append('photos', f);
+          if (indice > 0) {
+            return enviarConProgreso(`/api/admin/galerias/${slugCreado}/fotos`, form, alProgresar);
+          }
+          form.set('slug', effectiveSlug.trim());
+          form.set('clientName', clientName.trim());
+          form.set('weddingDate', weddingDate);
+          form.set('username', effectiveUsername.trim());
+          form.set('password', effectivePassword);
+          const res = await enviarConProgreso('/api/admin/galerias', form, alProgresar);
+          if (!res.ok) return res;
+          // Una respuesta 2xx sin `slug` no debería existir, pero si llegara,
+          // seguir adelante dejaría a la vista un enlace roto para el cliente.
+          const slugDevuelto = typeof res.data?.slug === 'string' ? res.data.slug : '';
+          if (!slugDevuelto) {
+            return {
+              ok: false,
+              status: 400,
+              data: { error: 'La galería se ha creado pero el servidor no ha devuelto su enlace. Míralo en el panel.' },
+            };
+          }
+          slugCreado = slugDevuelto;
+          return res;
+        },
+      });
 
-      const pesoQueSale = listas.reduce((suma, f) => suma + f.size, 0);
-      if (pesoQueSale > LIMITE_SERVIDOR_BYTES) {
-        setError(
-          `Aun encogidas siguen siendo ${mb(pesoQueSale)}, y el servidor no admite tanto de una vez. ` +
-            'Crea la galería con una parte y añade el resto en una segunda tanda.'
-        );
-        return;
-      }
-
-      const form = new FormData();
-      form.set('slug', effectiveSlug.trim());
-      form.set('clientName', clientName.trim());
-      form.set('weddingDate', weddingDate);
-      form.set('username', effectiveUsername.trim());
-      form.set('password', effectivePassword);
-      for (const lista of listas) form.append('photos', lista);
-
-      const res = await subirConProgreso(form, (enviados, total) => setProgreso({ enviados, total }));
-      const data = res.data;
-      if (!res.ok) {
-        if (res.status === 413) {
-          setError(
-            `El servidor no admite una subida tan grande de una vez (${mb(pesoTotal)}). ` +
-              'Crea la galería con una parte de las fotos y añade el resto en una segunda tanda.'
-          );
-        } else {
-          setError((data?.error as string) ?? 'No se pudo crear la galería.');
-        }
-        return;
-      }
-      // Una respuesta 2xx sin `slug` no debería existir, pero si llegara,
-      // seguir adelante dejaría a la vista un enlace roto para el cliente.
-      const slugCreado = typeof data?.slug === 'string' ? data.slug : '';
       if (!slugCreado) {
-        setError('La galería se ha creado pero el servidor no ha devuelto su enlace. Míralo en el panel.');
+        // Ni siquiera la primera tanda entró: no hay galería.
+        setError(r.ok ? 'No se pudo crear la galería.' : r.error);
         return;
       }
       // La sugerida ya ha viajado a una galería: la siguiente tiene que ser
@@ -357,13 +325,15 @@ export function NewGalleryForm() {
         username: effectiveUsername.trim(),
         password: effectivePassword,
         shareUrl: `${shareOrigin}/${slugCreado}`,
+        subidas: r.subidas,
+        faltan: r.ok ? [] : originales.slice(r.subidas),
+        avisoFaltan: r.ok ? null : r.error,
       });
     } catch {
       setError('No se pudo conectar. Comprueba tu conexión e inténtalo de nuevo.');
     } finally {
       setIsSubmitting(false);
-      setProgreso(null);
-      setPreparando(null);
+      setAvance(null);
     }
   }
 
@@ -376,6 +346,26 @@ export function NewGalleryForm() {
           Comparte estos datos con tu cliente por el canal que prefieras (WhatsApp, email...). La
           contraseña no volverá a mostrarse en texto plano después de salir de esta página.
         </p>
+
+        {/* LA GALERÍA EXISTE AUNQUE NO HAYAN ENTRADO TODAS. Con treinta
+            tandas seguidas, que la conexión se caiga a mitad es posible, y
+            empezar de cero sería volver a subir lo que ya está. Las que
+            faltan se quedan aquí listas para un segundo intento. */}
+        {created.faltan.length > 0 && (
+          <>
+            <p className={styles.avisoPeso} role="alert">
+              Se han subido {created.subidas.toLocaleString('es-ES')} de{' '}
+              {(created.subidas + created.faltan.length).toLocaleString('es-ES')} fotos. {created.avisoFaltan}{' '}
+              No compartas el enlace todavía: sube las que faltan.
+            </p>
+            <AnadirFotos
+              slug={created.slug}
+              fotosActuales={created.subidas}
+              fotosIniciales={created.faltan}
+              titulo="Fotos que faltan por subir"
+            />
+          </>
+        )}
 
         <dl className={styles.credentialList}>
           <div className={`${styles.credentialRow} ${styles.filaEnlace}`}>
@@ -557,7 +547,7 @@ export function NewGalleryForm() {
               selecciónalas
             </button>
           </p>
-          <p className={styles.dropzoneHint}>JPG, PNG, WEBP o AVIF · hasta 25MB por foto · máximo {MAX_FILES} fotos</p>
+          <p className={styles.dropzoneHint}>JPG, PNG, WEBP o AVIF · hasta {MAX_FILES.toLocaleString('es-ES')} fotos por galería</p>
           <input
             id="fotos"
             ref={fileInputRef}
@@ -584,19 +574,10 @@ export function NewGalleryForm() {
               Se envían encogidas a {LADO_LARGO} px de lado largo, que es lo que va a ver la pareja en su
               pantalla. Tus originales no se tocan.
             </p>
-            {/* El aviso llega ANTES de subir, no después de cinco minutos de
-                barra de progreso y un 413 en inglés. Con las fotos encogidas
-                casi no se llega nunca, pero una carpeta de TIFF sí. */}
-            {sePasaDelLimite && (
-              <p className={styles.avisoPeso} role="status">
-                Son {mb(pesoTotal)} en el disco. Si al encogerlas siguen pasando de{' '}
-                {mb(LIMITE_SERVIDOR_BYTES)}, habrá que subirlas en dos tandas.
-              </p>
-            )}
             <ul className={styles.previewGrid}>
-              {files.map((staged) => (
+              {files.slice(0, MINIATURAS_VISIBLES).map((staged) => (
                 <li key={staged.id} className={styles.previewItem}>
-                  <img src={staged.previewUrl} alt="" className={styles.previewImage} />
+                  <img src={staged.previewUrl} alt="" loading="lazy" decoding="async" className={styles.previewImage} />
                   <button
                     type="button"
                     className={styles.previewRemove}
@@ -608,45 +589,23 @@ export function NewGalleryForm() {
                 </li>
               ))}
             </ul>
+            <p className={styles.previewMas}>
+              {files.length > MINIATURAS_VISIBLES && (
+                <span>
+                  Y {(files.length - MINIATURAS_VISIBLES).toLocaleString('es-ES')} fotos más que no se muestran aquí.
+                </span>
+              )}
+              <button type="button" onClick={quitarTodas} disabled={isSubmitting}>
+                Quitar todas
+              </button>
+            </p>
           </>
         )}
       </div>
 
       {error && <p className={styles.error} role="alert">{error}</p>}
 
-      {preparando && (
-        <div className={styles.progreso}>
-          <progress
-            className={styles.progresoBarra}
-            value={preparando.hechas}
-            max={preparando.total}
-            aria-label="Preparando las fotos"
-          />
-          <p className={styles.progresoTexto} aria-live="polite">
-            Preparando las fotos… {preparando.hechas} de {preparando.total}
-          </p>
-          <p className={styles.progresoAviso}>No cierres esta pestaña hasta que termine.</p>
-        </div>
-      )}
-
-      {progreso && (
-        <div className={styles.progreso}>
-          {/* `<progress>` nativo: el lector de pantalla lo anuncia solo y el
-              navegador lo pinta aunque falle el CSS. */}
-          <progress
-            className={styles.progresoBarra}
-            value={progreso.enviados}
-            max={progreso.total}
-            aria-label="Progreso de la subida"
-          />
-          <p className={styles.progresoTexto} aria-live="polite">
-            {progreso.enviados >= progreso.total
-              ? 'Fotos subidas. Preparando la galería…'
-              : `Subiendo… ${Math.round((progreso.enviados / progreso.total) * 100)} % · ${mb(progreso.enviados)} de ${mb(progreso.total)}`}
-          </p>
-          <p className={styles.progresoAviso}>No cierres esta pestaña hasta que termine.</p>
-        </div>
-      )}
+      {avance && <ProgresoSubida avance={avance} />}
 
       <div className={styles.actions}>
         <Link href="/admin" className={styles.secondaryButton}>Cancelar</Link>
