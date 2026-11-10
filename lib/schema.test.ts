@@ -95,15 +95,25 @@ describe('schema.org generators', () => {
     const video = projects.find((p) => p.category === 'video')!;
     expect(creativeWorkSchema(photo)['@type']).toBe('ImageGallery');
     expect(creativeWorkSchema(photo).name).toBe(photo.title);
-    // Ningún reportaje tiene todavía `videoUploadDate` confirmada por el
-    // estudio, y Google exige `uploadDate` en un VideoObject. Antes se
-    // rellenaba con el 1 de enero del año de la boda: una fecha fabricada que
-    // además se publica en los resultados. Sin fecha real, CreativeWork.
-    expect(video.videoUploadDate).toBeUndefined();
-    const schema: Record<string, unknown> = creativeWorkSchema(video);
-    expect(schema['@type']).toBe('CreativeWork');
-    expect(schema.uploadDate).toBeUndefined();
-    expect(schema.contentUrl).toBeUndefined();
+
+    // Con la fecha real de publicación confirmada por el estudio
+    // (`videoUploadDate`), el reportaje de vídeo sale como VideoObject
+    // completo, con esa fecha y su `contentUrl`.
+    expect(video.videoUploadDate).toMatch(/^\d{4}-\d{2}$/);
+    const dated: Record<string, unknown> = creativeWorkSchema(video);
+    expect(dated['@type']).toBe('VideoObject');
+    expect(dated.uploadDate).toBe(video.videoUploadDate);
+    if (video.cover.type === 'video') {
+      expect(dated.contentUrl).toBe(`${site.siteUrl}${video.cover.src}`);
+    }
+
+    // Sin fecha real, nunca un VideoObject con fecha inventada (antes se
+    // rellenaba con el 1 de enero del año de la boda): CreativeWork, sin
+    // `uploadDate` ni `contentUrl`.
+    const undated: Record<string, unknown> = creativeWorkSchema({ ...video, videoUploadDate: undefined });
+    expect(undated['@type']).toBe('CreativeWork');
+    expect(undated.uploadDate).toBeUndefined();
+    expect(undated.contentUrl).toBeUndefined();
   });
 
   it('includes image and url on the project schema when the project has a cover image', () => {
