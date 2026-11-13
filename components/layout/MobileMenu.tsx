@@ -21,6 +21,7 @@ const LINKS = [
   { href: '/trabajos', label: 'Trabajos' },
   { href: '/servicios', label: 'Servicios' },
   { href: '/sobre-nosotros', label: 'Equipo' },
+  { href: '/mascotas', label: 'Mascotas' },
   { href: '/contacto', label: 'Contacto' },
 ];
 
@@ -33,16 +34,16 @@ const REDES = [
 /**
  * Lo que tarda el panel en irse, en milisegundos, y por qué ese número.
  *
- * El cierre es DOS cosas a la vez: las cinco filas caen escalonadas desde la
- * última (0,22 s de tween + 4 × 0,03 s de retardo = 0,34 s) y el telón se
+ * El cierre es DOS cosas a la vez: las seis filas caen escalonadas desde la
+ * última (0,22 s de tween + 5 × 0,03 s de retardo = 0,37 s) y el telón se
  * desvanece con la transición CSS de `.overlay` (--duration-fast, 0,3 s).
  * Desmontar antes de eso corta la animación a media altura --que es
  * exactamente el defecto que había: `if (!isOpen) return null` hacía
  * desaparecer el menú entero en un fotograma-- y desmontar mucho después deja
- * un panel invisible encima de la página comiéndose los toques. 340 ms es el
+ * un panel invisible encima de la página comiéndose los toques. 370 ms es el
  * más largo de los dos caminos.
  */
-const SALIDA_MS = 340;
+const SALIDA_MS = 370;
 
 /** Lo que hay que arrastrar hacia abajo para que el panel se cierre. */
 const UMBRAL_CIERRE = 60;

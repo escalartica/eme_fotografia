@@ -79,7 +79,7 @@ const GALLERIES_DIR = path.join(process.cwd(), 'data', 'galleries');
 // permanently unreachable (shadowed by the real route) and silently
 // confuse them, not to prevent a routing bug.
 export const RESERVED_SLUGS = new Set([
-  'contacto', 'servicios', 'trabajos', 'sobre-nosotros', 'admin', 'api',
+  'contacto', 'servicios', 'trabajos', 'sobre-nosotros', 'mascotas', 'admin', 'api',
   // Las tres rutas legales son rutas de primer nivel igual que las de
   // arriba (app/(site)/aviso-legal/, /privacidad/, /cookies/) y faltaban:
   // el formulario de alta aceptaba "privacidad" como slug y la galería

@@ -42,7 +42,7 @@ describe('Header — current-route indicator', () => {
 
   it('marks no nav link current on the home route', () => {
     render(<Header />);
-    for (const name of ['Trabajos', 'Servicios', 'Equipo', 'Contacto']) {
+    for (const name of ['Trabajos', 'Servicios', 'Equipo', 'Mascotas', 'Contacto']) {
       expect(screen.getByRole('link', { name })).not.toHaveAttribute('aria-current');
     }
   });

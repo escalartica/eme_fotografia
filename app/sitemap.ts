@@ -84,7 +84,7 @@ function projectVideos(project: Project) {
  * first, the reportajes next, and the legal pages last.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const primary = ['/', '/trabajos', ...services.map((s) => s.route), '/contacto'].map((path) => ({
+  const primary = ['/', '/trabajos', ...services.map((s) => s.route), '/mascotas', '/contacto'].map((path) => ({
     url: `${SITE_URL}${path}`,
     changeFrequency: 'weekly' as const,
     priority: path === '/' ? 1 : 0.8,

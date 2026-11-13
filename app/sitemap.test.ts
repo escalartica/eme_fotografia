@@ -14,6 +14,7 @@ describe('sitemap', () => {
       '/servicios/fotografia-de-boda',
       '/servicios/video-de-boda',
       '/sobre-nosotros',
+      '/mascotas',
       '/contacto',
     ]) {
       expect(urls.some((u) => u.endsWith(path))).toBe(true);

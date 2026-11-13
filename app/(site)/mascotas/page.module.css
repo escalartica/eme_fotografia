@@ -1,0 +1,39 @@
+/* El cierre de /mascotas: la llamada a reservar.
+   Mismo filete y mismo ritmo que `.cierreFicha` de las fichas de servicio,
+   con un titular porque aquí la llamada no va al formulario de bodas sino a
+   WhatsApp o al correo, y hay que decirlo. */
+.reserva {
+  border-block-start: 1px solid var(--color-hairline);
+  padding-block-start: var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+
+.reservaTitulo {
+  font-family: var(--font-display);
+  font-size: var(--type-h2-sm);
+  line-height: 1.02;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.reservaTexto {
+  max-width: 40rem;
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.reservaPie {
+  margin: var(--space-2) 0 0;
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+}
+
+.reservaPie a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}

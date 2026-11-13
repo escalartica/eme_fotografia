@@ -23,6 +23,7 @@ const LINKS = [
   { href: '/trabajos', label: 'Trabajos' },
   { href: '/servicios', label: 'Servicios' },
   { href: '/sobre-nosotros', label: 'Equipo' },
+  { href: '/mascotas', label: 'Mascotas' },
 ];
 
 const CONTACT = { href: '/contacto', label: 'Contacto' };

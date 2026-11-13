@@ -39,7 +39,7 @@ vi.mock('gsap', () => {
 /** Lo que tarda el panel en irse. Tiene que ser el mismo número que
  *  SALIDA_MS en MobileMenu.tsx; si alguien lo cambia allí y no aquí, la
  *  tercera prueba falla, que es exactamente lo que debe pasar. */
-const SALIDA_MS = 340;
+const SALIDA_MS = 370;
 
 /**
  * Adelantar el reloj DENTRO de `act`, y no es adorno: el desmontaje lo pide
@@ -80,7 +80,7 @@ describe('MobileMenu — la salida', () => {
     // del árbol de accesibilidad, del orden de tabulación y del puntero a la
     // vez. Sin él, los nueve enlaces de dentro seguían siendo alcanzables.
     expect(panel).toHaveAttribute('inert');
-    // El candado aguanta puesto los 340 ms, o la página de debajo recupera el
+    // El candado aguanta puesto los 370 ms, o la página de debajo recupera el
     // scroll a media salida y salta.
     expect(document.body.style.overflowY).toBe('hidden');
   });
