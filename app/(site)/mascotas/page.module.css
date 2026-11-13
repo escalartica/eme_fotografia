@@ -37,3 +37,130 @@
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
+
+/* ===================================================================
+   LAS FOTOGRAFÍAS MANDAN
+   Todo el movimiento de esta página es CSS: nada de JavaScript nuevo, nada
+   que mida el scroll en el hilo principal. Las animaciones guiadas por el
+   scroll van tras la doble puerta de siempre (`@supports animation-timeline`
+   y `prefers-reduced-motion: no-preference`): donde no hay soporte, o quien
+   pide menos movimiento, ve las fotos quietas y enteras desde el principio.
+   Solo se anima `clip-path`, `transform` y `opacity`, que el navegador
+   compone sin repintar el resto de la página.
+   =================================================================== */
+
+/* El retrato de la apertura, más alto que en una ficha de servicio y con
+   un asentamiento lento al cargar: entra un 6% grande y se posa. */
+@media (min-width: 900px) {
+  .heroFoto {
+    height: min(80svh, 46rem);
+  }
+}
+.heroFoto {
+  overflow: hidden;
+  overflow: clip;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .heroFoto img {
+    animation: heroAsienta 1.8s var(--ease-standard) both;
+  }
+}
+@keyframes heroAsienta {
+  from { transform: scale(1.06); opacity: 0; }
+  35% { opacity: 1; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* La franja de animales, pegada bajo la apertura. */
+.marquesina {
+  margin-block: var(--space-4) 0;
+  border-block-start: 1px solid var(--color-hairline);
+}
+
+/* La frase de la casa, grande y centrada: es la pausa entre la apertura y
+   los capítulos. */
+.frase {
+  margin: var(--space-5) auto;
+  max-width: 52rem;
+  text-align: center;
+}
+.frase p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 1.2rem + 3vw, 3.6rem);
+  line-height: 1.08;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+/* ---------- la galería ---------- */
+.galeriaEntrada {
+  margin: 0 0 var(--space-3);
+  color: var(--color-muted);
+  max-width: 34rem;
+}
+
+.galeria {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+@media (min-width: 700px) {
+  .galeria {
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--space-3);
+    row-gap: var(--space-4);
+    /* La columna derecha baja media foto: pliego de revista, no rejilla. */
+    padding-block-end: 12rem;
+  }
+  .galeriaFoto:nth-child(even) {
+    transform: translateY(12rem);
+  }
+}
+
+.galeriaFoto {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  overflow: clip;
+  background: var(--color-hairline);
+}
+
+/* Al pasar el ratón, la foto se acerca un poco. Solo con ratón: en un
+   teléfono un :hover se queda pegado tras el toque. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .galeriaImagen {
+    transition: transform 1.2s var(--ease-standard);
+  }
+  .galeriaFoto:hover .galeriaImagen {
+    transform: scale(1.04);
+  }
+}
+
+/* EL TELÓN. Cada foto se descubre de abajo arriba al entrar en el visor, y
+   la imagen de dentro baja de un 8% de zoom a su tamaño mientras tanto. Va
+   atado a la posición de la propia foto (`view()`), así que no hay
+   IntersectionObserver ni estado: si se vuelve hacia arriba, se deshace. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .galeriaFoto {
+      animation: telon linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+    .galeriaImagen {
+      animation: acerca linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 50%;
+    }
+  }
+}
+@keyframes telon {
+  from { clip-path: inset(18% 0 0 0); opacity: 0.2; }
+  to { clip-path: inset(0 0 0 0); opacity: 1; }
+}
+@keyframes acerca {
+  from { scale: 1.08; }
+  to { scale: 1; }
+}

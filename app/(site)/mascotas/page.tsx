@@ -7,6 +7,7 @@ import { breadcrumbSchema, faqSchema, jsonLd } from '@/lib/schema';
 import { buildMetadata, ogImage } from '@/lib/seo';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import { RevealWords } from '@/components/motion/RevealWords';
+import { MarqueeBand } from '@/components/motion/MarqueeBand';
 import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 import { PlusIcon } from '@/components/ui/Icon';
 import styles from '../servicios/page.module.css';
@@ -74,7 +75,7 @@ export default function Page() {
                 {mascotas.idealFor}
               </p>
             </div>
-            <div className={styles.imageWrap}>
+            <div className={`${styles.imageWrap} ${propios.heroFoto}`}>
               <Image
                 src={mascotas.hero.src}
                 alt={mascotas.hero.alt}
@@ -85,6 +86,19 @@ export default function Page() {
               />
             </div>
           </header>
+
+          {/* Los animales que caben aquí, pasando sin fin: la misma banda de
+              la portada, componente de servidor y CSS puro, parada con
+              `prefers-reduced-motion`. */}
+          <div className={`breakout ${propios.marquesina}`}>
+            <MarqueeBand text={mascotas.animales.join(' · ')} repeat={4} />
+          </div>
+
+          <blockquote className={propios.frase}>
+            <p>
+              <RevealWords segments={[{ text: mascotas.frase }]} />
+            </p>
+          </blockquote>
 
           <section className={styles.capitulo} aria-labelledby="sesiones-heading">
             <h2 id="sesiones-heading" className={styles.capituloTitulo}>Las sesiones</h2>
@@ -113,6 +127,22 @@ export default function Page() {
             </div>
           </section>
 
+          <figure className={styles.interludio}>
+            <div className={styles.interludioMarco}>
+              <div className={styles.interludioCapa}>
+                <Image
+                  src={mascotas.banda.src}
+                  alt={mascotas.banda.alt}
+                  fill
+                  sizes="100vw"
+                  className={styles.image}
+                  style={{ objectPosition: '55% 50%' }}
+                />
+              </div>
+            </div>
+            <figcaption className={styles.interludioPie}>{mascotas.banda.pie}</figcaption>
+          </figure>
+
           <section className={styles.capitulo} aria-labelledby="proceso-heading">
             <h2 id="proceso-heading" className={styles.capituloTitulo}>Cómo es una sesión</h2>
             <div className={styles.pasos} role="list" aria-label="Cómo es una sesión">
@@ -132,21 +162,31 @@ export default function Page() {
 
           <section className={styles.capituloAncho} aria-labelledby="galeria-heading">
             <h2 id="galeria-heading" className={styles.capituloTitulo}>
-              <RevealWords segments={[{ text: 'Perros con nombre propio' }]} />
+              <RevealWords segments={[{ text: 'Con nombre propio' }]} />
             </h2>
-            <div className={styles.mural}>
+            <p className={propios.galeriaEntrada}>
+              Todas las fotos de esta página son de Eme. Ninguna de banco.
+            </p>
+            {/* DOS COLUMNAS GRANDES Y DESFASADAS, no un mural de tres.
+                Aquí las fotos son el argumento: a media caja cada retrato
+                mide ~580 px en escritorio en vez de ~380, y la columna de la
+                derecha baja media foto para que se lea como un pliego de
+                revista y no como una cuadrícula de miniaturas. Cada foto
+                entra con un telón que se abre al llegar al visor (ver
+                `.galeriaFoto` en el CSS de esta página). */}
+            <div className={propios.galeria}>
               {mascotas.galeria.map((item) => (
                 <figure
                   key={item.src}
-                  className={styles.muralItem}
+                  className={propios.galeriaFoto}
                   style={{ aspectRatio: `${item.width} / ${item.height}` }}
                 >
                   <Image
                     src={item.src}
                     alt={item.alt}
                     fill
-                    sizes="(max-width: 700px) 92vw, (max-width: 1100px) 46vw, 30vw"
-                    className={styles.image}
+                    sizes="(max-width: 700px) 92vw, 580px"
+                    className={`${styles.image} ${propios.galeriaImagen}`}
                   />
                 </figure>
               ))}

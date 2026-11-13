@@ -27,13 +27,21 @@ export const mascotas = {
   marca: 'Eme & Compañía',
   metaTitle: 'Fotógrafa de mascotas en Sevilla',
   metaDescription:
-    'Eme & Compañía: sesiones de fotos de perros y gatos en Sevilla con la mirada de una fotógrafa de bodas. En tu casa, en tu barrio o al aire libre.',
+    'Eme & Compañía: sesiones de fotos de mascotas en Sevilla (perros, gatos, conejos, caballos y más) con la mirada de una fotógrafa de bodas.',
   heading: 'Fotógrafa de mascotas en Sevilla',
-  tagline: 'Retratos de tu perro o de tu gato con la mirada de una fotógrafa de bodas.',
+  tagline: 'Retratos de tu animal de compañía, sea cual sea, con la mirada de una fotógrafa de bodas.',
   intro:
-    'Eme lleva quince años fotografiando bodas en Sevilla, y en una boda se aprende lo que importa: estar cerca sin molestar, esperar el gesto que no se repite y encontrar la luz buena. Eme & Compañía es exactamente eso, con hocico, orejas y bigotes. Retratos hechos con calma y con humor, y sobre todo la relación entre tu animal y la gente que lo quiere.',
+    'Eme lleva quince años fotografiando bodas en Sevilla, y en una boda se aprende lo que importa: estar cerca sin molestar, esperar el gesto que no se repite y encontrar la luz buena. Eme & Compañía es exactamente eso, con hocico, bigotes, plumas o crines. Retratos hechos con calma y con humor, y sobre todo la relación entre tu animal y la gente que lo quiere.',
   idealFor:
-    'Para quien tiene en casa un perro o un gato que es uno más de la familia y quiere fotos para colgar en la pared, no solo para el móvil.',
+    'Para quien tiene en casa un perro, un gato, un conejo, un caballo o un loro que es uno más de la familia, y quiere fotos para colgar en la pared, no solo para el móvil.',
+  /** Los animales que se nombran en la franja bajo la apertura. */
+  animales: ['Perros', 'Gatos', 'Conejos', 'Caballos', 'Aves', 'Hurones', 'Tortugas', 'y el que tengas en casa'],
+  frase: 'No hacemos fotos de mascotas. Hacemos retratos de alguien de la familia.',
+  banda: {
+    src: '/images/mascotas/premio-banda.webp',
+    alt: 'Un perro blanco con pañuelo recibe un premio de la mano de su dueño en plena calle',
+    pie: 'Un premio, una mano conocida y un segundo de atención: así se consigue la foto.',
+  },
   hero: {
     src: '/images/mascotas/retrato-weimaraner.webp',
     alt: 'Retrato de un weimaraner gris mirando a cámara con sus ojos claros',
@@ -41,15 +49,19 @@ export const mascotas = {
   sesiones: [
     {
       titulo: 'Retrato',
-      texto: 'Tu perro o tu gato como protagonista absoluto, en un sitio que conozca: su parque, su calle o su sofá.',
+      texto: 'Tu animal como protagonista absoluto, en un sitio que conozca: su parque, su calle, su sofá o su cuadra.',
     },
     {
       titulo: 'Con su familia',
       texto: 'El animal y la gente que lo quiere. Paseos, juegos y abrazos, sin posados rígidos. Niños incluidos.',
     },
     {
+      titulo: 'Exóticos y de granja',
+      texto: 'Conejos, hurones, aves, reptiles, caballos o la gallina que manda en el patio. Nos adaptamos a su espacio y a sus manías, y si hace falta venimos con quien mejor lo conoce.',
+    },
+    {
       titulo: 'Primeros meses y últimos años',
-      texto: 'El cachorro que lo destroza todo y el compañero mayor que ya camina despacio. Las dos etapas que más se echan de menos después.',
+      texto: 'El cachorro que lo destroza todo y el compañero mayor que ya va más despacio. Las dos etapas que más se echan de menos después.',
     },
   ],
   extras: [
@@ -60,15 +72,15 @@ export const mascotas = {
   proceso: [
     {
       titulo: 'Nos lo presentas',
-      texto: 'Nos cuentas cómo es: si es tranquilo o un torbellino, qué le encanta y qué le asusta. Con eso elegimos el sitio y la hora.',
+      texto: 'Nos cuentas quién es y cómo es: si es tranquilo o un torbellino, qué le encanta y qué le asusta. Con eso elegimos el sitio y la hora.',
     },
     {
       titulo: 'Sin prisas',
-      texto: 'Dejamos que se acostumbre a la cámara y a nosotros. Premios, juguetes, pausas y toda la paciencia del mundo. Si ese día no está para fotos, se cambia la fecha.',
+      texto: 'Dejamos que se acostumbre a la cámara y a nosotros. Premios, juguetes, pausas y toda la paciencia del mundo. Sin flashes que lo asusten, y si ese día no está para fotos, se cambia la fecha.',
     },
     {
       titulo: 'La luz justa',
-      texto: 'En Sevilla buscamos la primera hora de la mañana o el atardecer: la luz es más bonita y el suelo está fresco para sus almohadillas.',
+      texto: 'En Sevilla buscamos la primera hora de la mañana o el atardecer: la luz es más bonita y el calor no agobia a nadie, ni a ellos ni a nosotros.',
     },
     {
       titulo: 'Tus fotos',
@@ -81,7 +93,6 @@ export const mascotas = {
     { src: '/images/mascotas/retrato-con-panuelo.webp', alt: 'Retrato en blanco y negro de un perro blanco con pañuelo de lunares', width: 1333, height: 2000 },
     { src: '/images/mascotas/weimaraner-en-la-cafeteria.webp', alt: 'Weimaraner sentado junto a su dueño en una cafetería', width: 1333, height: 2000 },
     { src: '/images/mascotas/retrato-salchicha-con-abrigo.webp', alt: 'Retrato de un perro salchicha de pelo largo con abrigo de capucha', width: 1334, height: 2000 },
-    { src: '/images/mascotas/premio-en-la-calle.webp', alt: 'Perro blanco con pañuelo recibiendo un premio de su dueño', width: 1333, height: 2000 },
     { src: '/images/mascotas/paseo-por-la-ciudad.webp', alt: 'Un hombre pasea con su perro por una calle, en blanco y negro', width: 1333, height: 2000 },
     { src: '/images/mascotas/salchicha-a-sus-pies.webp', alt: 'Perro salchicha sentado a los pies de su dueño, en blanco y negro', width: 1333, height: 2000 },
     { src: '/images/mascotas/sentado-junto-a-su-dueno.webp', alt: 'Perro con pañuelo sentado junto a su dueño en unos escalones, con una noria al fondo', width: 1333, height: 2000 },
@@ -91,21 +102,27 @@ export const mascotas = {
 export const faqsMascotas: FaqEntry[] = [
   {
     id: 'no-se-esta-quieto',
-    question: '¿Y si mi perro no se está quieto ni un segundo?',
+    question: '¿Y si no se está quieto ni un segundo?',
     answer:
-      'Mejor. No buscamos un perro de estatua, buscamos al tuyo. Llevamos años fotografiando a gente que corre, baila y se emociona cuando menos te lo esperas, así que estamos acostumbrados a ir detrás de la foto.',
+      'Mejor. No buscamos un animal de estatua, buscamos al tuyo. Llevamos años fotografiando a gente que corre, baila y se emociona cuando menos te lo esperas, así que estamos acostumbrados a ir detrás de la foto.',
   },
   {
-    id: 'gatos',
-    question: '¿Hacéis fotos a gatos?',
+    id: 'que-animales',
+    question: '¿Qué animales fotografiáis?',
     answer:
-      'Sí. Con los gatos solemos trabajar en casa, que es donde están tranquilos, y siempre a su ritmo.',
+      'Cualquiera con el que vivas: perros, gatos, conejos, hurones, aves, tortugas, caballos... Cada uno tiene su manera de trabajar. A los gatos y a los animales pequeños los fotografiamos en casa, que es donde están tranquilos, y a los caballos en su cuadra o en el campo.',
+  },
+  {
+    id: 'varios',
+    question: '¿Pueden salir varios animales juntos?',
+    answer:
+      'Sí, y suele ser de lo más divertido. Dinos cuántos son y quiénes son para calcular bien el tiempo de la sesión.',
   },
   {
     id: 'donde',
     question: '¿Dónde se hace la sesión?',
     answer:
-      'Donde tu animal esté a gusto: en tu casa, en tu barrio o en algún rincón de Sevilla y alrededores que os guste, como el Parque de María Luisa, la orilla del río o el Aljarafe.',
+      'Donde tu animal esté a gusto: en tu casa, en tu barrio, en el campo o en algún rincón de Sevilla y alrededores que os guste, como el Parque de María Luisa, la orilla del río o el Aljarafe.',
   },
   {
     id: 'familia',
