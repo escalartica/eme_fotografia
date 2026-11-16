@@ -1,4 +1,4 @@
-/* /mascotas/navidad. Casi todo sale de las hojas de /servicios y /mascotas;
+/* /mascotas/sesiones-mascotas-y-familias. Casi todo sale de las hojas de /servicios y /mascotas;
    aquí solo lo que esta página tiene y las otras no. */
 
 /* Los bloques con titular y un botón (lo solidario, el vale regalo): mismo
@@ -28,4 +28,15 @@
 
 .detalle dd {
   margin: 0.25rem 0 0;
+}
+
+/* Los nombres de las dos sesiones van en <h3> (son lo que se busca) pero se
+   leen igual que los pasos de la lista: sin el tamaño ni el margen de un
+   titular. */
+.modalidadTitulo {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  margin: 0;
 }

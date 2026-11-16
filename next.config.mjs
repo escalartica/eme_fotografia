@@ -125,12 +125,22 @@ const nextConfig = {
       // sitio que quien pincha un enlace con www.
       'emefotografiasevilla.com',
     ];
-    return legacyHosts.map((host) => ({
-      source: '/:path*',
-      has: [{ type: 'host', value: host }],
-      destination: `${canonical}/:path*`,
-      permanent: true,
-    }));
+    return [
+      ...legacyHosts.map((host) => ({
+        source: '/:path*',
+        has: [{ type: 'host', value: host }],
+        destination: `${canonical}/:path*`,
+        permanent: true,
+      })),
+      // La página de sesiones solidarias de mascotas nació el 16-11-2026 como
+      // «minisesiones de Navidad» en /mascotas/navidad. Eme cambió el
+      // enfoque el mismo día; quien tenga el enlace viejo llega a la nueva.
+      {
+        source: '/mascotas/navidad',
+        destination: '/mascotas/sesiones-mascotas-y-familias',
+        permanent: true,
+      },
+    ];
   },
 
   async headers() {
