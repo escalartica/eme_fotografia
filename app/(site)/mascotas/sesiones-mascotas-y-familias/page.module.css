@@ -40,3 +40,82 @@
   letter-spacing: inherit;
   margin: 0;
 }
+
+/* ---------- La apertura ----------
+   El titular de esta página es largo («Sesiones de mascotas y familias con
+   mascotas»): con el tamaño de /mascotas ocupaba seis líneas y empujaba el
+   resto. Aquí baja un punto y la foto se centra en vertical respecto al
+   texto, en vez de ir anclada arriba. */
+.titular {
+  font-size: clamp(2.6rem, 1.6rem + 3.6vw, 4.6rem);
+  line-height: 1.02;
+}
+
+@media (min-width: 900px) {
+  .apertura {
+    align-items: center;
+  }
+}
+
+.heroFoto {
+  overflow: hidden;
+  overflow: clip;
+}
+@media (min-width: 900px) {
+  .heroFoto {
+    height: min(72svh, 42rem);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .heroFoto img {
+    animation: heroAsienta 1.6s var(--ease-standard) both;
+  }
+}
+@keyframes heroAsienta {
+  from { transform: scale(1.06); opacity: 0; }
+  35% { opacity: 1; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ---------- Tres fotos en fila ----------
+   Una columna en el teléfono, tres a partir de 700 px. Cada foto ocupa su
+   propio hueco de la rejilla: no hay desplazamientos con `transform`, así
+   que ninguna puede montarse sobre el texto de al lado. */
+.galeria {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+}
+@media (min-width: 700px) {
+  .galeria {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.galeriaFoto {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  overflow: clip;
+  background: var(--color-hairline);
+}
+/* El telón: la foto se descubre de abajo arriba al entrar en el visor. Solo
+   anima `clip-path` y `opacity`, nunca la posición. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .galeriaFoto {
+      animation: telon linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+  }
+}
+@keyframes telon {
+  from { clip-path: inset(18% 0 0 0); opacity: 0.2; }
+  to { clip-path: inset(0 0 0 0); opacity: 1; }
+}
+@media (max-width: 699.98px) {
+  .galeriaFoto {
+    aspect-ratio: 4 / 5;
+  }
+}

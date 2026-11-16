@@ -41,6 +41,14 @@ export const sesionesMascotasFamilias = {
     src: '/images/mascotas/salchicha-con-su-duena.webp',
     alt: 'Perro salchicha con abrigo paseando junto a su dueña por la calle',
   },
+  /** La franja que pasa bajo la apertura. */
+  franja: ['Sesiones de mascotas', 'Familias con mascotas', 'Sevilla', 'Con Pelos y Señales'],
+  /** Tres fotos de Eme entre las sesiones y el bloque solidario. */
+  galeria: [
+    { src: '/images/mascotas/weimaraner-en-la-cafeteria.webp', alt: 'Weimaraner sentado junto a su dueño en una cafetería', width: 1333, height: 2000 },
+    { src: '/images/mascotas/retrato-con-panuelo.webp', alt: 'Retrato en blanco y negro de un perro blanco con pañuelo de lunares', width: 1333, height: 2000 },
+    { src: '/images/mascotas/salchicha-a-sus-pies.webp', alt: 'Perro salchicha sentado a los pies de su dueño, en blanco y negro', width: 1333, height: 2000 },
+  ],
   /** Las dos sesiones que se ofrecen en esta página. */
   modalidades: [
     {
