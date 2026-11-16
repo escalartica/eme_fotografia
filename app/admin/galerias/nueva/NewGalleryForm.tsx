@@ -45,6 +45,21 @@ function slugify(value: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+/**
+ * Lo mismo que `slugify`, pero sin quitar el guion del FINAL. Es lo que se
+ * aplica mientras se escribe en el campo del enlace: con `slugify` a secas,
+ * al teclear «boda-» el guion desaparecía en el acto y era imposible escribir
+ * «boda-especial» letra a letra (salía «bodaespecial»). El guion sobrante se
+ * quita al enviar.
+ */
+function slugifyMientrasSeEscribe(value: string): string {
+  // Sobre el texto ya sin tildes: una «ñ» al final es una letra, no un guion.
+  const sinTildes = value.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const conGuionFinal = /[^a-z0-9]$/i.test(sinTildes);
+  const limpio = slugify(value);
+  return conGuionFinal && limpio ? `${limpio}-` : limpio;
+}
+
 function usernameSuggestion(value: string): string {
   return slugify(value);
 }
@@ -192,6 +207,7 @@ export function NewGalleryForm() {
   const passwordPropuesta = useSyncExternalStore(subscribeNever, getPasswordSnapshot, getServerPasswordSnapshot);
 
   const effectiveSlug = slugTouched ? slug : slugify(clientName);
+  const slugParaEnviar = slugify(effectiveSlug);
   const pesoTotal = files.reduce((suma, f) => suma + f.file.size, 0);
   const effectiveUsername = usernameTouched ? username : usernameSuggestion(clientName);
   const effectivePassword = passwordTouched ? password : passwordPropuesta;
@@ -260,7 +276,7 @@ export function NewGalleryForm() {
     setError(null);
 
     if (!clientName.trim()) { setError('Indica el nombre del cliente.'); return; }
-    if (!effectiveSlug.trim()) { setError('Indica el enlace de la galería.'); return; }
+    if (!slugParaEnviar) { setError('Indica el enlace de la galería.'); return; }
     if (!effectiveUsername.trim()) { setError('Indica el usuario de acceso.'); return; }
     const passwordFloja = motivoPasswordDebil(effectivePassword);
     if (passwordFloja) { setError(passwordFloja); return; }
@@ -288,7 +304,7 @@ export function NewGalleryForm() {
           if (indice > 0) {
             return enviarConProgreso(`/api/admin/galerias/${slugCreado}/fotos`, form, alProgresar);
           }
-          form.set('slug', effectiveSlug.trim());
+          form.set('slug', slugParaEnviar);
           form.set('clientName', clientName.trim());
           form.set('weddingDate', weddingDate);
           form.set('username', effectiveUsername.trim());
@@ -467,7 +483,7 @@ export function NewGalleryForm() {
               id="slug"
               required
               value={effectiveSlug}
-              onChange={(e) => { setSlugTouched(true); setSlug(slugify(e.target.value)); }}
+              onChange={(e) => { setSlugTouched(true); setSlug(slugifyMientrasSeEscribe(e.target.value)); }}
             />
           </div>
         </div>

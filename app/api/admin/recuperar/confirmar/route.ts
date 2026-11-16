@@ -4,6 +4,7 @@ import { olvidarCredenciales, getAdminCredentials } from '@/lib/admin-store';
 import { destroySessionsForSubject } from '@/lib/auth/session';
 import { consume, clientKeyFrom } from '@/lib/auth/rate-limit';
 import { isSameOriginRequest } from '@/lib/auth/origin-check';
+import { leerJson, MAX_JSON_PEQUENO } from '@/lib/http/leer-json';
 
 /**
  * CANJEAR EL ENLACE Y DEJAR PUESTA LA CONTRASEÑA NUEVA.
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
 
   let body: unknown;
   try {
-    body = await request.json();
+    body = await leerJson(request, MAX_JSON_PEQUENO);
   } catch {
     return NextResponse.json({ error: 'Solicitud no válida.' }, { status: 400 });
   }

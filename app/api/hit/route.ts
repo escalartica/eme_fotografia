@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { consume, clientKeyFrom } from '@/lib/auth/rate-limit';
 import { isSameOriginRequest } from '@/lib/auth/origin-check';
+import { leerJson, MAX_JSON_PEQUENO } from '@/lib/http/leer-json';
 import {
   deviceFromWidth,
   isBot,
@@ -48,10 +49,15 @@ export async function POST(request: Request) {
   // descarta la visita en silencio.
   if (!ipAllowed || !globalAllowed) return new Response(null, { status: 204 });
 
-  let body: { p?: string; r?: string; w?: number; u?: string };
+  let body: { p?: unknown; r?: unknown; w?: unknown; u?: unknown };
   try {
-    body = (await request.json()) as typeof body;
+    body = (await leerJson(request, MAX_JSON_PEQUENO)) as typeof body;
   } catch {
+    return new Response(null, { status: 400 });
+  }
+  // `null`, un número o un array son JSON válido y antes hacían saltar un
+  // TypeError (500) al leer `body.p`. Solo un objeto es una visita.
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
     return new Response(null, { status: 400 });
   }
 
@@ -59,10 +65,15 @@ export async function POST(request: Request) {
   const ua = h.get('user-agent');
   if (isBot(ua)) return new Response(null, { status: 204 });
 
-  const path = normalisePath(body.p ?? '');
+  // Sin página no hay visita: antes un `p` ausente se apuntaba como portada.
+  const path = typeof body.p === 'string' && body.p ? normalisePath(body.p) : null;
   if (!path) return new Response(null, { status: 204 });
 
-  const ip = (h.get('x-forwarded-for') ?? '').split(',')[0].trim() || h.get('x-real-ip') || '0.0.0.0';
+  // La misma IP que usa el limitador (ver clientKeyFrom): la primera entrada
+  // de X-Forwarded-For la escribe el visitante y dejaba inflar a mano la
+  // cifra de visitantes únicos.
+  const clave = clientKeyFrom(request);
+  const ip = clave === 'unknown' ? '0.0.0.0' : clave;
   const ownHost = h.get('host') ?? '';
   const now = new Date();
   const day = now.toISOString().slice(0, 10);
@@ -78,7 +89,7 @@ export async function POST(request: Request) {
       r: referrerHost(typeof body.r === 'string' ? body.r.slice(0, 2048) : undefined, ownHost),
       v: await visitorHash(ip, ua ?? '', day),
       d: deviceFromWidth(typeof body.w === 'number' ? body.w : undefined),
-      ...(body.u ? { u: String(body.u).slice(0, 120) } : {}),
+      ...(typeof body.u === 'string' && body.u ? { u: body.u.slice(0, 120) } : {}),
     });
   } catch (err) {
     console.error('[analytics] no se pudo guardar la visita', err);

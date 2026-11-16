@@ -153,7 +153,19 @@ export async function tokenValido(token: string, dir: string = ADMIN_DIR): Promi
 /** Lo gasta. Devuelve false si no valía, y en ese caso no borra nada. */
 export async function canjearToken(token: string, dir: string = ADMIN_DIR): Promise<boolean> {
   if (!(await tokenValido(token, dir))) return false;
-  await fs.rm(path.join(dir, FICHERO_TOKEN), { force: true });
+  // EL CANJE TIENE QUE SER DE UNO SOLO. Comprobar y luego borrar con `rm
+  // --force` dejaba que dos peticiones a la vez con el mismo enlace pasaran
+  // las dos la comprobación y las dos «borraran» (la segunda sin error): dos
+  // contraseñas nuevas, gana la última. `rename` es atómico en el mismo disco:
+  // solo una de las dos lo consigue, la otra recibe ENOENT y pierde.
+  const fichero = path.join(dir, FICHERO_TOKEN);
+  const reclamado = `${fichero}.${process.pid}-${crypto.randomUUID()}.canjeado`;
+  try {
+    await fs.rename(fichero, reclamado);
+  } catch {
+    return false;
+  }
+  await fs.rm(reclamado, { force: true });
   return true;
 }
 

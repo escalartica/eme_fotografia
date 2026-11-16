@@ -5,6 +5,7 @@ import { createSession } from '@/lib/auth/session';
 import { CLIENT_COOKIE, cookieOptions } from '@/lib/auth/cookies';
 import { checkRateLimit, recordAttempt, clientKeyFrom } from '@/lib/auth/rate-limit';
 import { isSameOriginRequest } from '@/lib/auth/origin-check';
+import { leerJson, MAX_JSON_PEQUENO } from '@/lib/http/leer-json';
 
 // Single generic message for every failure mode (gallery doesn't exist,
 // wrong username, wrong password) -- never reveals which one, so a
@@ -33,7 +34,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
   let body: unknown;
   try {
-    body = await request.json();
+    body = await leerJson(request, MAX_JSON_PEQUENO);
   } catch {
     return NextResponse.json({ error: GENERIC_ERROR }, { status: 400 });
   }

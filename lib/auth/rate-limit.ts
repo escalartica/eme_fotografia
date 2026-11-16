@@ -90,16 +90,38 @@ export function consume(key: string, max: number, windowMs: number): boolean {
 }
 
 /**
- * Identificador del cliente, en la medida en que se puede saber. X-Forwarded-For
- * es una PISTA, no una identidad: cualquiera puede falsificarlo, así que un
- * atacante puede darse una "IP" nueva en cada petición y saltarse cualquier
- * límite que dependa solo de esto. Por eso todas las rutas que llaman aquí
- * combinan esta clave con una segunda clave global (por cuenta, por galería o
- * por ruta) que no depende de ninguna cabecera y que sí pone un techo absoluto.
+ * Identificador del cliente: la IP desde la que llega la conexión.
+ *
+ * ANTES SE TOMABA LA PRIMERA ENTRADA DE X-Forwarded-For, Y ESA LA ESCRIBE EL
+ * VISITANTE. nginx (docs/DESPLIEGUE.md §8) pone
+ * `X-Forwarded-For $proxy_add_x_forwarded_for`, que AÑADE la IP real al final
+ * de lo que el visitante ya mandara. Quien enviaba `X-Forwarded-For: 1.2.3.4`
+ * llegaba aquí como `1.2.3.4, <su IP real>`, y la primera entrada --la
+ * inventada-- era la que se usaba. Con eso cada petición estrenaba "IP" y los
+ * topes por dirección no frenaban nada: solo quedaban los cubos globales, que
+ * son justamente los que un atacante puede llenar para dejar fuera al estudio
+ * y a las parejas.
+ *
+ * El orden de confianza ahora:
+ *   1. X-Real-IP: nginx la pone con `$remote_addr` y PISA cualquier valor que
+ *      mandara el visitante, así que es la IP de la conexión TCP.
+ *   2. La ÚLTIMA entrada de X-Forwarded-For: es la que añade el proxy que
+ *      tenemos delante; las anteriores pueden ser inventadas.
+ *   3. 'unknown' si no hay nada (desarrollo en local, tests).
+ *
+ * Si algún día se pone otro proxy delante de nginx (Cloudflare, un
+ * balanceador), X-Real-IP pasa a ser la IP de ese proxy y hay que configurar
+ * nginx con `set_real_ip_from` + `real_ip_header` para que la siga calculando
+ * bien. Los cubos globales se quedan igualmente como techo absoluto.
  */
 export function clientKeyFrom(request: Request): string {
-  const fwd = request.headers.get('x-forwarded-for');
-  return fwd?.split(',')[0]?.trim() || request.headers.get('x-real-ip')?.trim() || 'unknown';
+  const real = request.headers.get('x-real-ip')?.trim();
+  if (real) return real;
+  const ultimas = (request.headers.get('x-forwarded-for') ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return ultimas[ultimas.length - 1] || 'unknown';
 }
 
 /**
