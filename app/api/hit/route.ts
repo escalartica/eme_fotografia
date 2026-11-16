@@ -65,7 +65,8 @@ export async function POST(request: Request) {
   const ua = h.get('user-agent');
   if (isBot(ua)) return new Response(null, { status: 204 });
 
-  const path = normalisePath(typeof body.p === 'string' ? body.p : '');
+  // Sin página no hay visita: antes un `p` ausente se apuntaba como portada.
+  const path = typeof body.p === 'string' && body.p ? normalisePath(body.p) : null;
   if (!path) return new Response(null, { status: 204 });
 
   // La misma IP que usa el limitador (ver clientKeyFrom): la primera entrada
