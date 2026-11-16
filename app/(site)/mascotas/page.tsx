@@ -10,7 +10,7 @@ import { RevealWords } from '@/components/motion/RevealWords';
 import { MarqueeBand } from '@/components/motion/MarqueeBand';
 import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 import { PlusIcon } from '@/components/ui/Icon';
-import { navidadMascotas } from '@/content/navidad-mascotas';
+import { sesionesMascotasFamilias } from '@/content/sesiones-mascotas-familias';
 import styles from '../servicios/page.module.css';
 import faqStyles from '@/components/sections/Faq.module.css';
 import propios from './page.module.css';
@@ -179,37 +179,50 @@ export default function Page() {
                 revista y no como una cuadrícula de miniaturas. Cada foto
                 entra con un telón que se abre al llegar al visor (ver
                 `.galeriaFoto` en el CSS de esta página). */}
+            {/* Dos columnas de verdad, no una rejilla con la de la derecha
+                desplazada con `transform`: ese desplazamiento no ocupa sitio,
+                así que la última foto se salía por abajo y tapaba el texto
+                del bloque siguiente. Aquí la columna derecha baja con un
+                relleno que sí cuenta en la maqueta. En el teléfono las dos
+                columnas se deshacen (`display: contents`) y `order` devuelve
+                las fotos a su orden original. */}
             <div className={propios.galeria}>
-              {mascotas.galeria.map((item) => (
-                <figure
-                  key={item.src}
-                  className={propios.galeriaFoto}
-                  style={{ aspectRatio: `${item.width} / ${item.height}` }}
-                >
-                  <Image
-                    src={item.src}
-                    alt={item.alt}
-                    fill
-                    sizes="(max-width: 700px) 92vw, 580px"
-                    className={`${styles.image} ${propios.galeriaImagen}`}
-                  />
-                </figure>
+              {[0, 1].map((col) => (
+                <div key={col} className={propios.galeriaColumna}>
+                  {mascotas.galeria.map((item, i) =>
+                    i % 2 === col ? (
+                      <figure
+                        key={item.src}
+                        className={propios.galeriaFoto}
+                        style={{ aspectRatio: `${item.width} / ${item.height}`, order: i }}
+                      >
+                        <Image
+                          src={item.src}
+                          alt={item.alt}
+                          fill
+                          sizes="(max-width: 700px) 92vw, 580px"
+                          className={`${styles.image} ${propios.galeriaImagen}`}
+                        />
+                      </figure>
+                    ) : null,
+                  )}
+                </div>
               ))}
             </div>
           </section>
 
-          {/* La puerta al embudo de Navidad: la oferta de entrada de la línea
+          {/* La puerta al embudo de mascotas: la oferta de entrada de la línea
               y la parte solidaria, contadas en su propia página. */}
-          <section className={propios.reserva} aria-labelledby="navidad-heading">
-            <h2 id="navidad-heading" className={propios.reservaTitulo}>
-              Minisesiones solidarias de Navidad
+          <section className={propios.reserva} aria-labelledby="solidarias-heading">
+            <h2 id="solidarias-heading" className={propios.reservaTitulo}>
+              Sesiones solidarias de mascotas y familias
             </h2>
             <p className={propios.reservaTexto}>
-              Un retrato navideño de tu animal en un turno corto. Con cada minisesión colaboras con Pelos y Señales,
-              en beneficio de los perros de protectora que todavía esperan casa.
+              Tu animal solo o con los suyos. Con cada sesión colaboras con Pelos y Señales, en beneficio de los
+              perros de protectora que todavía esperan casa.
             </p>
-            <Link href={navidadMascotas.route} className={styles.secondaryCta}>
-              Ver las minisesiones de Navidad
+            <Link href={sesionesMascotasFamilias.route} className={styles.secondaryCta}>
+              Ver las sesiones solidarias
               <ArrowGlyph dir="right" />
             </Link>
           </section>

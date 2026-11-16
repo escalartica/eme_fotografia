@@ -66,7 +66,7 @@ export const mascotas = {
   ],
   extras: [
     'Vales regalo',
-    'Minisesiones de Navidad',
+    'Sesiones solidarias',
     'Copias impresas y álbum',
   ],
   proceso: [

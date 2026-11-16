@@ -15,7 +15,7 @@ describe('sitemap', () => {
       '/servicios/video-de-boda',
       '/sobre-nosotros',
       '/mascotas',
-      '/mascotas/navidad',
+      '/mascotas/sesiones-mascotas-y-familias',
       '/contacto',
     ]) {
       expect(urls.some((u) => u.endsWith(path))).toBe(true);
