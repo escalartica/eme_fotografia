@@ -108,7 +108,14 @@ const MAX_LENGTHS: Record<string, number> = {
 // pretende validar que el buzón exista (eso solo lo dice el correo que se
 // envía); pretende que el estudio no reciba un `reply_to` con un salto de
 // línea o un montón de basura dentro.
-const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
+//
+// Tampoco caben los caracteres con significado en una cabecera de correo
+// (`,;:<>()[]"\`). La forma anterior los dejaba pasar, y `g:x@y.com;` o
+// `a,b@c.com` llegaban al `reply_to`: ahí el analizador de direcciones de
+// nodemailer los lee como un grupo o una lista y la respuesta del estudio
+// podía salir hacia una dirección distinta de la que se ve en el mensaje.
+// Ninguna dirección real de una pareja los lleva.
+const EMAIL_RE = /^[^\s@,;:<>()[\]"\\]+@[^\s@.,;:<>()[\]"\\]+(\.[^\s@.,;:<>()[\]"\\]+)+$/;
 
 /**
  * Recorta cada campo a su tope y descarta cualquier clave que el formulario no

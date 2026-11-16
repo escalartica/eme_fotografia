@@ -2,6 +2,7 @@ import { saveContactSubmission, ContactValidationError } from '@/lib/contact-sto
 import { isMailConfigured, sendContactEmail, MailError } from '@/lib/mail';
 import { consume, clientKeyFrom } from '@/lib/auth/rate-limit';
 import { isSameOriginRequest } from '@/lib/auth/origin-check';
+import { leerJson, MAX_JSON_FORMULARIO } from '@/lib/http/leer-json';
 
 // Un formulario público sin freno es spam garantizado, y aquí cada envío
 // además escribe un fichero en disco y dispara un correo de pago (Resend).
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
 
   let payload: unknown;
   try {
-    payload = await request.json();
+    payload = await leerJson(request, MAX_JSON_FORMULARIO);
   } catch {
     return Response.json({ error: 'El cuerpo de la petición no es JSON válido.' }, { status: 400 });
   }

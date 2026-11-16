@@ -5,6 +5,7 @@ import { isSameOriginRequest } from '@/lib/auth/origin-check';
 import { consume } from '@/lib/auth/rate-limit';
 import { avisarDeSeleccion, isMailConfigured } from '@/lib/mail';
 import { site } from '@/content/site';
+import { leerJson, MAX_JSON_SELECCION } from '@/lib/http/leer-json';
 
 const MAX_COMMENT_LENGTH = 2000;
 /** Una selección no puede tener más entradas que fotos tiene la galería. Sin
@@ -79,7 +80,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
   let body: unknown;
   try {
-    body = await request.json();
+    body = await leerJson(request, MAX_JSON_SELECCION);
   } catch {
     return NextResponse.json({ error: 'Cuerpo de la petición no válido.' }, { status: 400 });
   }

@@ -4,6 +4,7 @@ import { createSession } from '@/lib/auth/session';
 import { ADMIN_COOKIE, cookieOptions } from '@/lib/auth/cookies';
 import { checkRateLimit, recordAttempt, clientKeyFrom, resetRateLimit } from '@/lib/auth/rate-limit';
 import { isSameOriginRequest } from '@/lib/auth/origin-check';
+import { leerJson, MAX_JSON_PEQUENO } from '@/lib/http/leer-json';
 
 const GENERIC_ERROR = 'Usuario o contraseña incorrectos.';
 const TOO_MANY = 'Demasiados intentos. Inténtalo de nuevo más tarde.';
@@ -42,7 +43,7 @@ export async function POST(request: Request) {
 
   let body: unknown;
   try {
-    body = await request.json();
+    body = await leerJson(request, MAX_JSON_PEQUENO);
   } catch {
     return NextResponse.json({ error: GENERIC_ERROR }, { status: 400 });
   }

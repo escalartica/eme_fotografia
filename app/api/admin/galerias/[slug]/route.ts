@@ -5,6 +5,7 @@ import { motivoPasswordDebil } from '@/lib/gallery-credentials';
 import { destroySessionsForSubject } from '@/lib/auth/session';
 import { getAdminSession } from '@/lib/auth/require-session';
 import { isSameOriginRequest } from '@/lib/auth/origin-check';
+import { leerJson, MAX_JSON_PEQUENO } from '@/lib/http/leer-json';
 
 /**
  * Las dos operaciones que le faltaban al panel sobre una galería ya creada:
@@ -112,7 +113,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
 
   let body: unknown;
   try {
-    body = await request.json();
+    body = await leerJson(request, MAX_JSON_PEQUENO);
   } catch {
     return NextResponse.json({ error: 'El cuerpo de la petición no es JSON válido.' }, { status: 400 });
   }

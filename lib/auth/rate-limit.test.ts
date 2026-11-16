@@ -103,14 +103,40 @@ describe('consume', () => {
 });
 
 describe('clientKeyFrom', () => {
-  it('uses the first entry of X-Forwarded-For, which is the original client', () => {
-    const request = new Request('http://localhost/', { headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8' } });
-    expect(clientKeyFrom(request)).toBe('1.2.3.4');
-  });
-
-  it('falls back to X-Real-IP, trimmed', () => {
+  it('usa X-Real-IP, que nginx pisa con la IP de la conexión', () => {
     const request = new Request('http://localhost/', { headers: { 'x-real-ip': ' 9.9.9.9 ' } });
     expect(clientKeyFrom(request)).toBe('9.9.9.9');
+  });
+
+  it('prefiere X-Real-IP a un X-Forwarded-For que el visitante haya inventado', () => {
+    const request = new Request('http://localhost/', {
+      headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8', 'x-real-ip': '5.6.7.8' },
+    });
+    expect(clientKeyFrom(request)).toBe('5.6.7.8');
+  });
+
+  it('sin X-Real-IP, usa la ÚLTIMA entrada de X-Forwarded-For (la que añade el proxy)', () => {
+    // nginx añade al final; lo de delante lo escribe quien llama.
+    const request = new Request('http://localhost/', { headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8' } });
+    expect(clientKeyFrom(request)).toBe('5.6.7.8');
+  });
+
+  it('una IP inventada en cada petición ya no estrena cubo', () => {
+    const claves = new Set(
+      [1, 2, 3].map((i) =>
+        clientKeyFrom(
+          new Request('http://localhost/', {
+            headers: { 'x-forwarded-for': `203.0.113.${i}, 88.1.1.1`, 'x-real-ip': '88.1.1.1' },
+          })
+        )
+      )
+    );
+    expect([...claves]).toEqual(['88.1.1.1']);
+  });
+
+  it('ignora entradas vacías al final de X-Forwarded-For', () => {
+    const request = new Request('http://localhost/', { headers: { 'x-forwarded-for': '7.7.7.7, ' } });
+    expect(clientKeyFrom(request)).toBe('7.7.7.7');
   });
 
   it('returns a constant key when there is no hint at all', () => {
