@@ -10,6 +10,7 @@ import { RevealWords } from '@/components/motion/RevealWords';
 import { MarqueeBand } from '@/components/motion/MarqueeBand';
 import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
 import { PlusIcon } from '@/components/ui/Icon';
+import { navidadMascotas } from '@/content/navidad-mascotas';
 import styles from '../servicios/page.module.css';
 import faqStyles from '@/components/sections/Faq.module.css';
 import propios from './page.module.css';
@@ -195,6 +196,22 @@ export default function Page() {
                 </figure>
               ))}
             </div>
+          </section>
+
+          {/* La puerta al embudo de Navidad: la oferta de entrada de la línea
+              y la parte solidaria, contadas en su propia página. */}
+          <section className={propios.reserva} aria-labelledby="navidad-heading">
+            <h2 id="navidad-heading" className={propios.reservaTitulo}>
+              Minisesiones solidarias de Navidad
+            </h2>
+            <p className={propios.reservaTexto}>
+              Un retrato navideño de tu animal en un turno corto. Con cada minisesión colaboras con Pelos y Señales,
+              en beneficio de los perros de protectora que todavía esperan casa.
+            </p>
+            <Link href={navidadMascotas.route} className={styles.secondaryCta}>
+              Ver las minisesiones de Navidad
+              <ArrowGlyph dir="right" />
+            </Link>
           </section>
 
           <section className={faqStyles.section} aria-labelledby="faq-mascotas-heading">

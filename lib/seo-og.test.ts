@@ -26,6 +26,7 @@ const TARJETAS: [string, string][] = [
   ['/servicios/video-de-boda', '/images/trabajos/virginia-y-jorge/09.webp'],
   ['/sobre-nosotros', '/images/equipo/equipo.webp'],
   ['/mascotas', '/images/mascotas/retrato-weimaraner.webp'],
+  ['/mascotas/navidad', '/images/mascotas/labrador-con-capa-navidena.webp'],
   ['/contacto', '/images/trabajos/carmen-y-alberto/06.webp'],
 ];
 
