@@ -1,5 +1,6 @@
 import { site } from '@/content/site';
 import { services } from '@/content/services';
+import { mascotas } from '@/content/mascotas';
 import type { FaqEntry, Project } from '@/content/types';
 import { perteneceA } from '@/lib/project-filter';
 
@@ -118,18 +119,23 @@ function localBusinessNode() {
     },
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
-      name: 'Servicios de boda',
-      itemListElement: services.map((s) => ({
-        '@type': 'Offer',
-        itemOffered: {
-          '@type': 'Service',
-          name: s.name,
-          description: s.tagline,
-          url: `${SITE_URL}${s.route}`,
-          areaServed: AREA_SERVED,
-          provider: { '@id': BUSINESS_ID },
-        },
-      })),
+      // "de boda" se quedó corto cuando entró /mascotas: el catálogo es el
+      // del negocio entero, y la línea de mascotas es tan suya como la boda.
+      name: 'Servicios de fotografía y vídeo',
+      itemListElement: [
+        ...services.map((s) => ({
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Service',
+            name: s.name,
+            description: s.tagline,
+            url: `${SITE_URL}${s.route}`,
+            areaServed: AREA_SERVED,
+            provider: { '@id': BUSINESS_ID },
+          },
+        })),
+        { '@type': 'Offer', itemOffered: mascotasServiceNode() },
+      ],
     },
   };
 }
@@ -159,6 +165,35 @@ function webSiteNode() {
     inLanguage: 'es-ES',
     publisher: { '@id': BUSINESS_ID },
   };
+}
+
+/**
+ * Eme & Compañía, la línea de retratos de mascotas, como servicio del negocio.
+ *
+ * Sin este nodo, /mascotas no existía para los datos estructurados: el
+ * catálogo del negocio solo declaraba la foto y el vídeo de boda, y la página
+ * solo llevaba su FAQ y sus migas. Zona: Sevilla, que es lo que dice la
+ * página; no se le atribuye toda Andalucía porque eso no lo ha dicho Eme.
+ * Sin precio, igual que la página (content/mascotas.ts).
+ */
+export function mascotasServiceNode() {
+  return {
+    '@type': 'Service',
+    '@id': `${SITE_URL}${mascotas.route}#servicio`,
+    name: 'Fotografía de mascotas',
+    alternateName: mascotas.marca,
+    serviceType: 'Fotografía de mascotas',
+    description: mascotas.metaDescription,
+    url: `${SITE_URL}${mascotas.route}`,
+    image: `${SITE_URL}${mascotas.hero.src.replace(/\.webp$/i, '-og.jpg')}`,
+    areaServed: [{ '@type': 'AdministrativeArea', name: 'Sevilla' }],
+    provider: { '@id': BUSINESS_ID },
+  };
+}
+
+/** El servicio de mascotas suelto, para el JSON-LD de su propia página. */
+export function mascotasServiceSchema() {
+  return { '@context': SCHEMA_CONTEXT, ...mascotasServiceNode() };
 }
 
 /** El negocio suelto, con su `@context`. Se mantiene exportado porque es la

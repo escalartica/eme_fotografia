@@ -98,6 +98,30 @@
 }
 .meta span[aria-hidden] { opacity: 0.5; }
 
+/* La descripción de la boda: texto real en el HTML (ver page.tsx). Cuerpo
+   pequeño y color apagado, con el ancho de una columna de lectura corta. */
+.description {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-small);
+  line-height: 1.55;
+  color: var(--color-muted);
+  max-width: 42ch;
+  text-wrap: pretty;
+}
+
+.servicio {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-small);
+}
+.servicio a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
 /* El recuento, en el color apagado y a cuerpo de nota: es un dato de
    servicio, no un argumento. Va separado de la línea de datos de arriba
    porque responde a otra pregunta -- aquélla dice qué es esto, ésta dice
