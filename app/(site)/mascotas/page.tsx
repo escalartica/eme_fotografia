@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { mascotas, faqsMascotas } from '@/content/mascotas';
 import { site } from '@/content/site';
 import { turno } from '@/lib/turno';
-import { breadcrumbSchema, faqSchema, jsonLd } from '@/lib/schema';
+import { breadcrumbSchema, faqSchema, jsonLd, mascotasServiceSchema } from '@/lib/schema';
 import { buildMetadata, ogImage } from '@/lib/seo';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import { RevealWords } from '@/components/motion/RevealWords';
@@ -56,6 +56,10 @@ export default function Page() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema(faqsMascotas)) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(mascotasServiceSchema()) }}
       />
       <ScrollReveal className={styles.revealWrap}>
         <article className={styles.servicio}>

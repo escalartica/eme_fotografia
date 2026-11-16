@@ -43,6 +43,30 @@ describe('/trabajos/[slug] page', () => {
     render(result);
     expect(screen.queryByTestId('project-impact')).not.toBeInTheDocument();
   });
+
+  it('renders the project description as visible text, not only as meta', async () => {
+    // Sin este párrafo la ficha llegaba a Google sin texto propio.
+    const project = projects.find((p) => p.slug === 'raquel-y-fran')!;
+    const result = await Page({ params: Promise.resolve({ slug: project.slug }) });
+    render(result);
+    expect(screen.getByTestId('project-description')).toHaveTextContent(project.description);
+  });
+
+  it('links each reportaje to the service page it belongs to', async () => {
+    const foto = await Page({ params: Promise.resolve({ slug: 'raquel-y-fran' }) });
+    const { unmount } = render(foto);
+    expect(screen.getByRole('link', { name: 'Fotografía de boda en Sevilla' })).toHaveAttribute(
+      'href',
+      '/servicios/fotografia-de-boda',
+    );
+    unmount();
+    const video = await Page({ params: Promise.resolve({ slug: 'andrea-y-jesus' }) });
+    render(video);
+    expect(screen.getByRole('link', { name: 'Vídeo de boda en Sevilla' })).toHaveAttribute(
+      'href',
+      '/servicios/video-de-boda',
+    );
+  });
 });
 
 describe('/trabajos/[slug] page — cover hero block', () => {

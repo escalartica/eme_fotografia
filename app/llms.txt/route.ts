@@ -1,4 +1,5 @@
 import { faqs } from '@/content/faq';
+import { mascotas, faqsMascotas } from '@/content/mascotas';
 import { projects } from '@/content/projects';
 import { services } from '@/content/services';
 import { site } from '@/content/site';
@@ -71,7 +72,13 @@ export function GET(): Response {
         + ' (cinco ediciones, no consecutivas)',
       `- ${projects.length} reportajes publicados enteros en ${site.siteUrl}/trabajos`,
     ]),
-    section('Servicios', services.map((s) => `- **${s.name}** — ${s.tagline} ${s.idealFor}`)),
+    section('Servicios', [
+      ...services.map((s) => `- **${s.name}** — ${s.tagline} ${s.idealFor}`),
+      // La línea de mascotas faltaba aquí: un asistente que leyera este
+      // fichero respondía que EME solo hace bodas.
+      `- **Fotografía de mascotas (${mascotas.marca})** — ${mascotas.tagline} ${mascotas.idealFor}`
+        + ' Sesiones en Sevilla; tarifas por WhatsApp o correo.',
+    ]),
     section('Páginas', [
       `- [Inicio](${site.siteUrl}/): quiénes somos y una selección de trabajo`,
       `- [Trabajos](${site.siteUrl}/trabajos): los ${projects.length} reportajes, cada uno completo`,
@@ -79,10 +86,15 @@ export function GET(): Response {
       ...services.map(
         (s) => `- [${s.name}](${site.siteUrl}${s.route}): ${s.tagline}`,
       ),
+      `- [Fotografía de mascotas](${site.siteUrl}${mascotas.route}): ${mascotas.marca}, retratos de perros, gatos y cualquier animal de compañía en Sevilla`,
       `- [Sobre nosotros](${site.siteUrl}/sobre-nosotros): el equipo y cómo trabajamos`,
       `- [Contacto](${site.siteUrl}/contacto): formulario de presupuesto y preguntas frecuentes`,
     ]),
     section('Preguntas frecuentes', confirmed.flatMap((f) => [`### ${f.question}`, '', f.answer, ''])),
+    section(
+      `Preguntas frecuentes sobre fotos de mascotas (${mascotas.marca})`,
+      faqsMascotas.filter((f) => !f.isPendingConfirmation).flatMap((f) => [`### ${f.question}`, '', f.answer, '']),
+    ),
     section('Reportajes publicados (fotografía)', fotografia.map(
       (p) => `- [${p.title}](${site.siteUrl}/trabajos/${p.slug}) — ${p.location}, ${p.year}`,
     )),

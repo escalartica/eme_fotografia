@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { projects } from '@/content/projects';
+import { services } from '@/content/services';
 import { CATEGORY_LABELS } from '@/lib/category-labels';
 import { ProjectGallery } from '@/components/sections/ProjectGallery';
 import { RevealWords } from '@/components/motion/RevealWords';
@@ -76,6 +78,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       ? 'apaisada'
       : 'vertical';
   const totalFotos = project.gallery.filter((m) => m.type === 'image').length;
+  // El servicio al que pertenece la ficha: la categoría ES el slug del
+  // servicio (ProjectCategory = ServiceSlug).
+  const servicio = services.find((s) => s.slug === project.category);
 
   return (
     <article className={styles.page}>
@@ -147,6 +152,27 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           {totalFotos > 0 && (
             <p className={styles.count}>
               {totalFotos} {totalFotos === 1 ? 'fotografía' : 'fotografías'} del reportaje
+            </p>
+          )}
+          {/* EL TEXTO DE LA FICHA, EN EL HTML Y A LA VISTA.
+              La descripción de cada boda ya estaba escrita en
+              content/projects.ts, pero desde el rediseño de la cabecera solo
+              salía en la meta description: el cuerpo de la página era un
+              nombre, una línea de datos y fotos. Para Google eso es una página
+              casi sin texto e igual a las otras veintiocho, y Search Console
+              tenía 31 fichas en "Descubierta: actualmente sin indexar". Va
+              aquí, en la columna del nombre, a cuerpo pequeño y en el color
+              apagado: se lee como el pie de la historia, no como la entrada de
+              un blog. El enlace al servicio es el que lleva a quien llega
+              desde Google a la página que contrata, y el que le dice al
+              buscador qué página de la web responde a "fotógrafo de bodas en
+              Sevilla". */}
+          <p className={styles.description} data-testid="project-description">
+            {project.description}
+          </p>
+          {servicio && (
+            <p className={styles.servicio}>
+              <Link href={servicio.route}>{servicio.name} en Sevilla</Link>
             </p>
           )}
         </div>

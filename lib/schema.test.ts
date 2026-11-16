@@ -14,7 +14,7 @@ describe('schema.org generators', () => {
     expect(schema.sameAs).toEqual([site.instagramUrl, site.facebookUrl, site.tiktokUrl, site.bodasNetUrl]);
     expect(schema.address.addressLocality).toBe('La Algaba');
     expect(schema.aggregateRating).toMatchObject({ ratingValue: site.bodasNetRating, reviewCount: site.bodasNetReviewCount, bestRating: 5 });
-    expect(schema.hasOfferCatalog.itemListElement).toHaveLength(2);
+    expect(schema.hasOfferCatalog.itemListElement).toHaveLength(3);
   });
 
   it('points each Offer at the service page, not at an anchor of the index', () => {
@@ -22,9 +22,10 @@ describe('schema.org generators', () => {
     // dos servicios compartían página. Un `Offer` con ancla apunta a media
     // página; ahora cada uno tiene URL propia y es la que se declara.
     const offers = localBusinessSchema().hasOfferCatalog.itemListElement;
-    expect(offers.map((o) => o.itemOffered.url)).toEqual(
-      services.map((s) => `${site.siteUrl}${s.route}`),
-    );
+    expect(offers.map((o) => o.itemOffered.url)).toEqual([
+      ...services.map((s) => `${site.siteUrl}${s.route}`),
+      `${site.siteUrl}/mascotas`,
+    ]);
     for (const offer of offers) {
       expect(offer.itemOffered.url).not.toContain('#');
     }
