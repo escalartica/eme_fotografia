@@ -14,7 +14,7 @@ import { __resetRateLimits } from '@/lib/auth/rate-limit';
 
 const mocks = vi.hoisted(() => ({
   configurado: true,
-  enviar: vi.fn(async (_enlace: string, _expira: Date) => {}),
+  enviar: vi.fn<(enlace: string, expira: Date) => Promise<void>>(async () => {}),
 }));
 vi.mock('@/lib/mail', () => ({
   isMailConfigured: () => mocks.configurado,
