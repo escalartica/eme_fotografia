@@ -13,6 +13,10 @@ export function AdminLogoutButton({ className }: { className?: string }) {
     setLoggingOut(true);
     try {
       await fetch('/api/admin/logout', { method: 'POST' });
+    } catch {
+      // Sin red no se puede cerrar en el servidor, pero el usuario sale del
+      // panel igualmente. Sin este catch el fallo quedaba como un error sin
+      // capturar en la consola.
     } finally {
       router.push('/admin/login');
       router.refresh();

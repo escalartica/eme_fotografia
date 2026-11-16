@@ -16,6 +16,17 @@ export default defineConfig({
     // this app. Vitest's defaults don't exclude them, so without this they
     // get swept into every `npm test` run.
     exclude: ['**/node_modules/**', '**/.git/**', '.agents/**', '.claude/**'],
+    // `npm run test:coverage`. Mide el código de la web (app, lib,
+    // components, content) y no los propios tests ni los scripts sueltos. El
+    // umbral hace que la cobertura no pueda bajar del 80 % sin que se note.
+    coverage: {
+      provider: 'v8',
+      include: ['app/**/*.{ts,tsx}', 'lib/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}', 'content/**/*.ts'],
+      exclude: ['**/*.test.{ts,tsx}', 'lib/test-helpers/**'],
+      reporter: ['text-summary', 'html', 'json-summary'],
+      reportOnFailure: true,
+      thresholds: { lines: 80, statements: 80, functions: 80, branches: 70 },
+    },
   },
   resolve: {
     alias: { '@': path.resolve(__dirname, '.') },
