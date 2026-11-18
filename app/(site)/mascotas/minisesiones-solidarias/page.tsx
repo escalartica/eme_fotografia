@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { navidadMascotas as n, faqsNavidadMascotas } from '@/content/navidad-mascotas';
+import { minisesiones as n, faqsMinisesiones } from '@/content/minisesiones-solidarias';
 import { mascotas } from '@/content/mascotas';
 import { site } from '@/content/site';
 import { turno } from '@/lib/turno';
@@ -14,7 +14,7 @@ import { LeadLink } from '@/components/analytics/LeadLink';
 import styles from '../../servicios/page.module.css';
 import faqStyles from '@/components/sections/Faq.module.css';
 import propios from '../page.module.css';
-import navidad from './page.module.css';
+import mini from './page.module.css';
 
 export const metadata = buildMetadata({
   title: n.metaTitle,
@@ -34,16 +34,18 @@ const DETALLES: [keyof typeof n.detalles, string][] = [
 ];
 
 /**
- * /mascotas/navidad: minisesiones solidarias de Navidad de Eme & Compañía.
+ * /mascotas/minisesiones-solidarias: minisesiones de Eme & Compañía durante
+ * todo el año, a favor de Pelos y Señales.
  *
- * Primera página del embudo de mascotas (ver content/navidad-mascotas.ts).
+ * Primera página del embudo de mascotas (ver content/minisesiones-solidarias.ts).
+ * Antes era /mascotas/navidad, que redirige aquí.
  * Misma maqueta que /mascotas, de la que es hija, y la misma llamada a
  * WhatsApp; cada botón cuenta como contacto en Analytics con su `form_id`,
  * que es el identificador que usará el CRM cuando lo haya.
  */
 export default function Page() {
   const wa = (texto: string) => `https://wa.me/${site.whatsappNumber}?text=${encodeURIComponent(texto)}`;
-  const correo = `mailto:${site.email}?subject=${encodeURIComponent('Minisesiones de Navidad de Eme & Compañía')}`;
+  const correo = `mailto:${site.email}?subject=${encodeURIComponent('Minisesiones solidarias de Eme & Compañía')}`;
   const detalles = DETALLES.filter(([k]) => n.detalles[k]);
 
   return (
@@ -55,21 +57,21 @@ export default function Page() {
             breadcrumbSchema([
               { name: 'Inicio', path: '/' },
               { name: 'Mascotas', path: mascotas.route },
-              { name: 'Navidad', path: n.route },
+              { name: 'Minisesiones solidarias', path: n.route },
             ]),
           ),
         }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema(faqsNavidadMascotas)) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema(faqsMinisesiones)) }}
       />
       <ScrollReveal className={styles.revealWrap}>
         <article className={styles.servicio}>
           <header className={styles.opener}>
             <div className={styles.openerCopy}>
               <p className={styles.formato}>{n.marca}</p>
-              <h1 id="navidad-heading" className={styles.name}>
+              <h1 id="minisesiones-heading" className={styles.name}>
                 <RevealWords segments={[{ text: n.heading }]} />
               </h1>
               <p className={styles.tagline} style={turno(0)}>
@@ -104,7 +106,37 @@ export default function Page() {
             </div>
           </header>
 
-          <section className={navidad.solidario} aria-labelledby="solidario-heading">
+          {/* LA MUESTRA. La primera minisesión de verdad, con sus fotos y el
+              texto que aprobó charo. Es el mejor argumento de la página: se ve
+              lo que uno se lleva y a quién ayuda. */}
+          <section className={mini.muestra} aria-labelledby="muestra-heading">
+            <div className={mini.muestraTexto}>
+              <p className={styles.formato}>La primera minisesión</p>
+              <h2 id="muestra-heading" className={propios.reservaTitulo}>
+                <RevealWords segments={[{ text: n.muestra.titulo }]} />
+              </h2>
+              <p className={mini.muestraParrafo}>{n.muestra.texto}</p>
+            </div>
+            <div className={mini.muestraFotos}>
+              {n.muestra.fotos.map((f) => (
+                <figure
+                  key={f.src}
+                  className={propios.galeriaFoto}
+                  style={{ aspectRatio: `${f.width} / ${f.height}` }}
+                >
+                  <Image
+                    src={f.src}
+                    alt={f.alt}
+                    fill
+                    sizes="(max-width: 700px) 92vw, 440px"
+                    className={`${styles.image} ${propios.galeriaImagen}`}
+                  />
+                </figure>
+              ))}
+            </div>
+          </section>
+
+          <section className={mini.solidario} aria-labelledby="solidario-heading">
             <h2 id="solidario-heading" className={propios.reservaTitulo}>
               {n.solidario.titulo}
             </h2>
@@ -120,9 +152,9 @@ export default function Page() {
               Fechas, sitio y precio
             </h2>
             {detalles.length > 0 ? (
-              <dl className={navidad.detalles}>
+              <dl className={mini.detalles}>
                 {detalles.map(([k, label]) => (
-                  <div key={k} className={navidad.detalle}>
+                  <div key={k} className={mini.detalle}>
                     <dt>{label}</dt>
                     <dd>{n.detalles[k]}</dd>
                   </div>
@@ -130,8 +162,8 @@ export default function Page() {
               </dl>
             ) : (
               <p className={propios.reservaTexto}>
-                Los anunciamos muy pronto. Escríbenos por WhatsApp y te guardamos sitio para avisarte en cuanto se
-                abran los turnos: las plazas son pocas.
+                Hacemos convocatorias durante todo el año y cada una se anuncia aquí. Escríbenos por WhatsApp y te
+                avisamos en cuanto se abran los turnos de la próxima: las plazas son pocas.
               </p>
             )}
           </section>
@@ -155,7 +187,7 @@ export default function Page() {
             </div>
           </section>
 
-          <section className={navidad.solidario} aria-labelledby="regalo-heading">
+          <section className={mini.solidario} aria-labelledby="regalo-heading">
             <h2 id="regalo-heading" className={propios.reservaTitulo}>
               {n.regalo.titulo}
             </h2>
@@ -173,15 +205,15 @@ export default function Page() {
             </LeadLink>
           </section>
 
-          <section className={faqStyles.section} aria-labelledby="faq-navidad-heading">
+          <section className={faqStyles.section} aria-labelledby="faq-minisesiones-heading">
             <div className={faqStyles.encabezado}>
               <p className={faqStyles.eyebrow}>Antes de escribir</p>
-              <h2 id="faq-navidad-heading" className={faqStyles.titulo}>
+              <h2 id="faq-minisesiones-heading" className={faqStyles.titulo}>
                 Preguntas frecuentes
               </h2>
             </div>
             <div className={faqStyles.lista}>
-              {faqsNavidadMascotas.map((f) => (
+              {faqsMinisesiones.map((f) => (
                 <details key={f.id} className={faqStyles.item}>
                   <summary className={faqStyles.resumen}>
                     <h3 className={faqStyles.pregunta}>{f.question}</h3>

@@ -66,7 +66,7 @@ export const mascotas = {
   ],
   extras: [
     'Vales regalo',
-    'Minisesiones de Navidad',
+    'Minisesiones solidarias todo el año',
     'Copias impresas y álbum',
   ],
   proceso: [
@@ -140,6 +140,6 @@ export const faqsMascotas: FaqEntry[] = [
     id: 'regalo',
     question: '¿Se puede regalar una sesión?',
     answer:
-      'Sí. Preparamos vales regalo para Navidad, cumpleaños o cualquier excusa, y la persona que lo recibe elige la fecha.',
+      'Sí. Preparamos vales regalo para un cumpleaños, una fecha especial o cualquier excusa, y la persona que lo recibe elige la fecha.',
   },
 ];

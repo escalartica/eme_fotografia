@@ -1,0 +1,81 @@
+/* /mascotas/minisesiones-solidarias. Casi todo sale de las hojas de /servicios y /mascotas;
+   aquí solo lo que esta página tiene y las otras no. */
+
+/* Los bloques con titular y un botón (lo solidario, el vale regalo): mismo
+   filete y ritmo que el cierre `.reserva` de /mascotas. */
+.solidario {
+  border-block-start: 1px solid var(--color-hairline);
+  padding-block-start: var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+
+/* Fechas, sitio y precio, cuando Eme los decida. */
+.detalles {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-2) var(--space-3);
+}
+
+.detalle dt {
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.detalle dd {
+  margin: 0.25rem 0 0;
+}
+
+/* La muestra: el texto a un lado y las dos fotos de Dorian y Konchu al otro,
+   la segunda desfasada hacia abajo como en la galería de /mascotas. */
+.muestra {
+  border-block-start: 1px solid var(--color-hairline);
+  padding-block-start: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+}
+@media (min-width: 900px) {
+  .muestra {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    column-gap: var(--space-4);
+    align-items: start;
+  }
+  .muestraTexto {
+    position: sticky;
+    top: var(--space-5);
+  }
+}
+.muestraTexto {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+.muestraParrafo {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.15rem, 1rem + 0.6vw, 1.45rem);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+.muestraFotos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  padding-block-end: 4rem;
+}
+.muestraFotos > :nth-child(2) {
+  transform: translateY(4rem);
+}
+@media (max-width: 499.98px) {
+  .muestraFotos {
+    grid-template-columns: 1fr;
+    padding-block-end: 0;
+  }
+  .muestraFotos > :nth-child(2) {
+    transform: none;
+  }
+}

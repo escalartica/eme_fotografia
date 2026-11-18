@@ -125,12 +125,21 @@ const nextConfig = {
       // sitio que quien pincha un enlace con www.
       'emefotografiasevilla.com',
     ];
-    return legacyHosts.map((host) => ({
-      source: '/:path*',
-      has: [{ type: 'host', value: host }],
-      destination: `${canonical}/:path*`,
-      permanent: true,
-    }));
+    return [
+      // Las minisesiones de Navidad pasaron a ser de todo el año (18-11-2026).
+      // La dirección vieja ya se había compartido: que siga llegando.
+      {
+        source: '/mascotas/navidad',
+        destination: '/mascotas/minisesiones-solidarias',
+        permanent: true,
+      },
+      ...legacyHosts.map((host) => ({
+        source: '/:path*',
+        has: [{ type: 'host', value: host }],
+        destination: `${canonical}/:path*`,
+        permanent: true,
+      })),
+    ];
   },
 
   async headers() {

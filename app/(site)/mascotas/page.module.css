@@ -164,3 +164,38 @@
   from { scale: 1.08; }
   to { scale: 1; }
 }
+
+/* ---------- minisesiones solidarias (todo el año) ----------
+   Texto y botón a la izquierda, las dos fotos de la primera sesión (Dorian
+   y Konchu) a la derecha. En móvil, las fotos van debajo, en pareja. */
+.solidarias {
+  border-block-start: 1px solid var(--color-hairline);
+  padding-block-start: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+}
+@media (min-width: 900px) {
+  .solidarias {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--space-4);
+    align-items: center;
+  }
+}
+.solidariasTexto {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+.solidariasMuestra {
+  margin: 0;
+  max-width: 34rem;
+  font-family: var(--font-serif);
+  font-size: clamp(1.1rem, 1rem + 0.4vw, 1.3rem);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+.solidariasFotos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
