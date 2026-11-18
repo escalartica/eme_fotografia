@@ -116,6 +116,10 @@ export default function Page() {
                 <RevealWords segments={[{ text: n.muestra.titulo }]} />
               </h2>
               <p className={mini.muestraParrafo}>{n.muestra.texto}</p>
+              <a href={n.solidario.enlace.href} className={styles.secondaryCta} target="_blank" rel="noreferrer">
+                {n.solidario.enlace.texto}
+                <ArrowGlyph />
+              </a>
             </div>
             <div className={mini.muestraFotos}>
               {n.muestra.fotos.map((f) => (
@@ -128,7 +132,7 @@ export default function Page() {
                     src={f.src}
                     alt={f.alt}
                     fill
-                    sizes="(max-width: 700px) 92vw, 440px"
+                    sizes="(max-width: 700px) 92vw, 580px"
                     className={`${styles.image} ${propios.galeriaImagen}`}
                   />
                 </figure>

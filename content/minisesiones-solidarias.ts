@@ -30,8 +30,8 @@ export const minisesiones = {
   intro:
     'Turnos cortos, un fondo de color y tiempo para que tu animal no se canse. Las hace Eme, con la misma paciencia y la misma luz que pone en una boda. Plazas limitadas en cada convocatoria.',
   hero: {
-    src: '/images/mascotas/konchu-pelos-y-senales.webp',
-    alt: 'Konchu, un perro salchicha con camiseta azul, sonríe con la lengua fuera sobre fondo amarillo de Pelos y Señales',
+    src: '/images/mascotas/dorian-y-konchu-pelos-y-senales.webp',
+    alt: 'El bebé Dorian ríe sentado junto a su hermano peludo Konchu, un perro salchicha, sobre el fondo amarillo de Pelos y Señales',
   },
   /** La primera minisesión, la que sirve de muestra. Texto aprobado por charo el 18-11-2026. */
   muestra: {
@@ -57,7 +57,9 @@ export const minisesiones = {
     titulo: 'Tu sesión ayuda a otro perro',
     texto:
       'Con cada minisesión colaboras con Pelos y Señales, un proyecto de Sevilla que fotografía a perros de protectora para que una familia los vea tal como son. Lo que se recauda llega en beneficio de los perros que lo tienen más difícil.',
-    enlace: { href: 'https://pelosysenales.es', texto: 'Conoce Pelos y Señales' },
+    // pelosyseñales.com, escrito en punycode para que ningún cliente de
+    // correo o navegador se líe con la eñe del dominio.
+    enlace: { href: 'https://xn--pelosyseales-hhb.com', texto: 'Conoce Pelos y Señales en pelosyseñales.com' },
   },
   /** Datos de la convocatoria. `null` = todavía sin decidir: no se pinta. */
   detalles: {

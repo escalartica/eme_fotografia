@@ -212,10 +212,21 @@ export default function Page() {
                 en beneficio de los perros de protectora que todavía esperan casa.
               </p>
               <p className={propios.solidariasMuestra}>{minisesiones.muestra.texto}</p>
-              <Link href={minisesiones.route} className={styles.cta}>
-                Quiero ser el siguiente
-                <ArrowGlyph dir="right" />
-              </Link>
+              <div className={styles.ctaRow}>
+                <Link href={minisesiones.route} className={styles.cta}>
+                  Quiero ser el siguiente
+                  <ArrowGlyph dir="right" />
+                </Link>
+                <a
+                  href={minisesiones.solidario.enlace.href}
+                  className={styles.secondaryCta}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {minisesiones.solidario.enlace.texto}
+                  <ArrowGlyph />
+                </a>
+              </div>
             </div>
             <div className={propios.solidariasFotos}>
               {minisesiones.muestra.fotos.map((f) => (
@@ -228,7 +239,7 @@ export default function Page() {
                     src={f.src}
                     alt={f.alt}
                     fill
-                    sizes="(max-width: 700px) 46vw, 300px"
+                    sizes="(max-width: 700px) 92vw, 580px"
                     className={`${styles.image} ${propios.galeriaImagen}`}
                   />
                 </figure>

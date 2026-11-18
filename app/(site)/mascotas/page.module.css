@@ -166,36 +166,40 @@
 }
 
 /* ---------- minisesiones solidarias (todo el año) ----------
-   Texto y botón a la izquierda, las dos fotos de la primera sesión (Dorian
-   y Konchu) a la derecha. En móvil, las fotos van debajo, en pareja. */
+   Texto arriba y, debajo, las dos fotos de la primera sesión (Dorian y
+   Konchu) a todo el ancho de la caja, igual de grandes que la galería:
+   charo pidió que se vieran bien (18-11-2026). En móvil, una debajo de otra. */
 .solidarias {
   border-block-start: 1px solid var(--color-hairline);
   padding-block-start: var(--space-4);
   display: grid;
-  gap: var(--space-3);
-}
-@media (min-width: 900px) {
-  .solidarias {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    column-gap: var(--space-4);
-    align-items: center;
-  }
+  gap: var(--space-4);
 }
 .solidariasTexto {
   display: grid;
   gap: var(--space-2);
   justify-items: start;
+  max-width: 46rem;
 }
 .solidariasMuestra {
   margin: 0;
-  max-width: 34rem;
   font-family: var(--font-serif);
-  font-size: clamp(1.1rem, 1rem + 0.4vw, 1.3rem);
+  font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem);
   line-height: 1.45;
   text-wrap: pretty;
 }
 .solidariasFotos {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+@media (min-width: 700px) {
+  .solidariasFotos {
+    grid-template-columns: 1fr 1fr;
+    padding-block-end: 5rem;
+  }
+  /* Menos desfase que en la galería: aquí son dos y van juntas. */
+  .solidariasFotos > :nth-child(even) {
+    transform: translateY(5rem);
+  }
 }

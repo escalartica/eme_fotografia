@@ -30,52 +30,39 @@
   margin: 0.25rem 0 0;
 }
 
-/* La muestra: el texto a un lado y las dos fotos de Dorian y Konchu al otro,
-   la segunda desfasada hacia abajo como en la galería de /mascotas. */
+/* La muestra: el texto arriba y las dos fotos de Dorian y Konchu debajo, a
+   todo el ancho de la caja y la segunda desfasada, como en la galería de
+   /mascotas. Grandes a propósito: son la prueba de lo que uno se lleva. */
 .muestra {
   border-block-start: 1px solid var(--color-hairline);
   padding-block-start: var(--space-4);
   display: grid;
-  gap: var(--space-3);
-}
-@media (min-width: 900px) {
-  .muestra {
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-    column-gap: var(--space-4);
-    align-items: start;
-  }
-  .muestraTexto {
-    position: sticky;
-    top: var(--space-5);
-  }
+  gap: var(--space-4);
 }
 .muestraTexto {
   display: grid;
   gap: var(--space-2);
   justify-items: start;
+  max-width: 46rem;
 }
 .muestraParrafo {
   margin: 0;
   font-family: var(--font-serif);
-  font-size: clamp(1.15rem, 1rem + 0.6vw, 1.45rem);
+  font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem);
   line-height: 1.45;
   text-wrap: pretty;
 }
 .muestraFotos {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
-  padding-block-end: 4rem;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
 }
-.muestraFotos > :nth-child(2) {
-  transform: translateY(4rem);
-}
-@media (max-width: 499.98px) {
+@media (min-width: 700px) {
   .muestraFotos {
-    grid-template-columns: 1fr;
-    padding-block-end: 0;
+    grid-template-columns: 1fr 1fr;
+    padding-block-end: 5rem;
   }
-  .muestraFotos > :nth-child(2) {
-    transform: none;
+  .muestraFotos > :nth-child(even) {
+    transform: translateY(5rem);
   }
 }
