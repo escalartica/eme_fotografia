@@ -136,6 +136,31 @@ export interface Service {
   relatedCategory?: ProjectCategory;
   /** Short editorial paragraph shown under the tagline. */
   intro?: string;
+  /**
+   * Capítulo «Nuestra forma de mirar»: bloques de texto propio del servicio.
+   *
+   * Existe por SEO y por las parejas a la vez. La página medía unas 285
+   * palabras, contando menú y pie, frente a las 1.000 o más de las que salen
+   * arriba en Google para «fotógrafo de bodas Sevilla»: no había nada que
+   * leer más allá de dos listas. Todo lo que va aquí tiene que ser verdad
+   * comprobable (la trayectoria de sobre-nosotros, las preguntas frecuentes,
+   * cómo se trabaja de verdad). NUNCA un precio: el estudio da el precio a
+   * cada pareja cuando escribe, y no lo publica en la web.
+   */
+  estilo?: { titulo: string; texto: string }[];
+  /**
+   * Párrafo del capítulo «Dónde trabajamos». Debajo se enlazan los
+   * reportajes publicados de la categoría del servicio, con su lugar y año:
+   * son el enlace interno que les faltaba (31 de ellos estaban en
+   * «Descubierta: sin indexar» en Search Console).
+   */
+  zonas?: string;
+  /**
+   * Ids de content/faq.ts que responde esta página, en orden. Se pintan y
+   * van en el FAQPage de la página; las que llevan `isPendingConfirmation`
+   * se quedan fuera de las dos cosas (ver faqSchema en lib/schema.ts).
+   */
+  faqIds?: string[];
 }
 
 export type ProjectCategory = ServiceSlug;

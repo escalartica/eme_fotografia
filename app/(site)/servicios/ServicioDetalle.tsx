@@ -9,6 +9,7 @@ import { ShowreelClip } from '@/components/sections/ShowreelClip';
 import { VolverA } from '@/components/ui/VolverA';
 import styles from './page.module.css';
 import { ArrowGlyph } from '@/components/ui/ArrowGlyph';
+import { bodasDelServicio, preguntasDelServicio } from '@/lib/servicio-extra';
 
 /**
  * La página de un servicio: qué es, qué incluye, cómo se trabaja y el trabajo
@@ -65,6 +66,11 @@ export function ServicioDetalle({ service }: { service: Service }) {
   const clip = service.interludioVideo;
   const interludio = clip ? undefined : galeria[iInterludio];
   const mural = clip ? galeria : galeria.filter((_, i) => i !== iInterludio);
+  // Los capítulos de texto propio (ver `estilo`, `zonas` y `faqIds` en
+  // content/types.ts). Cada uno se pinta solo si el servicio lo declara.
+  const estilo = service.estilo ?? [];
+  const bodas = bodasDelServicio(service);
+  const preguntas = preguntasDelServicio(service);
   return (
     <ScrollReveal className={styles.revealWrap}>
       <article className={styles.servicio}>
@@ -236,6 +242,20 @@ export function ServicioDetalle({ service }: { service: Service }) {
           </figure>
         )}
 
+        {estilo.length > 0 && (
+          <section className={styles.capitulo} aria-labelledby="estilo-heading">
+            <h2 id="estilo-heading" className={styles.capituloTitulo}>Nuestra forma de mirar</h2>
+            <div className={styles.prosa}>
+              {estilo.map((b) => (
+                <div key={b.titulo} className={styles.prosaBloque}>
+                  <h3 className={styles.prosaTitulo}>{b.titulo}</h3>
+                  <p className={styles.prosaTexto}>{b.texto}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className={styles.capitulo} aria-labelledby="proceso-heading">
           <h2 id="proceso-heading" className={styles.capituloTitulo}>Cómo trabajamos</h2>
           {/* AQUÍ EL NUMERAL SÍ DICE ALGO. Esto es una secuencia: primero se
@@ -311,6 +331,48 @@ export function ServicioDetalle({ service }: { service: Service }) {
           </section>
         )}
 
+        {(service.zonas || bodas.length > 0) && (
+          <section className={styles.capitulo} aria-labelledby="zonas-heading">
+            <h2 id="zonas-heading" className={styles.capituloTitulo}>Dónde trabajamos</h2>
+            <div className={styles.prosa}>
+              {service.zonas && <p className={styles.prosaTexto}>{service.zonas}</p>}
+              {/* Enlaces de texto a cada reportaje, con su lugar y su año. El
+                  mural de arriba son fotografías sueltas sin enlace; esto es
+                  lo que lleva a Google (y a la pareja) de la página que vende
+                  a la boda que lo demuestra. Sin <ul>, como el resto de la
+                  página: ver «never renders service content as a bullet list». */}
+              {bodas.length > 0 && (
+                <div className={styles.bodas} role="list" aria-label={`Bodas publicadas: ${service.name}`}>
+                  {bodas.map((p) => (
+                    <div key={p.slug} role="listitem" className={styles.bodaFila}>
+                      <Link href={`/trabajos/${p.slug}`} className={styles.bodaEnlace}>
+                        {p.title}
+                      </Link>
+                      <span className={styles.bodaDato}>
+                        {p.location} · {p.year}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {preguntas.length > 0 && (
+          <section className={styles.capitulo} aria-labelledby="preguntas-heading">
+            <h2 id="preguntas-heading" className={styles.capituloTitulo}>Lo que nos preguntáis</h2>
+            <div className={styles.prosa}>
+              {preguntas.map((f) => (
+                <div key={f.id} className={styles.prosaBloque}>
+                  <h3 className={styles.prosaTitulo}>{f.question}</h3>
+                  <p className={styles.prosaTexto}>{f.answer}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         <div className={styles.cierreFicha}>
           <div className={styles.ctaRow}>
             <Link href="/contacto" className={styles.cta}>
@@ -324,6 +386,13 @@ export function ServicioDetalle({ service }: { service: Service }) {
               </Link>
             )}
           </div>
+          {/* El paso de bodas a mascotas: la misma fotógrafa, y la familia
+              que se casa suele tener perro. Es además el único enlace desde
+              las páginas que más se visitan hacia la línea nueva. */}
+          <p className={styles.mascotasNota}>
+            ¿Y el de cuatro patas? También fotografiamos mascotas y familias con su mascota, en{' '}
+            <Link href="/mascotas">Eme &amp; Compañía</Link>.
+          </p>
         </div>
       </article>
     </ScrollReveal>

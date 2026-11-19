@@ -171,6 +171,24 @@ describe.each(services.map((s) => [s.slug, s] as const))('ServicioDetalle (%s)',
     expect((service.gallery ?? []).map((g) => g.src)).not.toContain(clip.poster);
   });
 
+  it('trae texto propio: forma de mirar, dónde trabajamos y preguntas, con enlaces a cada boda', () => {
+    render(<ServicioDetalle service={service} />);
+    for (const b of service.estilo ?? []) {
+      expect(screen.getByRole('heading', { level: 3, name: b.titulo })).toBeInTheDocument();
+    }
+    expect(screen.getByRole('heading', { level: 2, name: 'Dónde trabajamos' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Lo que nos preguntáis' })).toBeInTheDocument();
+    const lista = screen.getByRole('list', { name: /Bodas publicadas/ });
+    const enlaces = within(lista).getAllByRole('link');
+    expect(enlaces.length).toBeGreaterThan(0);
+    for (const a of enlaces) expect(a.getAttribute('href')).toMatch(/^\/trabajos\/[a-z0-9-]+$/);
+  });
+
+  it('enlaza la línea de mascotas', () => {
+    render(<ServicioDetalle service={service} />);
+    expect(screen.getByRole('link', { name: 'Eme & Compañía' })).toHaveAttribute('href', '/mascotas');
+  });
+
   it('links back up to the services index', () => {
     // Sin migas visibles en el sitio, este enlace es la única vuelta al padre
     // desde una página hija.
