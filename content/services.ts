@@ -16,8 +16,12 @@ export const services: Service[] = [
     // 153 caracteres, por debajo del recorte de clampDescription: la
     // anterior medía 173 y el fragmento se quedaba en la primera frase, o
     // sea sin la parte que nombraba Sevilla.
+    // 139 caracteres. La anterior empezaba por «Qué incluye el reportaje» y
+    // no decía Sevilla en ninguna parte: en el resultado de Google, para una
+    // búsqueda local, el fragmento no confirmaba que fuera un fotógrafo de
+    // aquí. Ahora lo dice en las primeras palabras.
     metaDescription:
-      'Qué incluye el reportaje: la boda entera, de los preparativos al último baile, con galería privada para los invitados y preboda o álbum según el pack.',
+      'Fotógrafos de boda en Sevilla y Andalucía: la boda entera, de los preparativos al último baile, sin posados forzados y con galería privada.',
     tagline: 'Desde los preparativos a la locura del último baile. Fotografía sin posados.',
     intro:
       'Cerca de vosotros y sin interrumpir nada. Buscamos la mirada que se cruza, la abuela que se emociona, la luz de las siete de la tarde en el patio. Nada de eso se puede encargar: hay que estar delante cuando pasa.',
@@ -69,6 +73,31 @@ export const services: Service[] = [
       { step: 4, title: 'Entrega', description: 'Un adelanto en los días siguientes y la galería privada completa entre tres y seis meses después. Si lleváis álbum, lo montamos con la selección que hagáis desde ahí.' },
     ],
     ctaLabel: 'Reservar fecha',
+    estilo: [
+      {
+        titulo: 'De dónde viene la mirada',
+        texto:
+          'Eme, María Leal, viene del fotoperiodismo en El Correo de Andalucía y de la fotografía de conciertos. De ahí sale cómo trabajamos una boda: el instante bueno dura medio segundo y no avisa, así que no se pide que se repita, se anticipa. Por eso no hacemos posados tradicionales. El retrato de pareja existe, pero son unos minutos tranquilos con la mejor luz del sitio; el resto del día lo contamos como un documental, con principio, tensión y final.',
+      },
+      {
+        titulo: 'La luz de Sevilla manda',
+        texto:
+          'En primavera y en otoño la tarde se alarga y da los retratos más bonitos del año. En pleno verano, a mediodía, el sol es duro: hay que buscar sombra, patios y la última hora de la tarde. Lo tenemos en cuenta cuando planificamos el horario con vosotros, porque a veces basta con mover veinte minutos el paseo para que las fotos cambien por completo. Y miramos también el plan B si llueve: qué espacios cubiertos tiene el sitio y a qué hora conviene mover cada cosa.',
+      },
+      {
+        titulo: 'Un mismo color, de la primera foto a la última',
+        texto:
+          'Os entregamos todas las fotos del reportaje editadas, no una selección de diez, y todas con el mismo color: el que veis en esta web, con pieles naturales y el blanco y negro solo cuando el momento lo pide. Si contratáis también el vídeo, la película lleva ese mismo color, porque la hace el mismo equipo de cinco personas.',
+      },
+      {
+        titulo: 'Lo que dicen las parejas',
+        texto:
+          'Más de 300 parejas nos han confiado su boda. En Bodas.net tenemos la puntuación máxima, 5,0 con más de 60 opiniones verificadas, y los Wedding Awards de 2019, 2021, 2022, 2023 y 2025. Lo que más se repite en esas opiniones es lo mismo que buscamos: que os sintáis cómodos delante de la cámara desde la preboda y que el día de la boda no tengáis que pensar en nosotros.',
+      },
+    ],
+    zonas:
+      'Nuestra base está en La Algaba, junto a Sevilla. La mayoría de nuestras bodas son en Sevilla capital y su provincia: haciendas y cortijos, iglesias del centro, la Sierra de Sevilla o Utrera, y prebodas por Santa Cruz y el Real Alcázar. También trabajamos en toda Andalucía (Cádiz, Huelva, Córdoba, Málaga, Granada, Jaén y Almería) y fuera de ella, con el desplazamiento incluido en el presupuesto desde el principio. Estas son algunas de las bodas que hemos contado, completas:',
+    faqIds: ['precio', 'disponibilidad', 'ver-boda-entera', 'cuantos-sois', 'galeria', 'preboda'],
   },
   {
     slug: 'video',
@@ -169,5 +198,25 @@ export const services: Service[] = [
       { step: 4, title: 'Entrega', description: 'La película completa en alta resolución, entre seis meses y un año. Si lleváis tráiler, ése llega antes.' },
     ],
     ctaLabel: 'Consultar disponibilidad',
+    estilo: [
+      {
+        titulo: 'El mismo equipo que las fotos',
+        texto:
+          'La película la graba el mismo equipo que hace el reportaje de fotos. Eso se nota el día de la boda, porque no hay dos proveedores que no se conocen peleando por el mismo sitio en la ceremonia, y se nota después: la película y las fotos comparten color y forma de mirar. Venimos del fotoperiodismo y de la fotografía de conciertos, y rodamos igual que fotografiamos, atentos a lo que pasa y sin interrumpirlo.',
+      },
+      {
+        titulo: 'Montada sobre la música',
+        texto:
+          'Primero elegimos la música, con licencia, pensando en vuestra boda; después montamos encima, plano a plano. Por eso la película tiene ritmo de película y no de grabación de la ceremonia de principio a fin. Si queréis que se oigan los votos, los discursos o el ambiente del día, se puede añadir: solo hay que decirlo antes de la boda, porque cambia cómo grabamos el sonido.',
+      },
+      {
+        titulo: 'El dron, cuando suma',
+        texto:
+          'Los planos aéreos enseñan lo que desde el suelo no se ve: la hacienda entera abriéndose al campo, la llegada, el sitio en su paisaje. Los usamos como complemento, nunca como el grueso de la película. Antes de contar con ellos comprobamos el espacio aéreo del lugar, porque hay fincas cerca de aeropuertos o de espacios protegidos donde no se puede volar, y en ese caso os lo decimos desde el principio.',
+      },
+    ],
+    zonas:
+      'Rodamos sobre todo en Sevilla y su provincia, desde nuestra base en La Algaba: haciendas, cortijos e iglesias, del centro de la ciudad a la Sierra. También en toda Andalucía (Cádiz, Huelva, Córdoba, Málaga, Granada, Jaén y Almería) y fuera de ella, con el desplazamiento incluido en el presupuesto desde el principio. Estas son algunas de las bodas que hemos contado en vídeo:',
+    faqIds: ['precio', 'foto-y-video', 'entrega', 'disponibilidad', 'cuantos-sois'],
   },
 ];

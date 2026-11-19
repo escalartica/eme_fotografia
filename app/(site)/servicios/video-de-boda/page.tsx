@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { services } from '@/content/services';
-import { breadcrumbSchema, jsonLd } from '@/lib/schema';
+import { breadcrumbSchema, faqSchema, jsonLd } from '@/lib/schema';
+import { preguntasDelServicio } from '@/lib/servicio-extra';
 import { buildMetadata, ogImage } from '@/lib/seo';
 import { ServicioDetalle } from '../ServicioDetalle';
 import styles from '../page.module.css';
@@ -45,6 +46,14 @@ export default function Page() {
           ),
         }}
       />
+      {/* Las preguntas que la página enseña, y solo esas: lo que se marca
+          para Google tiene que poder leerse en la página. */}
+      {preguntasDelServicio(service).length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema(preguntasDelServicio(service))) }}
+        />
+      )}
       <ServicioDetalle service={service} />
     </div>
   );
